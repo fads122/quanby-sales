@@ -1,0 +1,227 @@
+<app-sidebar></app-sidebar>
+<div class="dashboard-container">
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <!-- Total Suppliers Card -->
+    <div class="summary-card">
+      <div class="card-header">
+        <div class="card-icon bg-indigo-50 text-indigo-600">
+          <i class="fas fa-truck"></i>
+        </div>
+        <h3 class="card-value">{{ totalSuppliers }}</h3>
+      </div>
+      <p class="card-label">Total Suppliers</p>
+      <a href="/supplier-list/" class="card-link">
+        View All
+        <i class="fas fa-chevron-right"></i>
+      </a>
+    </div>
+
+    <!-- Total Equipment Card -->
+    <div class="summary-card">
+      <div class="card-header">
+        <div class="card-icon bg-blue-50 text-blue-600">
+          <i class="fas fa-boxes"></i>
+        </div>
+        <h3 class="card-value">{{ totalEquipment }}</h3>
+      </div>
+      <p class="card-label">Total Products</p>
+      <a href="/equipment-list/" class="card-link">
+        View All
+        <i class="fas fa-chevron-right"></i>
+      </a>
+    </div>
+
+    <!-- Borrowed Equipment Card -->
+    <div class="summary-card">
+      <div class="card-header">
+        <div class="card-icon bg-green-50 text-green-600">
+          <i class="fas fa-box-open"></i>
+        </div>
+        <h3 class="card-value">{{ borrowedEquipment }}</h3>
+      </div>
+      <p class="card-label">Borrowed</p>
+      <a href="/borrow-table-user/" class="card-link">
+        View All
+        <i class="fas fa-chevron-right"></i>
+      </a>
+    </div>
+
+    <!-- Used in Projects Card -->
+    <div class="summary-card">
+      <div class="card-header">
+        <div class="card-icon bg-purple-50 text-purple-600">
+          <i class="fas fa-tools"></i>
+        </div>
+        <h3 class="card-value">{{ usedInProjects }}</h3>
+      </div>
+      <p class="card-label">Used in Projects</p>
+      <a href="/project-materials/" class="card-link">
+        View All
+        <i class="fas fa-chevron-right"></i>
+      </a>
+    </div>
+
+    <!-- Low Stock Card -->
+    <!-- <div class="summary-card warning">
+      <div class="card-header">
+        <div class="card-icon bg-amber-50 text-amber-600">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 class="card-value">{{ lowStockCount }}</h3>
+      </div>
+      <p class="card-label">Low Stock</p>
+      <a class="card-link">
+        View Details
+        <i class="fas fa-chevron-right"></i>
+      </a>
+    </div> -->
+  </div>
+
+  <!-- Chart Section -->
+ <!-- Chart Section -->
+<div class="chart-section modern-card">
+  <div class="section-header">
+    <div class="header-content">
+      <h2>Cost History Analysis</h2>
+      <p class="subtitle">Track price trends and supplier comparisons</p>
+    </div>
+    <div class="chart-controls">
+      <div class="select-wrapper">
+        <i class="fas fa-filter"></i>
+        <select (change)="onEquipmentChange($event)" class="form-select">
+          <option value="">Select Model</option>
+          <option *ngFor="let equipment of equipmentList" [value]="equipment.model">
+            {{ equipment.model }}
+            <span *ngIf="equipment.model !== equipment.name">({{ equipment.name }})</span>
+          </option>
+        </select>
+      </div>
+      <button class="export-btn" (click)="exportChartData()">
+        <i class="fas fa-download"></i> Export
+      </button>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <div class="chart-legend">
+      <div *ngFor="let supplier of selectedEquipmentSuppliers; let i = index"
+           class="legend-item"
+           [class.active]="selectedSuppliers.includes(supplier.id)"
+           (click)="toggleSupplierSelection(supplier.id)">
+        <span class="legend-color" [style.background]="supplierColors[i]"></span>
+        <span class="legend-label">{{ supplier.name }}</span>
+        <span class="legend-value" *ngIf="getLatestSupplierPrice(supplier.id)">
+          <!-- ₱{{ getLatestSupplierPrice(supplier.id) | number }} -->
+        </span>
+      </div>
+      <div class="legend-item srp-legend">
+        <span class="legend-color" style="background: #DA5B96"></span>
+        <span class="legend-label">Your Retail Price (SRP)</span>
+        <span class="legend-value" *ngIf="getLatestSrpPrice()">
+          ₱{{ getLatestSrpPrice() | number }}
+        </span>
+      </div>
+    </div>
+
+    <div class="chart-wrapper">
+      <canvas id="costChart"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-footer">
+    <div class="timeframe-selector">
+      <!-- <button *ngFor="let option of timeframeOptions"
+              [class.active]="selectedTimeframe === option.value"
+              (click)="changeTimeframe(option.value)">
+        {{ option.label }}
+      </button> -->
+    </div>
+    <div class="chart-stats">
+      <div class="stat-item" *ngIf="priceChangePercentage !== null">
+        <span class="stat-label">Price Change</span>
+        <span class="stat-value" [class.positive]="priceChangePercentage >= 0"
+                             [class.negative]="priceChangePercentage < 0">
+          {{ priceChangePercentage >= 0 ? '+' : '' }}{{ priceChangePercentage | number:'1.0-2' }}%
+        </span>
+      </div>
+      <!-- <div class="stat-item">
+        <span class="stat-label">Current Avg. Price</span>
+        <span class="stat-value">₱{{ currentAveragePrice | number }}</span>
+      </div> -->
+    </div>
+  </div>
+</div>
+
+  <!-- Recent Activities Section -->
+  <div class="activities-section">
+    <div class="section-header">
+      <h2>Recent Activities</h2>
+      <div class="activity-filters">
+        <div class="search-input">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search activities..." [(ngModel)]="filter.message" (input)="applyActivityFilter()">
+        </div>
+        <div class="date-range">
+          <input type="date" [(ngModel)]="filter.startDate" (change)="applyActivityFilter()">
+          <span>to</span>
+          <input type="date" [(ngModel)]="filter.endDate" (change)="applyActivityFilter()">
+        </div>
+      </div>
+    </div>
+
+    <div class="activities-list">
+      <div *ngIf="recentActivities.length === 0" class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>No recent activities found</p>
+      </div>
+
+      <div class="activity-item" *ngFor="let activity of paginatedActivities">
+        <div class="activity-icon" [ngClass]="getActivityTypeClass(activity.type)">
+          <i [class]="getActivityIcon(activity.type)"></i>
+        </div>
+        <div class="activity-details">
+          <p class="activity-message">{{ activity.message }}</p>
+          <div class="activity-meta">
+            <span class="activity-time">
+              <i class="fas fa-clock"></i>
+              {{ activity.timestamp | date:'MMM d, yyyy - h:mm a' }}
+            </span>
+            <span class="activity-user" *ngIf="activity.user">
+              <i class="fas fa-user"></i>
+              {{ activity.user }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="activities-footer">
+      <button class="btn btn-primary" (click)="printRecentActivities()">
+        <i class="fas fa-print"></i> Print Report
+      </button>
+
+      <div class="pagination">
+        <button (click)="goToPage(0)" [disabled]="currentPage === 0">
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button (click)="prevPage()" [disabled]="currentPage === 0">
+          <i class="fas fa-angle-left"></i>
+        </button>
+
+        <button *ngFor="let page of totalPagesArray; let i = index"
+                [class.active]="currentPage === i"
+                (click)="goToPage(i)">
+          {{ i + 1 }}
+        </button>
+
+        <button (click)="nextPage()" [disabled]="currentPage >= totalPages - 1">
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button (click)="goToPage(totalPages - 1)" [disabled]="currentPage >= totalPages - 1">
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

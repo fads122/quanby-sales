@@ -1,0 +1,97 @@
+<div class="layout-container">
+  <app-sidebar></app-sidebar>
+
+  <div class="main-content">
+    <div class="content-container">
+      <div class="header-section">
+        <h1>Client Directory</h1>
+        <p class="subtitle">Manage your client relationships</p>
+      </div>
+
+      <div class="mb-4 table-controls">
+        <p-button type="button" icon="pi pi-refresh" (click)="loadProjects()" label="Refresh" [loading]="loading"
+                 styleClass="p-button-text" />
+      </div>
+
+      <div class="card">
+        <p-table
+          [value]="clientGroups"
+          [paginator]="true"
+          [rows]="rows"
+          [first]="first"
+          [showCurrentPageReport]="true"
+          [tableStyle]="{ 'min-width': '100%' }"
+          currentPageReportTemplate="Showing {first} to {last} of {totalRecords} clients"
+          (onPage)="pageChange($event)"
+          [rowsPerPageOptions]="[5,10,20,50]"
+          [loading]="loading"
+          styleClass="p-datatable-sm p-datatable-striped"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width:25%; padding-left: 1.5rem">Client</th>
+              <th style="width:20%">Contact</th>
+              <th style="width:25%">Address</th>
+              <th style="width:15%">Projects</th>
+              <th style="width:15%">Actions</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-clientGroup>
+            <tr>
+              <td style="padding-left: 1.5rem">
+                <div class="client-info">
+                  <span class="client-name">{{clientGroup.client_name}}</span>
+                  <span class="client-email">{{clientGroup.client_email || 'No email'}}</span>
+                </div>
+              </td>
+              <td>{{clientGroup.client_phone || 'Not provided'}}</td>
+              <td>{{clientGroup.client_address || 'Not provided'}}</td>
+              <td class="text-center">
+                <p-tag [value]="clientGroup.projects.length"
+                      [severity]="getProjectCountSeverity(clientGroup.projects.length)"
+                      styleClass="project-count-tag">
+                </p-tag>
+              </td>
+              <td class="text-center">
+                <div class="action-buttons">
+                  <button pButton icon="pi pi-eye" style="margin-right: 100px;"
+                          class="p-button-sm p-button-rounded p-button-text"
+                          (click)="showClientDetails(clientGroup)"
+                          tooltip="View details" tooltipPosition="top">
+                  </button>
+                  <!-- <button pButton icon="pi pi-ellipsis-h" style="margin-right: 50px;"
+                          class="p-button-sm p-button-rounded p-button-text"
+                          tooltip="More actions" tooltipPosition="top">
+                  </button> -->
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="paginatorleft">
+            <p-button type="button" icon="pi pi-plus" text tooltip="Add new client" tooltipPosition="top" />
+          </ng-template>
+
+          <ng-template pTemplate="paginatorright">
+            <p-button type="button" icon="pi pi-cog" text tooltip="Table settings" tooltipPosition="top" />
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="5" class="text-center py-4">
+                <div *ngIf="!loading" class="empty-message">
+                  <i class="pi pi-inbox" style="font-size: 2rem"></i>
+                  <p>No clients found</p>
+                  <!-- <p-button label="Add New Client" icon="pi pi-plus"
+                          styleClass="p-button-sm p-button-text">
+                  </p-button> -->
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+</div>

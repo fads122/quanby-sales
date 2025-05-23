@@ -1,0 +1,98 @@
+<app-sidebar></app-sidebar>
+
+<div class="saved-equipment-container">
+  <!-- If no saved equipment -->
+    <div *ngIf="savedEquipment.length === 0" class="empty-message">
+      <p>No saved equipment found.</p>
+    </div>
+
+  <!-- Equipment Grid Layout -->
+  <div class="equipment-grid">
+    <div class="equipment-card" *ngFor="let entry of savedEquipment" (click)="openDetailsModal(entry)">
+      <!-- Card Header with Title and Delete Button -->
+        <div class="card-header">
+        <h3 class="equipment-title">{{ entry.title }}</h3>
+        <!-- ✅ Fix: Added $event.stopPropagation() to prevent opening modal -->
+        <button class="clear-button" (click)="openDeleteModal(entry, $event)">
+      <i class="pi pi-trash"></i>
+    </button>
+  </div>
+
+  <p class="saved-date">Saved on {{ entry.timestamp | date: 'short' }}</p>
+
+  <div class="card-body">
+    <!-- ✅ Show only first 2 grouped items -->
+      <div class="equipment-item" *ngFor="let item of entry.groupedItems.slice(0, 2)">
+        <img [src]="item.image || '/assets/no-image.png'" alt="{{ item.name }}" class="equipment-image"/>
+          <div class="equipment-details">
+            <h4>{{ item.name }}</h4>
+              <p>Quantity: <span class="text-blue">{{ item.quantity }}</span></p>
+            <p>Price: <span class="text-red"> {{ item.actual_cost | currency: 'PHP' }}</span></p>
+            <p>Supplier Cost: <span class="text-green">{{ item.supplier_cost | currency: 'PHP' }}</span></p>
+            <p>Supplier: {{ item.supplier }}</p> <!-- Display supplier -->
+            <p>Brand: {{ item.brand }}</p>
+          </div>
+        </div>
+      <!-- Show "+ more" if there are more than 2 items -->
+    <p *ngIf="entry.groupedItems.length > 2" class="more-text">+{{ entry.groupedItems.length - 2 }} more...</p>
+  </div>
+
+</div>
+</div>
+</div>
+
+<!-- ✅ Modal for Full Equipment Details -->
+<div class="details-modal-overlay" *ngIf="showDetailsModal">
+  <div class="details-modal">
+      <!-- ✅ Close Button Inside the Modal -->
+        <button class="modal-close-button" (click)="closeDetailsModal()">
+      <i class="pi pi-times"></i>
+    </button>
+  <h2 class="modal-title">Saved Equipment Details</h2>
+<p>Saved on: {{ selectedEntry.timestamp | date: 'short' }}</p>
+
+<!-- ✅ Equipment List with Grid Layout (4 per row) -->
+<div class="modal-body">
+  <div class="details-equipment-grid">
+    <div class="equipment-item" *ngFor="let item of selectedEntry.groupedItems">
+      <img [src]="item.image || '/assets/no-image.png'" alt="{{ item.name }}" class="equipment-image"/>
+        <div class="equipment-details">
+          <h4>{{ item.name }}</h4>
+          <p>Quantity: <span class="text-blue">{{ item.quantity }}</span></p>
+          <p>Price: <span class="text-red">{{ item.actual_cost | currency: 'PHP' }}</span></p>
+          <p>Supplier Cost: <span class="text-green">{{ item.supplier_cost | currency: 'PHP' }}</span></p>
+          <p>Total: <span class="text-red">{{ (item.actual_cost * item.quantity) | currency: 'PHP' }}</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ Total Price Section -->
+  <div class="modal-total">
+    <strong>Total Price: <span class="text-red">{{ getTotalPrice() | currency: 'PHP' }}</span></strong>
+  </div>
+
+  <!-- ✅ Export to PDF Button -->
+  <div class="modal-buttons">
+    <button class="export-button" (click)="exportToPDF(selectedEntry)">Export to PDF</button>
+      </div>
+    </div>
+  </div>
+
+<!-- ✅ Delete Confirmation Modal (Separate) -->
+<div class="delete-modal-overlay" *ngIf="showDeleteModal">
+  <div class="delete-modal">
+
+    <!-- ❌ Close Button (Top Right) -->
+<button class="modal-close-button" (click)="closeDeleteModal()">
+  <i class="pi pi-times"></i>
+</button>
+<h2 class="modal-title">❗ Confirm Delete</h2>
+<p class="modal-text">Are you sure you want to delete this saved equipment?</p>
+
+<div class="modal-buttons">
+  <button class="cancel-button" (click)="closeDeleteModal()">Cancel</button>
+  <button class="confirm-button" (click)="confirmDelete()">Delete</button>
+</div>
+</div>
+</div>

@@ -1,0 +1,294 @@
+<app-sidebar></app-sidebar>
+<body class="body-equip-list">
+  <div class="equipment-list-container" [@tableSwitch]="tableSwitchState">
+    <!-- Table Controls -->
+    <div class="table-controls">
+      <div class="table-selector">
+        <button
+          [class.active]="selectedTable === 'equipments'"
+          (click)="onTableChange('equipments')">
+          <i class="fas fa-tag"></i> For Sale
+        </button>
+        <button
+          [class.active]="selectedTable === 'inhouse'"
+          (click)="onTableChange('inhouse')">
+          <i class="fas fa-warehouse"></i> Operational
+        </button>
+      </div>
+
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (input)="applyFilter()"
+          [placeholder]="selectedTable === 'inhouse' ? 'Search operational items...' : 'Search for sale items...'"
+        />
+      </div>
+
+      <button class="add" (click)="openEquipmentModal()">
+        <i class="fas fa-plus"></i> Add Equipment
+      </button>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div *ngIf="isLoading" class="loading-overlay" @fadeInOut>
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <h3>Loading {{ selectedTable === 'inhouse' ? 'Operational' : 'For Sale' }} Equipment</h3>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div *ngIf="!isLoading" @fadeInOut>
+      <!-- Table Header -->
+      <div class="table-header">
+        <h3>
+          {{ selectedTable === 'inhouse' ? 'Operational Equipment' : 'Equipment For Sale' }}
+          <span class="item-count">{{ filteredEquipmentList.length }} items</span>
+        </h3>
+      </div>
+
+      <!-- Equipment Table -->
+      <div class="table-container">
+        <p-table [value]="filteredEquipmentList" [paginator]="true" [rows]="6" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Equipment Group</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-equipmentGroup>
+            <tr class="group-header" (click)="toggleGroupExpansion(equipmentGroup)">
+              <td class="group-name">
+                <div class="group-name-content">
+                  <i class="fas"
+                    [class.fa-chevron-right]="!equipmentGroup.expanded"
+                    [class.fa-chevron-down]="equipmentGroup.expanded"></i>
+                  <div class="equipment-icon">
+                    <i class="fas"
+                      [class.fa-desktop]="selectedEquipmentType !== 'pc_parts'"
+                      [class.fa-microchip]="selectedEquipmentType === 'pc_parts'"></i>
+                  </div>
+                  <div>
+                    <div class="primary-text">{{ equipmentGroup.name }}</div>
+                    <div class="secondary-text">
+                      {{ equipmentGroup.items.length }} variants •
+                      Last updated: {{ equipmentGroup.lastUpdated | date:'shortDate' }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Expanded Sub-Table -->
+            <tr [@expandCollapse]="equipmentGroup.expanded ? 'expanded' : 'collapsed'"
+                [class.expanded-row]="equipmentGroup.expanded">
+              <td colspan="6" class="sub-table-container">
+                <div class="inner-table-wrapper" *ngIf="equipmentGroup.expanded">
+                  <table class="inner-table">
+                    <thead>
+                      <tr>
+                        <th>Specifications</th>
+                        <th *ngIf="selectedTable === 'equipments'">Supplier Info</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of equipmentGroup.items" [class.low-stock-row]="item.quantity <= 5">
+                        <td class="specs">
+                          <div><strong>Model:</strong> {{ item.model || '-' }}</div>
+                          <div *ngIf="selectedTable === 'equipments'"><strong>Brand:</strong> {{ item.brand || '-' }}</div>
+                          <div *ngIf="selectedTable === 'inhouse'"><strong>Type:</strong> {{ item.product_type || '-' }}</div>
+                          <div *ngIf="selectedTable === 'inhouse' && item.serial_number">
+                            <strong>Serial:</strong> {{ item.serial_number }}
+                          </div>
+                        </td>
+                        <td *ngIf="selectedTable === 'equipments'" class="supplier">
+                          <div>{{ item.supplier || '-' }}</div>
+                          <div class="cost" *ngIf="item.supplier_cost">
+                            {{ item.supplier_cost | currency }}
+                          </div>
+                        </td>
+                        <td>
+                          <div class="status-cell">
+                            <span class="status-badge" [ngClass]="'status-' + (item.status?.toLowerCase() || 'available')">
+                              {{ item.status || 'Available' }}
+                            </span>
+                            <div class="quantity" [class.low-stock]="item.quantity <= 5">
+                              {{ item.quantity }} in stock
+                            </div>
+                          </div>
+                        </td>
+                        <td class="actions-cell">
+                          <div class="action-buttons">
+                            <!-- QR Code and Barcode buttons for operational equipment -->
+                            <button *ngIf="selectedTable === 'inhouse' && item.qr_code"
+                                    pButton type="button" icon="pi pi-qrcode"
+                                    (click)="openQRCodeModal(item.qr_code)"
+                                    class="p-button-sm p-button-rounded p-button-text action-btn qr-btn"
+                                    pTooltip="View QR Code" tooltipPosition="top"></button>
+
+                            <button *ngIf="item.barcode"
+                                    pButton type="button"
+                                    icon="pi pi-barcode"
+                                    (click)="openBarcodeModal(item.barcode)"
+                                    class="p-button-sm p-button-rounded p-button-text action-btn barcode-btn"
+                                    pTooltip="View Barcode"
+                                    tooltipPosition="top">
+                            </button>
+
+                            <button pButton type="button" icon="pi pi-eye"
+                                  (click)="viewEquipmentDetails(item.id)"
+                                  class="p-button-sm p-button-rounded p-button-text action-btn view-btn"
+                                  pTooltip="View Details" tooltipPosition="top"></button>
+
+                            <button pButton type="button" icon="pi pi-pencil"
+                                    (click)="editEquipment(item)"
+                                    class="p-button-sm p-button-rounded p-button-text action-btn edit-btn"
+                                    pTooltip="Edit" tooltipPosition="top"></button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="3" class="empty-table">
+                <div class="empty-state">
+                  <i class="fas fa-box-open empty-icon"></i>
+                  <h3>No Equipment Found</h3>
+                  <p>Try adjusting your search or add new equipment</p>
+                  <button class="add" (click)="openEquipmentModal()">
+                    <i class="fas fa-plus"></i> Add Product
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div class="modal-overlay" *ngIf="isQRCodeModalOpen" (click)="closeQRCodeModal()">
+      <div class="modal-content qr-modal" (click)="$event.stopPropagation()">
+        <h2 class="modal-title">QR Code</h2>
+        <img *ngIf="selectedQRCode" [src]="selectedQRCode" alt="QR Code" class="qr-image">
+        <p *ngIf="!selectedQRCode">No QR Code available</p>
+        <div class="modal-actions">
+          <button class="close-btn" (click)="closeQRCodeModal()">Close</button>
+          <button class="print-btn" *ngIf="selectedQRCode" (click)="printQRCode()">Print</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barcode Modal -->
+    <div class="modal-overlay" *ngIf="isBarcodeModalOpen" (click)="closeBarcodeModal()">
+      <div class="modal-content barcode-modal" (click)="$event.stopPropagation()">
+        <h2 class="modal-title">Barcode</h2>
+        <img *ngIf="selectedBarcode" [src]="selectedBarcode" alt="Barcode" class="barcode-image">
+        <p *ngIf="!selectedBarcode">No Barcode available</p>
+        <div class="modal-actions">
+          <button class="close-btn" (click)="closeBarcodeModal()">Close</button>
+          <button class="print-btn" *ngIf="selectedBarcode" (click)="printBarcode()">Print</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scanned Equipment Modal -->
+    <div class="scanned-equipment-modal-overlay" *ngIf="isScannedEquipmentModalOpen" (click)="closeScannedEquipmentModal()">
+      <div class="scanned-equipment-modal" (click)="$event.stopPropagation()">
+        <h2 class="modal-title">Scanned Equipment Details</h2>
+        <div *ngIf="scannedData" class="scanned-details">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Name:</label>
+              <span>{{ scannedData.name }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Model:</label>
+              <span>{{ scannedData.model || scannedData.product_type || '-' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Brand:</label>
+              <span>{{ scannedData.brand || '-' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Serial Number:</label>
+              <span>{{ scannedData.serial_no || scannedData.serial_number || '-' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Lifespan:</label>
+              <span>{{ scannedData.lifespan_months || '-' }} months</span>
+            </div>
+            <div class="detail-item">
+              <label>Condition:</label>
+              <span>{{ scannedData.condition || '-' }}</span>
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <h4>Additional Information</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Supplier:</label>
+              <span>{{ scannedData.supplier || '-' }}</span>
+            </div>
+            <div *ngIf="selectedTable === 'equipments'" class="detail-item">
+              <label>Supplier Cost:</label>
+              <span>{{ scannedData.supplier_cost | currency }}</span>
+            </div>
+            <div *ngIf="selectedTable === 'equipments'" class="detail-item">
+              <label>SRP:</label>
+              <span>{{ scannedData.srp | currency }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Quantity:</label>
+              <span [class.low-stock]="scannedData.quantity <= 5">{{ scannedData.quantity }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Date Acquired:</label>
+              <span>{{ scannedData.date_acquired | date }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="scannedData.repair_logs?.length > 0" class="repair-section">
+            <h4>Repair History</h4>
+            <div class="repair-log" *ngFor="let log of scannedData.repair_logs">
+              <div class="log-date">{{ log.repair_date | date }}</div>
+              <div class="log-details">{{ log.repair_details }}</div>
+              <div class="log-status" [ngClass]="'status-' + log.repair_status?.toLowerCase()">
+                {{ log.repair_status }}
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="scannedData.product_images?.length" class="image-section">
+            <h4>Product Images</h4>
+            <div class="image-gallery">
+              <img *ngFor="let image of scannedData.product_images"
+                  [src]="image"
+                  alt="Product Image"
+                  class="product-image"
+                  (click)="openImagePreview(image)">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="close-btn" (click)="closeScannedEquipmentModal()">
+            <i class="fas fa-times"></i> Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>

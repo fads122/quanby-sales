@@ -1,0 +1,117 @@
+<app-sidebar></app-sidebar>
+<body>
+  <!-- ✅ Borrow Item & Search Container -->
+  <!-- After (button is moved to the end) -->
+<div class="flex justify-between items-center mb-4">
+  <!-- 🔍 Search First -->
+  <span class="p-input-icon-left">
+    <i class="pi pi-search"></i>
+    <input type="text" class="sirch" pInputText placeholder="   Search Borrower Department"
+      [(ngModel)]="searchTerm" (input)="filterBorrowRequests()" />
+  </span>
+
+  <!-- ➕ Button Last (now right-aligned) -->
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+   <button class="p-button custom-borrow-button" (click)="goToBorrowForm()">
+    <i class="pi pi-plus"></i> Borrow Item
+  </button>
+</div>
+  <br>
+
+  <!-- ✅ PrimeNG Table -->
+  <p-table #dt [value]="filteredBorrowRequests" [paginator]="true" [rows]="7" [rowsPerPageOptions]="[7,10,15,20]"
+    [responsiveLayout]="'scroll'" [globalFilterFields]="['borrower_name', 'borrower_department']"
+    [sortField]="'borrow_date'" [sortOrder]="-1"> <!-- Default sort by borrow_date descending -->
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="borrower_name">Borrower Name</th>
+        <th pSortableColumn="borrower_department">Department/Location <p-sortIcon field="borrower_department"></p-sortIcon></th>
+        <th pSortableColumn="borrow_date">Borrow Date <p-sortIcon field="borrow_date"></p-sortIcon></th>
+        <th pSortableColumn="return_date">Return Date <p-sortIcon field="return_date"></p-sortIcon></th>
+        <th>Action</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-request>
+      <tr (click)="openDetailsModal(request)" class="clickable-row">
+        <td>{{ request.borrower_name }}</td>
+        <td>{{ request.borrower_department }}</td>
+        <td>{{ request.borrow_date }}</td>
+        <td>{{ request.return_date }}</td>
+        <td>
+          <button *ngIf="request.status !== 'Returned' && request.status !== 'returned'"
+                  class="p-button p-button-success p-button-sm"
+                  (click)="markAsReturned(request.id); $event.stopPropagation();">
+            Return
+          </button>
+          <span *ngIf="request.status?.toLowerCase() === 'returned'" class="p-tag p-tag-primary disabled">Returned</span>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center">
+          <i class="pi pi-box text-4xl text-gray-400"></i>
+          <p class="text-gray-600 mt-2">No borrowed items found</p>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- ✅ Borrow Details Modal -->
+  <p-dialog [(visible)]="showDetailsModal" [modal]="true" [style]="{width: '50rem'}" [closable]="false">
+    <!-- Close Button -->
+    <button class="close-button" (click)="showDetailsModal = false">✖</button>
+    <ng-container *ngIf="selectedBorrower">
+      <!-- Borrower Information -->
+      <div class="borrower-info">
+        <h3>Borrower Information</h3>
+        <div class="info-grid">
+          <p><strong>Name:</strong> {{ selectedBorrower.borrower_name }}</p>
+          <p><strong>Department:</strong> {{ selectedBorrower.borrower_department }}</p>
+          <p><strong>Contact:</strong> {{ selectedBorrower.borrower_contact }}</p>
+          <p><strong>Email:</strong> {{ selectedBorrower.borrower_email }}</p>
+          <p><strong>Borrow Date:</strong> {{ selectedBorrower.borrow_date }}</p>
+          <p><strong>Return Date:</strong> {{ selectedBorrower.return_date }}</p>
+          <p><strong>Status:</strong>
+            <span [ngClass]="{
+              'status-pending': selectedBorrower.status !== 'Returned',
+              'status-returned': selectedBorrower.status === 'Returned'
+            }">
+              {{ selectedBorrower.status }}
+            </span>
+          </p>
+        </div>
+        <div class="purpose-container">
+          <strong>Purpose:</strong>
+          <span class="purpose-content" [title]="selectedBorrower.purpose || 'No purpose specified'">
+            {{ selectedBorrower.purpose || 'No purpose specified' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Borrowed Equipment Section -->
+      <h3 class="equipment-title">Borrowed Equipment</h3>
+      <div class="equipment-grid">
+        <div class="equipment-card" *ngFor="let item of selectedBorrower.equipmentList">
+          <img [src]="item.image" alt="{{ item.name }}" class="equipment-image"/>
+          <div class="equipment-details">
+            <h4>{{ item.name }}</h4>
+            <p>Quantity: <strong>{{ item.quantity }}</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PDF Viewer -->
+      <div *ngIf="isPdf(selectedBorrower.attached_file)" class="pdf-container">
+        <iframe
+          [src]="sanitizeUrl(selectedBorrower.attached_file)"
+          class="pdf-viewer"
+          frameborder="0">
+        </iframe>
+      </div>
+    </ng-container>
+  </p-dialog>
+</body>

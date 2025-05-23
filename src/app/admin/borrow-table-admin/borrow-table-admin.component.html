@@ -1,0 +1,103 @@
+<app-sidebar></app-sidebar>
+<body>
+<!-- ✅ Flex Container for Borrow Item & Search Filters -->
+<div class="search-borrow-container">
+  <!-- ✅ Search Filters (Right Side) -->
+  <div class="search-filters">
+    <input type="text" pInputText placeholder="Search Borrower Name..." [(ngModel)]="searchTerm" (input)="applyFilters()" />
+
+    <p-dropdown
+    class="small-dropdown"
+    [options]="uniqueDepartments"
+    [(ngModel)]="selectedDepartment"
+    (onChange)="applyFilters()"
+    placeholder="All Departments">
+  </p-dropdown>
+
+  <p-dropdown
+    class="small-dropdown"
+    [options]="statusOptions"
+    [(ngModel)]="selectedStatus"
+    (onChange)="applyFilters()"
+    placeholder="All Statuses">
+  </p-dropdown>
+
+
+    <input type="date" pInputText [(ngModel)]="selectedBorrowDate" (change)="applyFilters()" />
+    <input type="date" pInputText [(ngModel)]="selectedReturnDate" (change)="applyFilters()" />
+  </div>
+</div>
+
+<!-- ✅ Borrow History Table using PrimeNG Table -->
+<p-table
+  #dt
+  [value]="filteredRequests"
+  [paginator]="true"
+  [rows]="7"
+  [rowsPerPageOptions]="[7, 10, 15, 20]"
+  [responsiveLayout]="'scroll'"
+  [styleClass]="'p-datatable-striped'"
+>
+  <ng-template pTemplate="header">
+    <tr>
+      <th pSortableColumn="borrower_name">Borrower Name <p-sortIcon field="borrower_name"></p-sortIcon></th>
+      <th pSortableColumn="borrower_department">Department/Location <p-sortIcon field="borrower_department"></p-sortIcon></th>
+      <th pSortableColumn="borrow_date">Borrow Date <p-sortIcon field="borrow_date"></p-sortIcon></th>
+      <th pSortableColumn="return_date">Return Date <p-sortIcon field="return_date"></p-sortIcon></th>
+      <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-request>
+    <tr (click)="openDetailsModal(request)">
+      <td>{{ request.borrower_name }}</td>
+      <td>{{ request.borrower_department }}</td>
+      <td>{{ request.borrow_date }}</td>
+      <td>{{ request.return_date }}</td>
+      <td>
+        <span [ngClass]="{
+          'p-badge p-badge-success': request.status === 'Returned',
+          'p-badge p-badge-warning': request.status === 'Borrowed'
+        }">
+          {{ request.status || 'Borrowed' }}
+        </span>
+      </td>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="5" class="text-center">No borrow requests found</td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<!-- ✅ Borrower Details Modal -->
+<p-dialog [(visible)]="showDetailsModal" [modal]="true" [header]="'Borrower Details'" [style]="{ width: '50vw' }">
+  <div *ngIf="selectedBorrower">
+    <div class="borrower-info">
+      <p><strong>Name:</strong> {{ selectedBorrower.borrower_name }}</p>
+      <p><strong>Department:</strong> {{ selectedBorrower.borrower_department }}</p>
+      <p><strong>Borrow Date:</strong> {{ selectedBorrower.borrow_date }}</p>
+      <p><strong>Return Date:</strong> {{ selectedBorrower.return_date }}</p>
+      <p><strong>Status:</strong>
+        <span [ngClass]="{
+          'p-badge p-badge-danger': selectedBorrower.status !== 'Returned',
+          'p-badge p-badge-success': selectedBorrower.status === 'Returned'
+        }">
+          {{ selectedBorrower.status }}
+        </span>
+      </p>
+      <p><strong>Purpose:</strong> {{ selectedBorrower.purpose || 'No purpose specified' }}</p>
+    </div>
+    <h3 class="equipment-title">Borrowed Equipment</h3>
+    <div *ngIf="selectedBorrower.equipmentList?.length > 0">
+      <div class="equipment-card" *ngFor="let item of selectedBorrower.equipmentList">
+        <img [src]="item.image" alt="{{ item.name }}" class="equipment-image"/>
+        <p>{{ item.name }} - <strong>{{ item.quantity }}</strong></p>
+      </div>
+    </div>
+    <p *ngIf="!selectedBorrower.equipmentList?.length">No equipment assigned.</p>
+  </div>
+</p-dialog>
+</body>

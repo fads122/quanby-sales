@@ -1,0 +1,313 @@
+body {
+
+    margin-left: 230px; /* Match the sidebar width + spacing */
+    padding: 24px;
+    transition: margin-left 0.3s ease;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 80px;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 70px; /* Adjust for smaller screens */
+    }
+}
+
+/* Style for the number input */
+.quantity-input {
+    width: 60px; /* Fixed width for consistency */
+    height: 30px; /* Height of the input */
+    text-align: center; /* Center the text */
+    border: 1px solid #ccc; /* Light border */
+    border-radius: 4px; /* Rounded corners */
+    font-size: 14px; /* Font size */
+    padding: 4px; /* Add some padding */
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
+}
+
+/* Hide the spinner arrows for the number input */
+.quantity-input::-webkit-inner-spin-button,
+.quantity-input::-webkit-outer-spin-button {
+    -webkit-appearance: none; /* Remove default arrows */
+    margin: 0;
+}
+
+/* Ensure proper alignment in the table */
+td:nth-child(5) {
+    text-align: center; /* Center align the quantity column */
+}
+/* Style for product images */
+.product-image {
+    width: 40px; /* Reduced width for smaller images */
+    height: 40px; /* Reduced height for smaller images */
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+/* Style for the number input */
+.quantity-input {
+    width: 50px; /* Reduced width for smaller input */
+    height: 25px; /* Reduced height for smaller input */
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px; /* Reduced font size */
+    padding: 2px;
+    box-sizing: border-box;
+}
+
+/* Hide the spinner arrows for the number input */
+.quantity-input::-webkit-inner-spin-button,
+.quantity-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Style for the action button */
+.view-button {
+    background-color: #1e40af; /* Match your theme color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px; /* Reduced padding for smaller button */
+    font-size: 12px; /* Reduced font size */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.view-button:hover {
+    background-color: #1e3a8a; /* Darker shade on hover */
+}
+/* General table styling */
+.p-datatable-wrapper {
+    font-size: 12px; /* Reduce font size for the entire table */
+}
+
+/* Header row */
+.p-datatable-thead > tr > th {
+    font-size: 12px; /* Reduce font size for headers */
+    padding: 6px 8px; /* Reduce padding for header cells */
+    line-height: 1.2; /* Reduce line height */
+}
+
+/* Body rows */
+.p-datatable-tbody > tr {
+    height: 30px; /* Set a fixed height for rows */
+}
+
+.p-datatable-tbody > tr > td {
+    padding: 4px 8px; /* Reduce padding for table cells */
+    line-height: 1.2; /* Reduce line height */
+    font-size: 12px; /* Reduce font size */
+    vertical-align: middle; /* Align content vertically in the middle */
+}
+
+/* Ensure proper alignment in the table */
+td:nth-child(2) {
+    text-align: center; /* Center align specific columns if needed */
+}
+
+/* Optional: Reduce border width for a more compact look */
+.p-datatable .p-datatable-thead > tr > th,
+.p-datatable .p-datatable-tbody > tr > td {
+    border-width: 1px; /* Keep borders thin */
+}
+/* Style for the eye icon button */
+.view-button {
+    background: none; /* No background */
+    border: none; /* No border */
+    cursor: pointer;
+    font-size: 18px; /* Larger size for the icon */
+    color: #1e40af; /* Match your theme color */
+    transition: color 0.3s ease;
+}
+
+.view-button:hover {
+    color: #1e3a8a; /* Darker shade on hover */
+}
+
+/* Style for the drawer image */
+.drawer-image {
+    width: 100%; /* Full width of the drawer */
+    height: auto; /* Maintain aspect ratio */
+    margin-top: 10px; /* Add some spacing */
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+/* Ensure proper alignment in the table */
+td:nth-child(7) {
+    text-align: center; /* Center align the action column */
+}
+
+.w-16 {
+    width: 4rem;
+}
+
+.h-16 {
+    height: 4rem;
+}
+
+.shadow {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Search Bar Styling */
+.search-bar {
+    margin-bottom: 16px;
+}
+
+.search-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+  .full-width {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .dialog-form {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .name-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .half-width {
+    flex: 1;
+  }
+
+  .full-width {
+    width: 100%;
+    margin-bottom: 12px;
+    border-radius: 0%;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .mat-form-field {
+    font-size: 12px;
+  }
+
+  .mat-dialog-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: #1e40af;
+  }
+
+  .mat-dialog-content {
+    padding: 12px;
+    border-radius: 0%;
+  }
+
+  .add{
+    margin-left: 20px;
+    border-radius: 3px;
+    padding: 7px;
+    color: white;
+    background-color: #1e3a8a;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    float: right;
+  }
+
+  .add:hover{
+    background-color: #01024a;
+    transition: all 0.3s ease;
+  }
+  button.mat-button {
+    font-size: 12px;
+  }
+
+  button.mat-raised-button {
+    background-color: #1e40af;
+    color: white;
+    font-size: 12px;
+  }
+
+  button.mat-raised-button:hover {
+    background-color: #1e3a8a;
+  }
+
+  .snackbar-success {
+    background-color: #4caf50;
+    color: white;
+  }
+
+  .snackbar-error {
+    background-color: #f44336;
+    color: white;
+  }
+
+  .snackbar-warning {
+    background-color: #ff9800;
+    color: white;
+  }
+
+
+  td{
+    font-size: 12px;
+
+  }
+
+  th{
+    font-size: 14px;
+    font-weight: 600 !important;
+  }
+
+  .but{
+    font-size: 11px;
+  }
+
+  ::ng-deep .p-paginator {
+    font-size: 11px;
+    padding: 2px;
+  }
+
+  ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page {
+    width: 16x;
+    height: 16x;
+    font-size: 11px;
+    line-height: 16px;
+  }
+
+  ::ng-deep .p-dropdown {
+    height: 36px !important;
+    font-size: 12px !important;
+  }
+
+  ::ng-deep .p-dropdown .p-dropdown-label {
+    padding: 10px !important;
+    font-size: 12px !important;
+  }
+
+  ::ng-deep .p-dropdown .p-dropdown-trigger {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+
+  ::ng-deep .p-paginator-current {
+    font-size: 11px;
+  }

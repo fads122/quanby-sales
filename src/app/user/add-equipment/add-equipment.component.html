@@ -1,0 +1,426 @@
+<h2 mat-dialog-title>
+  {{ isEditMode ? 'Edit Equipment' : 'Add Equipment' }}
+  <button mat-icon-button class="close-button" (click)="onClose()">
+    <mat-icon style="color: black;">x</mat-icon>
+  </button>
+</h2>
+<mat-dialog-content class="modal-content" [@dialogContainer]>
+  <div class="overlay" *ngIf="isSubmitting">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>{{ isEditMode ? 'Updating...' : 'Saving...' }}</p>
+  </div>
+
+  <div class="equipment-container">
+    <!-- Toggle between In-House & PC Parts -->
+    <div class="form-group mb-4">
+      <label for="formType">Select Product Type</label>
+      <select id="formType" class="form-control" [(ngModel)]="selectedFormType">
+        <option value="inHouse">Operational Equipment</option>
+        <option value="pcParts">For Sale</option>
+      </select>
+    </div>
+
+    <!-- Loop through each equipment entry (For Sale) -->
+    <div *ngIf="selectedFormType === 'pcParts'">
+      <div class="equipment-box" *ngFor="let equipment of equipmentDataArray; let i = index">
+        <form (ngSubmit)="onSubmit(); $event.preventDefault()">
+          <!-- Basic Information -->
+          <div class="section-group">
+            <h3>Basic Information</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Category</label>
+                <select class="form-control" [(ngModel)]="equipment.category" name="category{{i}}">
+                  <option value="" disabled>Select a PC Part Category</option>
+                  <option *ngFor="let cat of pcPartCategories" [value]="cat">{{ cat }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group full-width">
+              <label for="description{{i}}">Product Specifications/Description</label>
+              <textarea id="description{{i}}" [(ngModel)]="equipment.description" name="description{{i}}" rows="3" placeholder="Enter Description"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="model{{i}}">Product Model</label>
+                <input type="text" id="model{{i}}" [(ngModel)]="equipment.model" name="model{{i}}" placeholder="Enter Model" required />
+              </div>
+              <div class="form-group">
+                <label for="brand{{i}}">Product Brand/Name</label>
+                <input type="text" id="brand{{i}}" [(ngModel)]="equipment.brand" name="brand{{i}}" placeholder="Enter Brand" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="brochure{{i}}">Upload Brochure</label>
+              <input
+                type="file"
+                id="brochure{{i}}"
+                (change)="handleBrochureUpload($event, i)"
+                accept=".pdf,.doc,.docx,.ppt,.pptx"
+              />
+            </div>
+          </div>
+
+          <!-- Supplier & Cost Information -->
+          <div class="section-group">
+            <h3>Supplier & Cost Information</h3>
+            <div class="form-row">
+              <!-- Supplier Selection -->
+              <div class="form-group">
+                <label for="supplier{{i}}">Supplier*</label>
+                <select id="supplier{{i}}" [(ngModel)]="equipment.supplier" name="supplier{{i}}" (change)="onSupplierChange($event, i)" required>
+                  <option value="" disabled selected>Select Supplier</option>
+                  <option *ngFor="let supplier of suppliers" [value]="supplier.supplier_name">
+                    {{ supplier.supplier_name }} - {{ supplier.contact_person }}
+                  </option>
+                </select>
+              </div>
+              <!-- Equipment Selection Dropdown (Optional) -->
+              <div class="form-group" *ngIf="supplierEquipments.length > 0">
+                <label for="existingEquipment{{i}}">Use Existing Equipment</label>
+                <select id="existingEquipment{{i}}" (change)="selectExistingEquipment($event, i)">
+                  <option value="">-- Select Equipment --</option>
+                  <option *ngFor="let item of supplierEquipments" [value]="item.id">
+                    {{ item.name }} - {{ item.model }} ({{ item.brand }})
+                  </option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="supplierCost{{i}}">Supplier Cost*</label>
+                <input type="number" id="supplierCost{{i}}" [(ngModel)]="equipment.supplier_cost" name="supplier_cost{{i}}" placeholder="Enter Supplier Cost" required />
+              </div>
+              <div class="form-group">
+                <label for="srp{{i}}">SRP*</label>
+                <input type="number" id="srp{{i}}" [(ngModel)]="equipment.srp" name="srp{{i}}" placeholder="Enter SRP" required />
+              </div>
+            </div>
+          </div>
+
+          <!-- Stock & Location -->
+          <div class="section-group">
+            <h3>Stock & Location</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="quantity{{i}}">Quantity*</label>
+                <input type="number" id="quantity{{i}}" [(ngModel)]="equipment.quantity" name="quantity{{i}}" placeholder="Enter Quantity" required />
+              </div>
+              <div class="form-group">
+                <label for="location{{i}}">Location*</label>
+                <input type="text" id="location{{i}}" [(ngModel)]="equipment.location" name="location{{i}}" placeholder="Enter Storage Location" required />
+              </div>
+            </div>
+          </div>
+
+          <!-- Condition & Damage Status -->
+          <div class="section-group">
+            <h3>Condition Information</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="condition{{i}}">Condition*</label>
+                <select id="condition{{i}}" [(ngModel)]="equipment.condition" name="condition{{i}}" required>
+                  <option value="" disabled selected>Select Condition</option>
+                  <option value="New">New</option>
+                  <option value="Used">Used</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Damage Status</label>
+                <div class="radio-group">
+                  <input type="radio" id="damagedNo{{i}}" [(ngModel)]="equipment.damaged" name="damaged{{i}}" [value]="false" />
+                  <label for="damagedNo{{i}}">Not Damaged</label>
+                  <input type="radio" id="damagedYes{{i}}" [(ngModel)]="equipment.damaged" name="damaged{{i}}" [value]="true" />
+                  <label for="damagedYes{{i}}">Damaged</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Repair Logs (Conditional) -->
+          <div class="section-group" *ngIf="equipment.damaged">
+            <h3>Repair Information</h3>
+            <div class="form-group">
+              <label for="returnSlip{{i}}">Return Slip</label>
+              <input type="file" id="returnSlip{{i}}" (change)="handleReturnSlip($event, i)" />
+            </div>
+            <div *ngFor="let log of equipment.repair_logs; let j = index" class="repair-log">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="repairDetails{{i}}-{{j}}">Repair Details</label>
+                  <input
+                    type="text"
+                    id="repairDetails{{i}}-{{j}}"
+                    [(ngModel)]="log.repair_details"
+                    name="repair_logs_{{i}}_{{j}}"
+                    placeholder="Enter repair details"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="repairStatus{{i}}-{{j}}">Status</label>
+                  <select
+                    id="repairStatus{{i}}-{{j}}"
+                    [(ngModel)]="log.repair_status"
+                    name="repair_status_{{i}}_{{j}}"
+                  >
+                    <option value="New">New</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="repairDate{{i}}-{{j}}">Date</label>
+                  <input
+                    type="date"
+                    id="repairDate{{i}}-{{j}}"
+                    [(ngModel)]="log.repair_date"
+                    [value]="log.repair_date || (today | date:'yyyy-MM-dd')"
+                    name="repair_date_{{i}}_{{j}}"
+                  />
+                </div>
+                <button type="button" class="btn-remove-small" (click)="removeRepairLog(equipment, j)">Remove</button>
+              </div>
+            </div>
+            <button type="button" class="btn-add-small" (click)="addRepairLog(equipment)">Add Repair Log</button>
+          </div>
+
+          <!-- Additional Information -->
+          <div class="section-group">
+            <h3>Additional Information</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="variety{{i}}">Variety</label>
+                <input type="text" id="variety{{i}}" [(ngModel)]="equipment.variety" name="variety{{i}}" placeholder="Enter Color, Size, etc." />
+              </div>
+            </div>
+          </div>
+
+          <!-- Images & QR Code -->
+          <div class="section-group">
+            <h3>Image</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="productImage{{i}}">Product Images</label>
+                <input
+                  type="file"
+                  id="productImage{{i}}"
+                  (change)="handleFileInput($event, i)"
+                  multiple
+                  accept="image/*"
+                >
+                <div class="image-preview-container">
+                  <img *ngFor="let img of equipment.product_images"
+                      [src]="img"
+                      class="img-thumbnail mt-2"
+                      style="max-width: 200px; margin-right: 10px;" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Remove Equipment Button -->
+          <button type="button" (click)="removeEquipment(i)" *ngIf="equipmentDataArray.length > 1" class="btn-remove">Remove Equipment</button>
+        </form>
+      </div>
+    </div>
+
+   <!-- INHOUSE FORM (Operational Equipment) -->
+<div *ngIf="selectedFormType === 'inHouse'">
+  <div class="equipment-box" *ngFor="let equipment of inhouseEquipmentArray; let i = index">
+    <form (ngSubmit)="submitInhouseEquipment(); $event.preventDefault()">
+      <h3>Operational Equipment #{{i + 1}}</h3>
+
+      <!-- Product Type Dropdown -->
+      <div class="form-group">
+        <label>Product Type*</label>
+        <select class="form-control" [(ngModel)]="equipment.product_type" name="product_type{{i}}" required>
+          <option *ngFor="let category of productCategories" [value]="category.value">
+            {{ category.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Name*</label>
+        <input type="text" class="form-control" [(ngModel)]="equipment.name" name="name{{i}}" required />
+      </div>
+
+      <div class="form-group">
+        <label>Brand</label>
+        <input type="text" class="form-control" [(ngModel)]="equipment.brand" name="brand{{i}}" />
+      </div>
+
+      <div class="form-group">
+        <label>Model</label>
+        <input type="text" class="form-control" [(ngModel)]="equipment.model" name="model{{i}}" />
+      </div>
+
+      <div class="form-group">
+        <label>Quantity*</label>
+        <input type="number" class="form-control" [(ngModel)]="equipment.quantity" name="quantity{{i}}" min="1" required />
+      </div>
+
+      <div class="form-group">
+        <label>Serial Number*</label>
+        <input type="text" class="form-control" [(ngModel)]="equipment.serial_number" name="serial_number{{i}}" required />
+      </div>
+
+      <div class="form-group">
+        <label>Date Acquired</label>
+        <input type="date" class="form-control" [(ngModel)]="equipment.date_acquired" name="date_acquired{{i}}" />
+      </div>
+
+      <!-- Condition & Damage Status -->
+      <div class="section-group">
+        <h3>Condition Information</h3>
+        <div class="form-row">
+          <!-- In the Condition Information section of the inHouse form -->
+          <div class="form-group">
+            <label for="condition{{i}}">Condition*</label>
+            <select id="condition{{i}}" [(ngModel)]="equipment.condition" name="condition{{i}}" required
+                    (change)="onConditionChange(equipment)">
+              <option value="" disabled selected>Select Condition</option>
+              <option value="Working">Working</option>
+              <!-- <option value="Used">Used</option> -->
+              <option value="New">New</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+
+          <!-- Add these fields below the condition dropdown -->
+          <div *ngIf="equipment.condition === 'Inactive'" class="form-row">
+            <div class="form-group">
+              <label for="inactiveReason{{i}}">Reason for Inactivity*</label>
+              <input type="text" id="inactiveReason{{i}}" [(ngModel)]="equipment.inactive_reason"
+                    name="inactive_reason{{i}}" placeholder="Enter reason" required />
+            </div>
+            <div class="form-group">
+              <label for="inactiveLocation{{i}}">Storage Location*</label>
+              <input type="text" id="inactiveLocation{{i}}" [(ngModel)]="equipment.inactive_location"
+                    name="inactive_location{{i}}" placeholder="Enter storage location" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Damage Status</label>
+            <div class="radio-group">
+              <input type="radio" id="damagedNo{{i}}" [(ngModel)]="equipment.damaged" name="damaged{{i}}" [value]="false" />
+              <label for="damagedNo{{i}}">Not Damaged</label>
+              <input type="radio" id="damagedYes{{i}}" [(ngModel)]="equipment.damaged" name="damaged{{i}}" [value]="true" />
+              <label for="damagedYes{{i}}">Damaged</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Repair Logs (Conditional) -->
+      <div class="section-group" *ngIf="equipment.damaged">
+        <h3>Repair Information</h3>
+        <div class="form-group">
+          <label for="returnSlip{{i}}">Return Slip</label>
+          <input type="file" id="returnSlip{{i}}" (change)="handleInhouseReturnSlip($event, i)" />
+        </div>
+        <div *ngFor="let log of equipment.repair_logs; let j = index" class="repair-log">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="repairDetails{{i}}-{{j}}">Repair Details</label>
+              <input
+                type="text"
+                id="repairDetails{{i}}-{{j}}"
+                [(ngModel)]="log.repair_details"
+                name="repair_logs_{{i}}_{{j}}"
+                placeholder="Enter repair details"
+              />
+            </div>
+            <div class="form-group">
+              <label for="repairStatus{{i}}-{{j}}">Status</label>
+              <select
+                id="repairStatus{{i}}-{{j}}"
+                [(ngModel)]="log.repair_status"
+                name="repair_status_{{i}}_{{j}}"
+              >
+                <option value="New">New</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="repairDate{{i}}-{{j}}">Date</label>
+              <input
+                type="date"
+                id="repairDate{{i}}-{{j}}"
+                [(ngModel)]="log.repair_date"
+                [value]="log.repair_date || (today | date:'yyyy-MM-dd')"
+                name="repair_date_{{i}}_{{j}}"
+              />
+            </div>
+            <button type="button" class="btn-remove-small" (click)="removeInhouseRepairLog(equipment, j)">Remove</button>
+          </div>
+        </div>
+        <button type="button" class="btn-add-small" (click)="addInhouseRepairLog(equipment)">Add Repair Log</button>
+      </div>
+
+      <div class="form-group">
+        <label>QR Code</label>
+        <input type="text" class="form-control" [(ngModel)]="equipment.qr_code" name="qr_code{{i}}" readonly placeholder="Auto-Generated" />
+        <img *ngIf="equipment.qr_code" [src]="equipment.qr_code" alt="QR Code" class="img-thumbnail mt-2" style="max-width: 100px;" />
+      </div>
+
+      <div class="form-group">
+        <label>Barcode</label>
+        <input type="text" class="form-control" [(ngModel)]="equipment.barcode" name="barcode{{i}}" readonly placeholder="Auto-Generated" />
+        <img *ngIf="equipment.barcode" [src]="equipment.barcode" alt="Barcode" class="img-thumbnail mt-2" style="max-width: 100px;" />
+      </div>
+
+      <div class="form-group">
+        <label>Upload Images</label>
+        <input
+          type="file"
+          id="inhouseImageInput{{i}}"
+          class="form-control-file"
+          (change)="handleInhouseImageUpload($event, i)"
+          multiple
+          accept="image/*"
+        />
+        <div class="image-preview-container">
+          <img *ngFor="let img of equipment.images" [src]="img" class="img-thumbnail mt-2" style="max-width: 200px; margin-right: 10px;" />
+        </div>
+      </div>
+
+      <!-- Remove Equipment Button -->
+      <button type="button" (click)="removeInhouseEquipment(i)" *ngIf="inhouseEquipmentArray.length > 1" class="btn-remove">Remove Equipment</button>
+    </form>
+  </div>
+
+  <div class="action-buttons">
+    <button type="button"
+            (click)="addInhouseEquipment()"
+            class="btn btn-primary"
+            [disabled]="isSubmitting">
+      Add Another Equipment
+    </button>
+    <button type="submit"
+            class="btn btn-success"
+            (click)="submitInhouseEquipment()"
+            [disabled]="isSubmitting">
+      <span *ngIf="!isSubmitting">Save All Equipment</span>
+      <span *ngIf="isSubmitting">Saving...</span>
+    </button>
+  </div>
+</div>
+
+    <!-- Action Buttons (For Sale Equipment) -->
+    <div class="action-buttons" *ngIf="selectedFormType === 'pcParts'">
+      <button type="button"
+              (click)="addEquipment()"
+              class="btn btn-primary"
+              [disabled]="isSubmitting">
+        Add Another Equipment
+      </button>
+      <button type="submit"
+              class="btn btn-danger"
+              (click)="onSubmit()"
+              [disabled]="isSubmitting">
+        <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Save' }} Equipment</span>
+        <span *ngIf="isSubmitting">Processing...</span>
+      </button>
+    </div>
+  </div>
+</mat-dialog-content>

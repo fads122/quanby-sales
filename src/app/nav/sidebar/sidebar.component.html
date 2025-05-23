@@ -1,0 +1,53 @@
+<nav
+  class="sidebar"
+  [class.collapsed]="isCollapsed"
+  [class.mobile]="isMobile"
+>
+  <div class="sidebar-header">
+    <div class="app-logo" *ngIf="!isCollapsed">
+      <img src="/images/quanby.png" style="width: 50px; position: absolute; ">
+      <h1 style="margin-left: 55px;">Quanby Sales</h1>
+    </div>
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      <i class="pi" [class.pi-chevron-left]="!isCollapsed" [class.pi-chevron-right]="isCollapsed"></i>
+    </button>
+  </div>
+
+  <ul class="sidebar-menu">
+    <li *ngFor="let item of menuItems">
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [attr.data-tooltip]="isCollapsed ? item.label : null"
+      >
+        <i [class]="item.icon"></i>
+        <span *ngIf="!isCollapsed" class="label">{{ item.label }}</span>
+        <span *ngIf="!isCollapsed && item.label === 'Messages'" class="notification-badge">3</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="sidebar-footer" *ngIf="!isCollapsed">
+    <div class="user-profile">
+      <div class="avatar">JD</div>
+      <div class="user-info">
+        <div class="name">John Doe</div>
+        <div class="email">john.doequanby.com</div>
+      </div>
+      <button class="logout-btn" (click)="confirmLogout()">
+        <i class="pi pi-sign-out"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<button
+  *ngIf="isMobile && isCollapsed"
+  class="mobile-toggle-btn"
+  (click)="toggleSidebar()"
+>
+  <i class="pi pi-bars"></i>
+</button>
+
+<p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>

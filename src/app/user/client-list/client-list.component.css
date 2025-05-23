@@ -1,0 +1,188 @@
+/* client-list.component.scss */
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #fff;
+}
+
+app-sidebar {
+  width: 250px;
+  position: fixed;
+  height: 100vh;
+  z-index: 1;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 250px;
+  padding: 2rem;
+  transition: margin-left 0.3s;
+}
+
+.content-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-section {
+  margin-bottom: 1.5rem;
+
+  h1 {
+    font-size: 1.75rem;
+    color: #2c3e50;
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .subtitle {
+    color: #7f8c8d;
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+  }
+}
+
+.table-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.card {
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border: 1px solid #e9ecef;
+  padding: 0;
+
+  .card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+
+    .card-title {
+      font-size: 1.25rem;
+      color: #2c3e50;
+      margin: 0;
+      font-weight: 500;
+    }
+  }
+}
+
+.client-info {
+  display: flex;
+  flex-direction: column;
+
+  .client-name {
+    font-weight: 500;
+    color: #2c3e50;
+  }
+
+  .client-email {
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+}
+
+.project-count-tag {
+  min-width: 40px;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.empty-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6c757d;
+
+  p {
+    margin: 0.5rem 0;
+  }
+}
+
+/* Table styling */
+.p-datatable {
+  .p-datatable-thead > tr > th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    border: none;
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+  }
+
+  .p-datatable-tbody > tr > td {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+  }
+
+  .p-paginator {
+    border: none;
+    background: transparent;
+    padding: 1rem;
+  }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  app-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+  }
+
+  app-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .p-datatable {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      padding: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .p-datatable-thead > tr > th:first-child,
+    .p-datatable-tbody > tr > td:first-child {
+      padding-left: 1rem;
+    }
+  }
+
+  .card {
+    .card-header {
+      padding: 0.75rem 1rem;
+    }
+  }
+}
+
+/* Add to styles.scss or your component's SCSS */
+.client-details-modal {
+  .p-dialog-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 1.5rem;
+
+    .p-dialog-title {
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+  }
+
+  .p-dialog-content {
+    padding: 0;
+  }
+}

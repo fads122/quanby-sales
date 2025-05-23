@@ -1,0 +1,367 @@
+*{
+  background-color: #FFFAFA;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.saved-equipment-container {
+    margin-top: 70px;
+    margin-left: 230px;
+}
+
+/* Page Title */
+.saved-title {
+    text-align: center;
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Empty Message */
+.empty-message {
+    text-align: center;
+    font-size: 16px;
+    color: #777;
+}
+
+/* Equipment Grid Layout */
+.equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Clickable Equipment Cards */
+.equipment-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.equipment-card:hover {
+    transform: translateY(-5px);
+}
+
+/* ✅ Close Button Inside the Card */
+.card-close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #01024a;
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-close-button:hover {
+    transform: scale(1.2);
+}
+
+/* ✅ Modal Close Button */
+.modal-close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #01024a;
+    transition: transform 0.2s ease-in-out;
+}
+
+.modal-close-button:hover {
+    transform: scale(1.2);
+}
+
+/* Align "+ more" text */
+.more-text {
+    font-size: 14px;
+    color: #777;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* ✅ Details Modal Overlay (for Saved Equipment Details) */
+.details-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* ✅ Details Modal Box */
+.details-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 80%;
+    max-width: 700px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* ✅ Grid for Equipment Items (4 per row) */
+.details-equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 10px;
+}
+
+/* ✅ Delete Modal Overlay */
+.delete-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* ✅ Delete Confirmation Modal */
+.delete-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 30%;
+    max-width: 350px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* ✅ Close Button (Top Right) */
+.modal-close-button {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #01024a;
+    cursor: pointer;
+}
+
+.modal-close-button:hover {
+    color: #d9534f;
+}
+
+/* ✅ Buttons Layout */
+.modal-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+}
+
+/* ✅ Cancel Button */
+.cancel-button {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.cancel-button:hover {
+    background-color: #5a6268;
+}
+
+/* ✅ Confirm (Delete) Button */
+.confirm-button {
+    background-color: #d9534f;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.confirm-button:hover {
+    background-color: #c9302c;
+}
+
+/* ✅ Fade-In Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Card Header Layout */
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Title Styling */
+.card-header .equipment-title {
+    font-size: 18px;
+    color: #333;
+    margin: 0;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Trash Icon Button */
+.clear-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 18px;
+    color: red;
+    transition: color 0.3s ease;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Align "Saved on" Date Below Title */
+.saved-date {
+    font-size: 12px;
+    color: #777;
+    margin-left: 10px;
+}
+
+/* ✅ Equipment Grid (4 items per row) */
+.modal-body .equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 10px;
+    justify-content: center;
+}
+
+/* Equipment Item Layout */
+.equipment-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+/* Equipment Image */
+.equipment-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+/* ✅ Equipment Details */
+.equipment-details h4 {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.equipment-details p {
+    margin: 2px 0;
+    font-size: 12px;
+    color: #666;
+}
+
+/* ✅ Modal Adjustments */
+.modal {
+    width: 80%;
+    max-width: 700px;
+    padding: 20px;
+}
+
+.modal {
+    width: 80%;
+    max-width: 700px;
+    padding: 20px;
+}
+
+.modal-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+}
+
+/* ✅ Close Button */
+.modal-close-button {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #01024a;
+    cursor: pointer;
+}
+
+.modal-close-button:hover {
+    color: #d9534f;
+}
+
+/* ✅ Modal Total Price */
+.modal-total {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 15px;
+    text-align: center;
+}
+
+/* Export Button */
+.export-button {
+    background-color: #01024a;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.export-button:hover {
+    background-color: #000126;
+}
+
+.text-red {
+    color: red;
+}
+
+.text-blue {
+    color: blue;
+}

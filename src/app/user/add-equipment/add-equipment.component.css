@@ -1,0 +1,331 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Modal Overlay */
+.mat-dialog-container {
+    padding: 0 !important; /* Remove default padding */
+    border-radius: 12px !important; /* Add border-radius */
+    overflow: hidden; /* Ensure content doesn't overflow */
+}
+
+/* Modal Content */
+.modal-content {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+    max-height: 80vh; /* Set max height to 80vh */
+    overflow-y: auto; /* Make content scrollable */
+    width: 100%;
+    max-width: 1100px; /* Set max width */
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.overlay p {
+  margin-top: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #333;
+    text-align: center;
+}
+
+h3 {
+    font-size: 1.4rem;
+    font-weight: 500;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #444;
+    text-align: left;
+    border-bottom: 2px solid #4ca1af;
+    padding-bottom: 5px;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.form-group label {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #444;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: #4ca1af;
+    outline: none;
+    box-shadow: 0px 0px 8px rgba(76, 161, 175, 0.5);
+}
+
+.radio-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn {
+    width: 100%;
+    background: linear-gradient(135deg, #020cd2, #000145);
+    border: none;
+    padding: 14px;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    margin-top: 1rem;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+    background: linear-gradient(135deg, #00010b, #000145);
+    transform: translateY(-2px);
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.upload-section {
+    text-align: left;
+    margin-top: 1rem;
+}
+
+.upload-section input {
+    display: block;
+    margin-top: 5px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 1.5rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.full-width {
+    flex: 1 0 100%;
+}
+
+.btn-remove-small,
+.btn-add-small {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-remove-small {
+    background: #ff4d4d;
+    color: #fff;
+    border: none;
+}
+
+.btn-remove-small:hover {
+    background: #cc0000;
+    transform: translateY(-2px);
+}
+
+.btn-add-small {
+    background: linear-gradient(135deg, #4ca1af, #357a7f);
+    color: #fff;
+    border: none;
+}
+
+.btn-add-small:hover {
+    background: linear-gradient(135deg, #357a7f, #4ca1af);
+    transform: translateY(-2px);
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.btn-add,
+.btn-submit {
+    flex: 1;
+    margin: 0 10px;
+}
+/* Close Button */
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #fff; /* White color for the icon */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+  .close-button:hover {
+    color: #ccc; /* Light gray on hover */
+  }
+
+  /* Modal Header */
+  h2.mat-dialog-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: linear-gradient(135deg, #4ca1af, #357a7f);
+    color: #fff;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    position: relative; /* Ensure the close button is positioned correctly */
+  }
+
+  /* Modal Content */
+  .modal-content {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+    max-height: 80vh; /* Set max height to 80vh */
+    overflow-y: auto; /* Make content scrollable */
+    width: 100%;
+    max-width: 1100px; /* Set max width */
+  }
+.btn-remove {
+    width: 100%;
+    background: #ff4d4d;
+    color: #fff;
+    border: none;
+    padding: 14px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 1rem;
+}
+
+.btn-remove:hover {
+    background: #cc0000;
+    transform: translateY(-2px);
+}
+
+.repair-log {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+/* Modal Header */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: linear-gradient(135deg, #4ca1af, #357a7f);
+    color: #fff;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.modal-header button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Modal Footer */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+    background: #f5f5f5;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.modal-footer button {
+    margin-left: 10px;
+}
+
+.success-animation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+  padding: 20px 40px;
+  border-radius: 8px;
+  animation: fadeScale 0.5s ease-out;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes fadeScale {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}

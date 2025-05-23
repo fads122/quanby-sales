@@ -1,1 +1,37 @@
-/* You can add global styles to this file, and also import other style files */
+/* Reset and base styles */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Your custom styles below */
+@media (max-width: 992px) {
+  .breadcrumb-container {
+    padding: 15px 20px 0 20px;
+  }
+
+  .router-content {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .breadcrumb-container {
+    padding: 12px 15px 0 15px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .router-content {
+    padding: 15px;
+  }
+}
+
+/* Material theme backup */
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}

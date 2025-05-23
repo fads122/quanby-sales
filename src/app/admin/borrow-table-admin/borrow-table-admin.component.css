@@ -1,0 +1,357 @@
+/* ✅ Flex Container for Borrow Item & Search Filters */
+.search-borrow-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* ✅ Aligns button left, filters right */
+  margin-top: 80px;
+;
+  margin-bottom: 20px;
+  width: 75%;
+}
+
+body{
+  margin-left: 260px;
+  margin-right: 20px;
+}
+
+.small-dropdown ::ng-deep .p-dropdown-label {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+/* ✅ Search Filters */
+.search-filters {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Space between filters */
+}
+
+/* ✅ Search Inputs & Filters */
+.search-filters input,
+.search-filters select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+/* ✅ Borrow History Table */
+.supplier-table {
+  width: 75%;
+  margin-left: 20.8%;
+  border-collapse: separate;
+  border-spacing: 0 8px; /* Add spacing between rows */
+  background-color: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ✅ Borrowed Status */
+td.borrowed {
+  color: #8e4dff !important; /* Bright purple for "Borrowed" */
+  font-weight: bold !important;
+}
+
+/* ✅ Returned Status */
+td.returned {
+  color: #28a745 !important; /* Green for "Returned" */
+  font-weight: bold !important;
+}
+
+/* ✅ No Borrowed Items Message */
+.no-items-container {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+  color: #666;
+}
+
+.no-items-icon {
+  font-size: 24px;
+  color: #01024a; /* Dark blue */
+  margin-bottom: 5px;
+}
+
+
+
+
+
+  button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+
+
+
+.table {
+  flex: 1; /* Allow the table container to grow */
+  min-height: 300px; /* Set a minimum height for the table container */
+  width: 80%;
+  max-width: 630px;
+  padding: 15px;
+  font-family: 'Poppins', sans-serif;
+  background-color: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Supplier table specific styling */
+.supplier-table {
+  margin-top: 0px;
+  margin-left: 280px;
+  width: 75%;
+  border-collapse: separate;
+  border-spacing: 0 8px; /* Add spacing between rows */
+  background-color: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Caption styling */
+.supplier-table caption {
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  padding: 12px;
+  background-color: #f0f0f0;
+  color: #1e3a8a;
+  letter-spacing: 0.8px;
+}
+
+/* Header and cell styling */
+.supplier-table th,
+.supplier-table td {
+  padding: 12px;
+  text-align: left;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  color: #333;
+  letter-spacing: 0.4px;
+}
+
+/* Row hover effect */
+.supplier-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* No items message styling */
+.no-items {
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Borrowed status styling */
+td.borrowed {
+  color: #8e4dff !important; /* Bright red text for "Borrowed" */
+  font-weight: bold !important; /* Bold text for emphasis */
+}
+
+/* Returned status styling */
+td.returned {
+  color: #28a745 !important; /* Bright green text for "Returned" */
+  font-weight: bold !important; /* Bold text for emphasis */
+}
+
+
+/* ✅ Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4); /* Softer dark overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* ✅ Modal Box */
+.modal {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+  text-align: left;
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* ✅ Close Button */
+.modal-close-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #01024a;
+  transition: transform 0.2s ease-in-out;
+}
+
+.modal-close-button:hover {
+  color: #d9534f;
+  transform: scale(1.2);
+}
+
+/* ✅ Borrower Information Box */
+.borrower-info {
+  background: #ffffff;
+  padding: 18px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+}
+
+.borrower-info h3 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+/* ✅ Grid Layout */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ✅ Standard Text */
+.borrower-info p {
+  font-size: 14px;
+  color: #444;
+  margin: 5px 0;
+}
+
+/* ✅ Status Badge Styling */
+.status-pending {
+  background: #ffebee;
+  color: #d32f2f;
+  font-weight: bold;
+  padding: 3px 10px;
+  border-radius: 5px;
+  display: inline-block;
+}
+
+.status-returned {
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-weight: bold;
+  padding: 3px 10px;
+  border-radius: 5px;
+  display: inline-block;
+}
+
+/* ✅ Purpose Handling */
+.purpose-container {
+  display: flex;
+  align-items: flex-start;
+  grid-column: span 2; /* Ensures purpose takes the full width */
+  gap: 8px;
+}
+
+.purpose-container strong {
+  flex-shrink: 0; /* Ensures the label stays in place */
+}
+
+.purpose-content {
+  flex-grow: 1; /* Allows the content to expand naturally */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* Prevents text from wrapping */
+  cursor: pointer; /* Show tooltip on hover */
+}
+
+/* ✅ Wrap Text for Mobile */
+@media (max-width: 600px) {
+  .purpose-content {
+    white-space: normal; /* Allow wrapping for small screens */
+    word-wrap: break-word;
+  }
+}
+
+
+
+
+/* ✅ Equipment Title */
+.equipment-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #01024a;
+  text-align: center;
+  margin-top: 15px;
+}
+
+/* ✅ Equipment Grid Layout (4 Items per Row) */
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 items per row */
+  gap: 12px;
+  padding: 15px;
+  justify-content: center;
+}
+
+/* ✅ Equipment Card */
+.equipment-card {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s ease-in-out;
+}
+
+.equipment-card:hover {
+  transform: translateY(-4px);
+}
+
+/* ✅ Equipment Image */
+.equipment-image {
+  width: 85px;
+  height: 85px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+/* ✅ Equipment Details */
+.equipment-details h4 {
+  font-size: 14px;
+  color: #333;
+  margin: 6px 0;
+}
+
+.equipment-details p {
+  font-size: 12px;
+  color: #666;
+  margin: 3px 0;
+}
+
+/* ✅ Fade-In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

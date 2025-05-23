@@ -1,0 +1,79 @@
+<div class="project-card" *ngIf="client">
+  <!-- Client Header -->
+  <div class="card-header">
+    <h2 class="project-title">{{client.client_name || 'No client name'}}</h2>
+    <span class="project-count">{{client.projects?.length || 0}} projects</span>
+  </div>
+
+  <!-- Project Selection Tabs -->
+    <div class="project-tabs" *ngIf="client.projects?.length">
+    <button *ngFor="let project of client.projects"
+            [class.active]="project.id === selectedProject?.id"
+            (click)="selectProject(project)">
+      {{project.name || 'Unnamed project'}}
+      ({{ getDeliveryStatusText(project.delivery_status) }})
+    </button>
+  </div>
+
+  <!-- Client Info Section -->
+  <!-- <div class="card-section">
+    <h3 class="section-title"><i class="pi pi-user mr-2"></i>Client Information</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">Name:</span>
+        <span class="info-value">{{client.client_name || 'N/A'}}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Email:</span>
+        <span class="info-value">{{client.client_email || 'N/A'}}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Phone:</span>
+        <span class="info-value">{{client.client_phone || 'N/A'}}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Address:</span>
+        <span class="info-value">{{client.client_address || 'N/A'}}</span>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- Selected Project Details -->
+  <div class="card-section" *ngIf="selectedProject">
+    <h3 class="section-title"><i class="pi pi-folder mr-2"></i>Project Details</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">Name:</span>
+        <span class="info-value">{{selectedProject.name || 'N/A'}}</span>
+      </div>
+            <div class="info-item">
+        <span class="info-label">Status:</span>
+        <span class="status-badge" [ngClass]="'status-' + getStatusSeverity(deliveryStatus)">
+          {{ getDeliveryStatusText(deliveryStatus) }}
+        </span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Created:</span>
+        <span class="info-value">{{(selectedProject.created_at | date) || 'N/A'}}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Description:</span>
+        <span class="info-value">{{selectedProject.description || 'N/A'}}</span>
+      </div>
+      <div class="info-item highlight">
+        <span class="info-label">Total:</span>
+        <span class="info-value">{{(selectedProject.total | currency) || 'N/A'}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attachments Section -->
+  <div class="card-section" *ngIf="selectedProject?.file_url">
+    <h3 class="section-title"><i class="pi pi-paperclip mr-2"></i>Attachments</h3>
+    <button pButton
+            icon="pi pi-download"
+            label="Download File"
+            class="p-button-rounded p-button-outlined download-btn"
+            (click)="downloadFile(selectedProject.file_url)"></button>
+  </div>
+</div>

@@ -1,0 +1,72 @@
+<div class="login-wrapper">
+  <!-- Company logo in top left corner -->
+  <div class="company-logo">
+    <img class="responsive-logo" src="/images/quanby.png" alt="Quanby Solutions Inc.">
+    <span>Quanby Solutions Inc.</span>
+  </div>
+
+  <div class="login-container">
+    <!-- Partial blurred logo in background -->
+    <div class="logo-background">
+      <div class="blurred-logo"></div>
+    </div>
+
+    <div class="login-card">
+      <div class="login-header">
+        <h2>Quanby Sales</h2>
+        <p class="subtitle">Your IT Solutions Partner</p>
+      </div>
+
+      <!-- FORM FIX: Add (ngSubmit)="login()" and #form="ngForm" -->
+      <form class="login-form" (ngSubmit)="login()" #form="ngForm">
+        <div class="form-group floating">
+          <input
+            id="email"
+            name="email"
+            type="email"
+            [(ngModel)]="email"
+            required
+          />
+          <label for="email">Email Address</label>
+          <i class="pi pi-envelope"></i>
+        </div>
+
+        <div class="form-group floating">
+          <input
+            id="password"
+            name="password"
+            type="password"
+            [(ngModel)]="password"
+            required
+          />
+          <label for="password">Password</label>
+          <i class="pi pi-lock"></i>
+          <button type="button" class="toggle-password">
+            <!-- You can add JS or Angular toggle logic here -->
+          </button>
+        </div>
+
+        <!-- Optional Features -->
+        <!--
+        <div class="form-options">
+          <label class="remember-me">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Remember me
+          </label>
+          <a href="#" class="forgot-password">Forgot password?</a>
+        </div>
+        -->
+
+        <button type="submit" class="login-button">
+          <span>Sign In</span>
+          <i class="pi pi-arrow-right"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="website-link">
+    <a href="https://quanbyit.com/" target="_blank">quanbyit.com</a>
+  </div>
+</div>

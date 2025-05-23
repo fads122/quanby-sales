@@ -1,0 +1,1346 @@
+
+
+.body-equip-list {
+  margin-left: 230px;
+  padding: 24px;
+  transition: margin-left 0.3s ease;
+  background-color: #FFFAFA;
+  padding-top: 80px;
+  min-height: 100vh;
+}
+
+
+.filters {
+  margin-bottom: 20px;
+}
+
+.filter-dropdown select {
+  padding: 10px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.filters input {
+  margin-right: 10px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.equipment-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: #fff;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.equipment-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: #e0e7ff;
+  color: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.equipment-icon .fa-desktop,
+.equipment-icon .fa-microchip {
+  font-size: 16px;
+}
+
+.equipment-list-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+
+.equipment-table th, .equipment-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.equipment-table thead {
+  background: #2B30C3; /* Modern Blue */
+  color: white;
+}
+
+.equipment-table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+/* Table Container */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.table-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Table Header */
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.table-header h3 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.table-selector {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.table-selector button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.table-selector button.active {
+  background: #4361ee;
+  color: white;
+}
+
+.table-selector button::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #4361ee;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
+}
+
+.table-selector button.active::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Add a subtle pulse effect when active */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(67, 97, 238, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+}
+
+.table-selector button.active {
+  animation: pulse 0.5s ease;
+}
+
+
+.table-selector button:not(.active):hover {
+  background: #f5f7fa;
+}
+
+/* Main Table Styles */
+::ng-deep .p-datatable {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background-color: #f8fafc;
+  color: #64748b;
+  font-weight: 400;
+  padding: 16px 24px;
+  border: none;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  padding: 0;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% !important;
+  transition: all 0.2s ease;
+}
+
+
+/* Restore Button */
+.restore-btn {
+background: #2B30C3; /* Professional Blue */
+color: white;
+padding: 8px 12px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+transition: background 0.3s;
+}
+
+.restore-btn:hover {
+background: #1A1F9F;
+}
+
+/* Delete Button */
+.delete-btn {
+background: #E875A8; /* Soft Red */
+color: white;
+padding: 8px 12px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+transition: background 0.3s;
+}
+
+.delete-btn:hover {
+background: #C45C87;
+}
+
+/* No Data Message */
+.no-data {
+text-align: center;
+font-style: italic;
+color: #777;
+padding: 15px;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* Modal Footer */
+.modal-footer {
+margin-top: 15px;
+}
+
+/* 🔹 Modal Buttons */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.close-btn, .print-btn {
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 300;
+  transition: all 0.2s ease;
+}
+
+.print-btn {
+  background-color: #4a6bdf;
+  color: white;
+  border: none;
+}
+
+.close-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+}
+
+.close-btn:hover {
+  background-color: #c0392b;
+}
+
+/* Animations */
+@keyframes fadeIn {
+from { opacity: 0; }
+to { opacity: 1; }
+}
+
+@keyframes slideIn {
+from { transform: translateY(-20px); opacity: 0; }
+to { transform: translateY(0); opacity: 1; }
+}
+
+.p-button {
+  display: inline-block !important;
+  margin-right: 5px;
+  min-width: 80px;
+}
+
+td {
+  white-space: nowrap; /* Prevent buttons from wrapping */
+}
+
+.p-button-text{
+  background-color: #000154;
+  color: white;
+}
+
+.p-button-danger {
+
+  color: red !important;
+}
+
+.p-button-view {
+  color: #000154 !important;
+}
+
+.p-button-edit{
+  color: #016fcf !important;
+}
+
+.equipment-table th {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.equipment-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+button {
+  padding: 6px 12px;
+  background: transparent;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.view-btn:hover {
+  background-color: #c7d2fe !important;
+}
+
+.edit-btn {
+  color: #f59e0b !important;
+  background-color: #fef3c7 !important;
+}
+
+.edit-btn:hover {
+  background-color: #fde68a !important;
+}
+
+.qr-btn {
+  color: #10b981 !important;
+  background-color: #d1fae5 !important;
+}
+
+.qr-btn:hover {
+  background-color: #a7f3d0 !important;
+}
+
+/* 🔹 Modal Content */
+.qr-modal, .barcode-modal {
+background: white;
+padding: 20px;
+width: 350px;
+max-width: 90%;
+text-align: center;
+border-radius: 10px;
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+animation: slideIn 0.3s ease-in-out;
+}
+
+
+.qr-thumbnail, .product-image {
+  width: 30px;
+  height: 25px;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.qr-thumbnail:hover, .product-image:hover {
+  transform: scale(1.2);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s ease-in-out;
+  max-width: 90%;
+  width: 500px;
+}
+
+/* Modal Content */
+.trash-modal {
+background: #fff;
+width: 50%;
+max-width: 700px;
+padding: 20px;
+border-radius: 10px;
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+text-align: center;
+animation: slideIn 0.3s ease-in-out;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 400;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Modal Body (Table Section) */
+.modal-body {
+max-height: 400px;
+overflow-y: auto;
+padding: 10px;
+}
+
+.primary-text {
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.secondary-text {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.qr-modal-image {
+  width: 200px;
+  height: 200px;
+  margin: 10px 0;
+}
+
+.close-button {
+  background: #ff4d4d;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.close-button:hover {
+  background: #cc0000;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.search-bar {
+  flex: 1;
+  min-width: 250px;
+  position: relative;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.search-bar i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+}
+
+.search-input {
+  padding: 10px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  flex: 1;
+  min-width: 250px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.search-input:focus {
+  border-color: #4a6bdf;
+  box-shadow: 0 0 0 3px rgba(74, 107, 223, 0.1);
+  outline: none;
+}
+
+.add {
+  padding: 10px 20px;
+  background-color: #4a6bdf;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 300;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-btn {
+  background: #4361ee;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.add-btn:hover {
+  background: #3a56d4;
+}
+
+.add:hover {
+  background-color: #3a5bd9;
+  transform: translateY(-1px);
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.pagination-controls button {
+  padding: 8px 12px;
+  margin: 0 5px;
+  background-color: #05036f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+
+.qr-thumbnail:hover, .product-image:hover {
+  transform: scale(1.2);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .qr-modal, .barcode-modal, .qr-modal * , .barcode-modal * {
+    visibility: visible;
+  }
+
+  .qr-modal, .barcode-modal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .close-button, .print-button {
+    display: none; /* Hide buttons while printing */
+  }
+
+      /* 🔹 QR Code & Barcode Image */
+      .qr-image, .barcode-image {
+        max-width: 100%;
+        height: auto;
+        margin: 15px 0;
+        border: 1px solid #eee;
+        padding: 10px;
+        background: white;
+      }
+
+  .qr-icon, .barcode-icon {
+    font-size: 50px !important; /* Force the size */
+    width: auto;
+    height: auto;
+    cursor: pointer;
+    color: #000154;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .qr-icon:hover, .barcode-icon:hover {
+    transform: scale(1.5); /* Make the icon bigger when hovered */
+    color: #007bff;
+  }
+
+
+tr[ngIf] .dropdown-container {
+max-height: 300px;
+opacity: 1;
+padding: 10px;
+}
+
+.dropdown-table {
+width: 100%;
+border-collapse: collapse;
+}
+
+.dropdown-table th, .dropdown-table td {
+padding: 8px;
+border: 1px solid #ddd;
+}
+
+.dropdown-table th {
+background-color: #333;
+color: white;
+}
+
+.no-data {
+text-align: center;
+color: #ff0000;
+padding: 10px;
+}
+
+.dropdown-row {
+display: table-row;
+}
+
+tr[ng-animate] {
+box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+}
+
+/* ✅ Keep column widths consistent */
+.fixed-column {
+width: 20%;
+text-align: center;
+}
+
+.expandable-row {
+position: relative;
+transition: max-height 0.3s ease-out, opacity 0.3s ease;
+overflow: hidden;
+}
+
+/* ✅ Prevent shifting on expansion */
+.expandable-row {
+transition: all 0.3s ease-in-out;
+}
+
+/* ✅ Prevent shifting when expanding */
+.dropdown-container {
+width: 100%;
+padding: 10px;
+background-color: #f9f9f9;
+border: 1px solid #ddd;
+border-radius: 8px;
+margin-top: 5px;
+transition: height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+/* ✅ Ensure the table inside the dropdown stays aligned */
+.dropdown-table {
+width: 100%;
+border-collapse: collapse;
+}
+
+.dropdown-table th, .dropdown-table td {
+padding: 10px;
+border: 1px solid #ddd;
+text-align: center;
+}
+
+.dropdown-table th {
+background-color: #333;
+color: white;
+}
+
+tr[ng-animate] {
+box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.low-stock {
+color: #d9534f; /* Red warning text */
+font-weight: bold;
+}
+
+/* Low Stock Row */
+.low-stock-row {
+  background-color: #fff1f2 !important;
+}
+
+.low-stock-row td {
+  border-left: 3px solid #fecaca;
+}
+
+
+
+/* ✅ Alternating header colors */
+.dropdown-header {
+background-color: #03045E;
+color: white;
+text-align: center;
+padding: 10px;
+font-weight: bold;
+}
+
+.dropdown-header.alternate {
+background-color: #DA5B96;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 400;
+  display: inline-block;
+  width: fit-content;
+}
+
+.status-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.status-borrowed {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.status-in-use {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.in-use-badge {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.status-returned {
+  background-color: #e3f2fd;
+  color: #3498db;
+}
+
+.status-available {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.status-maintenance {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.quantity {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.quantity.low-stock {
+  color: #dc2626;
+  font-weight: 300;
+}
+
+.available-badge, .in-use-badge {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.available-badge {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.status-unknown {
+color: #777 !important; /* Gray */
+font-weight: bold;
+}
+
+.expired {
+color: red !important;
+font-weight: bold;
+}
+
+.warning {
+color: orange !important;
+font-weight: bold;
+}
+
+.safe {
+color: green !important;
+font-weight: bold;
+}
+
+.sub-table-container {
+  padding: 0 !important;
+  background-color: #fafafa;
+  transform-origin: top;
+  will-change: transform, opacity;
+}
+
+.total-items {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* 🔹 Scanned Equipment Modal Overlay (Ensures it appears above everything) */
+.scanned-equipment-modal-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.6);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1050; /* Ensures it's above other UI elements */
+}
+
+/* 🔹 Modal Container */
+.scanned-equipment-modal {
+background: #fff;
+padding: 20px;
+width: 500px;
+max-width: 90%;
+border-radius: 10px;
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+text-align: center;
+overflow-y: auto;
+max-height: 85vh; /* Limits height and makes it scrollable */
+}
+
+/* 🔹 Modal Title */
+.scanned-equipment-modal .modal-title {
+font-size: 22px;
+font-weight: bold;
+color: #2B30C3; /* Professional blue */
+margin-bottom: 15px;
+}
+
+/* 🔹 Equipment Details Styling */
+.scanned-equipment-modal p {
+font-size: 16px;
+margin: 8px 0;
+text-align: left;
+color: #333;
+}
+
+/* 🔹 Highlight Key Details */
+.scanned-equipment-modal p strong {
+color: #A01438; /* Dark red for emphasis */
+}
+
+/* 🔹 Section Headers */
+.scanned-equipment-modal h4 {
+font-size: 18px;
+color: #1A1F9F; /* Dark blue */
+margin-top: 20px;
+border-bottom: 2px solid #ddd;
+padding-bottom: 5px;
+text-align: left;
+}
+
+/* 🔹 Repair Logs List */
+.scanned-equipment-modal ul {
+list-style: none;
+padding: 0;
+}
+
+.scanned-equipment-modal ul li {
+background: #f9f9f9;
+padding: 10px;
+margin-bottom: 8px;
+border-radius: 5px;
+border-left: 4px solid #2B30C3;
+}
+
+/* 🔹 Product Images */
+.scanned-equipment-modal .product-image {
+width: 80px;
+height: 80px;
+margin: 5px;
+border-radius: 5px;
+border: 2px solid #ddd;
+}
+
+/* 🔹 No Image Text */
+.scanned-equipment-modal p.no-image {
+font-style: italic;
+color: #777;
+}
+
+/* 🔹 Modal Action Buttons */
+.scanned-equipment-modal .modal-actions {
+margin-top: 20px;
+display: flex;
+justify-content: center;
+}
+
+/* Action Buttons */
+.actions-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.view-btn {
+  color: #6366f1 !important;
+  background-color: #e0e7ff !important;
+}
+
+::ng-deep .p-button-sm {
+  width: 32px;
+  height: 32px;
+}
+
+::ng-deep .p-button-rounded {
+  border-radius: 50% !important;
+}
+
+::ng-deep .p-button-text {
+  background-color: transparent !important;
+  color: #4a6bdf !important;
+}
+
+::ng-deep .p-button-warning {
+  color: #f39c12 !important;
+}
+
+/* 🔹 Close Button */
+.scanned-equipment-modal .close-btn {
+background-color: #ff4d4d;
+color: white;
+padding: 10px 15px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+transition: background 0.3s;
+}
+
+.scanned-equipment-modal .close-btn:hover {
+background-color: #cc0000;
+}
+
+/* ✅ Responsive Design Adjustments */
+@media (max-width: 600px) {
+.scanned-equipment-modal {
+  width: 90%;
+  padding: 15px;
+}
+
+.scanned-equipment-modal p {
+  font-size: 14px;
+}
+
+.scanned-equipment-modal h4 {
+  font-size: 16px;
+}
+
+.scanned-equipment-modal .product-image {
+  width: 60px;
+  height: 60px;
+}
+}
+
+/* Group Header Styles */
+.group-header {
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.group-header:hover {
+  background-color: #f8fafc !important;
+}
+
+.group-name {
+  padding: 16px 24px !important;
+}
+
+.group-name-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.group-header td {
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.group-details {
+  background-color: #fdfdfd;
+  border-left: 3px solid #dee2e6;
+}
+
+/* Item Details */
+.item-details {
+  min-width: 200px;
+}
+
+.item-details div {
+  margin: 2px 0;
+}
+
+.group-details td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  vertical-align: top;
+}
+
+.item-name {
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.low-stock {
+  color: #ffc107;
+  font-weight: bold;
+}
+
+/* Low Stock Highlight */
+.low-stock-row {
+  background-color: #fff9f9;
+}
+
+.low-stock-row td {
+  color: #e74c3c;
+  font-weight: 500;
+}
+
+.out-of-stock {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.item-serial {
+  font-size: 12px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.item-count {
+  font-size: 0.9rem;
+  color: #666;
+  background: #f5f5f5;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.item-count-badge {
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-summary {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.specs, .supplier {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.specs strong, .supplier strong {
+  color: #475569;
+}
+
+.cost {
+  color: #4338ca;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Inner Table Styles */
+.inner-table-wrapper {
+  padding: 0 24px 16px 24px;
+  background-color: white;
+}
+
+.inner-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.inner-table th {
+  background-color: #f1f5f9;
+  color: #64748b;
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Smooth chevron animation */
+.fas.fa-chevron-right {
+  transition: all 0.2s ease;
+  margin-right: 8px;
+  font-size: 0.9rem;
+}
+
+/* Ensure the expanded row doesn't create extra space */
+tr[ng-reflect-state=collapsed] {
+  display: none;
+}
+
+/* Smooth table expansion */
+.p-datatable .p-datatable-tbody > tr {
+  transition: box-shadow 0.3s ease;
+}
+
+/* Add a subtle shadow when expanded */
+tr.expanded-row {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Animation for the inner table */
+.inner-table {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.inner-table td {
+  padding: 16px;
+  background-color: white;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  font-size: 14px;
+}
+
+.inner-table tr:last-child td {
+  border-bottom: none;
+}
+
+.inner-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* Empty State */
+.empty-table {
+  padding: 48px 24px !important;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: #e2e8f0;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  font-size: 18px;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .group-name-content {
+    gap: 12px;
+  }
+
+  .inner-table-wrapper {
+    padding: 0 12px 12px 12px;
+  }
+
+  ::ng-deep .p-datatable .p-datatable-thead > tr > th,
+  ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .table-selector {
+    justify-content: center;
+  }
+
+  .search-bar {
+    min-width: 100%;
+  }
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-content {
+  text-align: center;
+  max-width: 300px;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.loading-content h3 {
+  margin-top: 1rem;
+  color: #2B30C3;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(67, 97, 238, 0.1);
+  border-top-color: #4361ee;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Smooth transition for the entire container */
+.equipment-list-container {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Animation for table rows */
+.p-datatable .p-datatable-tbody > tr {
+  transition: all 0.3s ease;
+}
+
+/* Fade in animation for new content */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slide animation for table switch */
+.slide-in {
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}

@@ -1,0 +1,215 @@
+<app-sidebar></app-sidebar>
+
+<div class="equipment-container">
+  <!-- Search Bar -->
+  <div class="search-bar">
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      placeholder="Search by model number..."
+      class="search-input"
+    />
+    <!-- View Saved Equipment Button -->
+    <button class="view-saved-button" (click)="navigateToSavedEquipment()">
+      <i class="pi pi-folder-open"></i> Saved Equipment
+    </button>
+  </div>
+
+ <!-- Category Tabs -->
+<div class="category-container">
+  <div class="category-scroll">
+    <button
+      *ngFor="let category of categories"
+      (click)="selectedCategory = category.name"
+      [class.active]="selectedCategory === category.name">
+      {{ category.name }} ({{ category.count }})
+    </button>
+  </div>
+</div>
+
+  <!-- Products Table with Pagination -->
+  <div class="table-container">
+    <p-table
+      [value]="filteredProducts()"
+      [paginator]="true"
+      [rows]="5"
+      [tableStyle]="{'min-width': '60rem'}"
+      styleClass="small-table"
+    >
+          <!-- Table Header -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Select</th>
+        <th>Model</th>
+        <th>Brand</th>
+        <th>Name</th>
+        <th>Supplier Cost</th>
+        <th>Image</th>
+        <th>Quantity</th>
+      </tr>
+    </ng-template>
+
+      <ng-template pTemplate="body" let-product>
+        <tr>
+          <td>
+            <input
+              type="checkbox"
+              [checked]="isSelected(product)"
+              (change)="toggleProductSelection(product)"
+            />
+          </td>
+          <td>{{ product.model }}</td>
+          <td>{{ product.brand }}</td>
+          <td>{{ product.supplier }}</td>
+          <td>{{ product.supplier_cost | currency: 'PHP' }}</td>
+          <td>
+            <img [src]="product.image" alt="{{ product.name }}" class="product-image" />
+          </td>
+          <td>
+            <input
+              type="number"
+              [(ngModel)]="product.quantity"
+              min="0"
+              max="99"
+              class="quantity-input"
+            />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Total Price & View Selected Button -->
+  <div class="total-bar">
+    <span (click)="toggleDropdown()" class="total-label">
+      Total Price: <span class="total-price">{{ getTotalPrice() | currency: 'PHP' }}</span>
+    </span>
+    <button class="view-selected-button" (click)="openModal()">
+      <i class="pi pi-list"></i> View Selected ({{ selectedProducts.length }})
+    </button>
+  </div>
+
+  <!-- Modal for Selected Equipment -->
+  <div class="modal-overlay" *ngIf="showModal">
+    <div class="modal">
+      <button class="modal-close-button" (click)="closeModal()">
+        <i class="pi pi-times"></i>
+      </button>
+      <h2>Selected Equipment</h2>
+
+      <!-- Display message if no items are selected -->
+      <div *ngIf="selectedProducts.length === 0" class="empty-message">
+        <i class="pi pi-info-circle"></i> No items selected yet
+      </div>
+
+      <!-- List Selected Items -->
+      <div *ngFor="let product of selectedProducts" class="modal-item">
+        <div class="modal-item-content">
+          <span class="modal-item-name">{{ product.name }}</span>
+          <span class="modal-item-details">
+            Qty: {{ product.quantity }} × {{ product.supplier_cost | currency: 'PHP' }}
+          </span>
+          <span class="modal-item-total">
+            {{ (product.quantity * product.supplier_cost) | currency: 'PHP' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Total Price in Modal -->
+      <div class="modal-total">
+        <strong>Total: <span class="total-price">{{ getTotalPrice() | currency: 'PHP' }}</span></strong>
+      </div>
+
+      <div class="modal-buttons">
+        <!-- Save Button (Disabled if no selected items) -->
+        <button
+          class="save-button"
+          (click)="openTitleModal()"
+          [disabled]="selectedProducts.length === 0"
+        >
+          <i class="pi pi-save"></i> Save
+        </button>
+
+        <!-- Export to PDF Button (Disabled if no selected items) -->
+        <button
+          class="export-button"
+          (click)="exportToPDF()"
+          [disabled]="selectedProducts.length === 0"
+        >
+          <i class="pi pi-file-pdf"></i> Export to PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Second Modal for Title Input -->
+  <div class="modal-overlay" *ngIf="showTitleModal">
+    <div class="modal">
+      <button class="modal-close-button" (click)="closeTitleModal()">
+        <i class="pi pi-times"></i>
+      </button>
+      <h2>Save Equipment List</h2>
+      <input
+        type="text"
+        [(ngModel)]="equipmentTitle"
+        placeholder="Enter title for saved equipment"
+        class="title-input"
+      />
+      <div class="modal-buttons">
+        <button class="save-button" (click)="saveSelectedEquipment()">
+          <i class="pi pi-check"></i> Confirm Save
+        </button>
+      </div>
+    </div>
+  </div>
+<!-- Add this near your table or in the modal -->
+<div *ngIf="compatibilityIssues.length" class="compatibility-alert">
+  <h3>⚠️ Compatibility Issues</h3>
+  <ul>
+    <li *ngFor="let issue of compatibilityIssues">{{ issue }}</li>
+  </ul>
+</div>
+
+<!-- Add compatibility check button -->
+<button
+  class="compatibility-button"
+  (click)="checkCompatibility()"
+  [disabled]="selectedProducts.length < 2 || isCheckingCompatibility">
+  <i class="pi pi-check-circle"></i>
+  {{ isCheckingCompatibility ? 'Checking...' : 'Check Compatibility' }}
+</button>
+
+<!-- Update your product rows to show compatibility -->
+<ng-template pTemplate="body" let-product>
+  <tr [class.compatible]="product.compatible">
+    <!-- ... existing cells ... -->
+    <td *ngIf="product.compatible" class="compatibility-badge">
+      <span class="compatible-tag">✓ Compatible</span>
+    </td>
+  </tr>
+  <!-- Suggestions Panel -->
+<div *ngIf="showSuggestionsPanel" class="suggestions-panel">
+  <h3>🔍 Smart Suggestions</h3>
+
+  <div *ngFor="let group of suggestedParts" class="suggestion-group">
+    <h4>{{ group.category }}</h4>
+    <div class="suggestion-cards">
+      <div
+        *ngFor="let part of group.parts"
+        class="suggestion-card"
+        (click)="addSuggestion(part)"
+      >
+        <img [src]="part.image || '/assets/no-image.png'" alt="{{ part.name }}" />
+        <p><strong>{{ part.name }}</strong></p>
+        <p>{{ part.model }}</p>
+        <p class="price">{{ part.supplier_cost | currency: 'PHP' }}</p>
+        <button class="suggestion-add">+ Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</ng-template>
+
+
+</div>

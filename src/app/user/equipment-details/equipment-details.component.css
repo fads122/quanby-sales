@@ -1,0 +1,387 @@
+/* CSS Styles */
+.main-content {
+  margin-left: 250px;
+  padding: 30px;
+  transition: margin-left 0.3s ease;
+  background-color: #FFFAFA;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.header-section {
+  padding: 0 10px;
+}
+
+.page-title {
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 1.8rem;
+}
+
+.header-divider {
+  border-top: 2px solid #eaeaea;
+  margin-top: 0.5rem;
+}
+
+/* Card Styles */
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 24px;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  background-color: white;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 16px 20px;
+  border-radius: 10px 10px 0 0 !important;
+}
+
+.card-title {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0;
+  font-size: 1.1rem;
+}
+
+/* Product Card */
+.product-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.product-image-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-image-container:hover .product-image {
+  transform: scale(1.05);
+}
+
+.product-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+}
+
+.badge-excellent {
+  background-color: #28a745;
+}
+
+.badge-good {
+  background-color: #17a2b8;
+}
+
+.badge-fair {
+  background-color: #ffc107;
+}
+
+.badge-poor {
+  background-color: #fd7e14;
+}
+
+.badge-critical {
+  background-color: #dc3545;
+}
+
+.product-title {
+  font-weight: 600;
+  color: #34495e;
+  margin-bottom: 5px;
+}
+
+.product-subtitle {
+  font-size: 0.9rem;
+}
+
+/* Quick Stats */
+.quick-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #3C28CC;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Detail Items */
+/* Add to your component's CSS */
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+.detail-value {
+  text-align: right;
+  display: flex;
+  align-items: center;
+}
+
+.detail-value input {
+  max-width: 100px;
+  display: inline-block;
+}
+
+.text-muted.small {
+  font-size: 0.75rem;
+}
+
+/* Repair Logs Timeline */
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-badge {
+  position: absolute;
+  left: -30px;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e0e0e0;
+}
+
+.status-completed {
+  background-color: #28a745;
+}
+
+.status-in-progress {
+  background-color: #17a2b8;
+}
+
+.status-pending {
+  background-color: #ffc107;
+}
+
+.status-cancelled {
+  background-color: #6c757d;
+}
+
+.timeline-content {
+  padding: 10px 15px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-date {
+  font-size: 0.75rem;
+  color: #7f8c8d;
+  margin-bottom: 5px;
+}
+
+.timeline-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+.timeline-status .badge {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+}
+
+/* Table Styles */
+.table {
+  font-size: 0.9rem;
+}
+
+.table thead th {
+  border-top: none;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  color: #7f8c8d;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+.margin-badge {
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-high {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #28a745;
+}
+
+.badge-medium {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.badge-low {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+.movement-badge {
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: rgba(52, 152, 219, 0.2);
+  color: #3498db;
+}
+
+.movement-checkout {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+}
+
+.movement-return {
+  background-color: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+}
+
+/* Chart Styles */
+.chart-card .card-body {
+  padding: 10px;
+}
+
+.chart-container {
+  position: relative;
+  height: 350px;
+  width: 100%;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 30px 0;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  color: #bdc3c7;
+  margin-bottom: 15px;
+}
+
+.empty-text {
+  color: #95a5a6;
+  font-size: 1rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .quick-stats {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stat-item {
+    margin-bottom: 15px;
+  }
+
+  .stat-item:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* Animation for cards */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Delay animations for each card */
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Add to your component's CSS */
+.form-control-sm {
+  min-width: 180px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.form-control-sm:focus {
+  border-color: #3C28CC;
+  box-shadow: 0 0 0 0.2rem rgba(60, 40, 204, 0.25);
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
