@@ -109,13 +109,13 @@
   border-radius: 12px;
   font-size: 15px;
   transition: all 0.3s ease;
-  background-color: #f8fafc;
+  /* background-color: #f8fafc; */
 }
 
 .form-group.floating input:focus {
   border-color: #4AA8E8;
   box-shadow: 0 0 0 3px rgba(74, 168, 232, 0.2);
-  background-color: white;
+  /* background-color: white; */
   outline: none;
 }
 

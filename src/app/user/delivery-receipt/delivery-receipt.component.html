@@ -1,68 +1,114 @@
 <app-sidebar></app-sidebar>
 <body>
-  <div class="search-bar">
-    <input
-      type="text"
-      [(ngModel)]="searchQuery"
-      placeholder="Search products by name or code..."
-      class="search-input"
-    />
-    <button class="add" (click)="openCreateSlipDialog()">Create Slip</button>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <div class="search-bar">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input
+              pInputText
+              type="text"
+              [(ngModel)]="searchQuery"
+              placeholder="Search delivery receipts..."
+              class="p-inputtext-sm"/>
+          </span>
+          <button
+            pButton
+            icon="pi pi-plus"
+            label="Create Slip"
+            class="p-button-primary"
+            (click)="openCreateSlipDialog()">
+          </button>
+        </div>
+      </div>
+
+      <p-table
+        #dt
+        [value]="deliveryReceipts"
+        [rows]="10"
+        [paginator]="true"
+        [globalFilterFields]="['project_name', 'client_name', 'delivery_date', 'status']"
+        [tableStyle]="{'min-width': '75rem'}"
+        [rowHover]="true"
+        dataKey="id"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [rowsPerPageOptions]="[10,25,50]">
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="project_name">
+              Project Name
+              <p-sortIcon field="project_name"></p-sortIcon>
+            </th>
+            <th pSortableColumn="client_name">
+              Client Name
+              <p-sortIcon field="client_name"></p-sortIcon>
+            </th>
+            <th pSortableColumn="delivery_date">
+              Delivery Date
+              <p-sortIcon field="delivery_date"></p-sortIcon>
+            </th>
+            <th pSortableColumn="status">
+              Status
+              <p-sortIcon field="status"></p-sortIcon>
+            </th>
+            <th>Attached File</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-slip>
+          <tr>
+            <td>{{slip.project_name}}</td>
+            <td>{{slip.client_name}}</td>
+            <td>{{slip.delivery_date | date:'mediumDate'}}</td>
+            <td>
+              <p-tag
+                [severity]="slip.status === 'Delivered' ? 'success' : 'warning'"
+                [value]="slip.status">
+              </p-tag>
+            </td>
+            <td>
+              <div class="attachment-cell">
+                <span *ngIf="isImage(slip.attached_file)"
+                      (click)="openImageDialog(slip.attached_file)"
+                      class="attachment-preview">
+                  <img [src]="slip.attached_file" alt="Preview" />
+                </span>
+                <span *ngIf="isPdf(slip.attached_file)"
+                      (click)="openPdfDialog(slip.attached_file)"
+                      class="attachment-preview pdf">
+                  <i class="pi pi-file-pdf"></i>
+                </span>
+                <span *ngIf="!slip.attached_file" class="no-file">
+                  <i class="pi pi-file-excel"></i> No File
+                </span>
+              </div>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  pButton
+                  icon="pi pi-eye"
+                  class="p-button-rounded p-button-info p-button-sm mr-2"
+                  (click)="viewDetails(slip)"
+                  pTooltip="View Details">
+                </button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="text-center">No delivery receipts found.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
   </div>
-
-  <div class="card">
-    <p-table [value]="deliveryReceipts"
-             [paginator]="true"
-             [rows]="6"
-             [tableStyle]="{ 'min-width': '60rem' }">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Project Name</th>
-          <th>Client Name</th>
-          <th>Deliver Date</th>
-          <th>Status</th>
-          <th>Attached File</th>
-          <th>Action</th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-slip>
-        <tr>
-          <td>{{ slip.project_name }}</td>
-          <td>{{ slip.client_name }}</td>
-          <td>{{ slip.delivery_date | date:'mediumDate' }}</td>
-          <td>
-            <span [ngClass]="{
-              'status-delivering': slip.status === 'delivering',
-              'status-delivered': slip.status === 'Delivered'
-            }">
-              {{ slip.status | titlecase }}
-            </span>
-          </td>
-          <td>
-            <img *ngIf="isImage(slip.attached_file)"
-                 [src]="slip.attached_file"
-                 class="product-image"
-                 alt="Attachment"
-                 (click)="openImageDialog(slip.attached_file)"
-                 style="cursor: pointer; width: 30px; height: 25px;" />
-
-            <div *ngIf="isPdf(slip.attached_file)"
-                 class="pdf-placeholder"
-                 (click)="openPdfDialog(slip.attached_file)"
-                 style="cursor: pointer; width: 20px; height: 20px;">
-              <span class="pdf-icon">📄</span>
-            </div>
-            <span *ngIf="!slip.attached_file">No File</span>
-          </td>
-          <td>
-            <button class="view-btn" (click)="viewDetails(slip)">View</button>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </div>
-
 
   <!-- Dialog Template Moved OUTSIDE table to prevent flickering -->
   <ng-template #imageDialog let-data>

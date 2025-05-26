@@ -1,6 +1,10 @@
 import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { SidebarComponent } from '../../nav/sidebar/sidebar.component';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -47,6 +51,10 @@ interface DeliveryReceipt {
     MatDatepickerModule,
     MatNativeDateModule,
     MatIconModule,
+    ButtonModule,
+    InputTextModule,
+    TagModule,
+    TooltipModule,
   ],
 })
 

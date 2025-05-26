@@ -457,3 +457,86 @@ td:nth-child(7) {
 .full-width {
   width: 100%;
 }
+/* Add these styles to your existing CSS */
+.container {
+  padding: 2rem;
+}
+
+.card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 1px -1px rgba(0,0,0,.2),
+              0 1px 1px 0 rgba(0,0,0,.14),
+              0 1px 3px 0 rgba(0,0,0,.12);
+}
+
+.card-header {
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.search-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.search-bar input {
+  width: 300px;
+}
+
+.attachment-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.attachment-preview {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background: #f8f9fa;
+  transition: background-color 0.2s;
+}
+
+.attachment-preview:hover {
+  background: #e9ecef;
+}
+
+.attachment-preview img {
+  width: 30px;
+  height: 25px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.attachment-preview.pdf i {
+  font-size: 1.2rem;
+  color: #dc3545;
+}
+
+.no-file {
+  color: #6c757d;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Status tag custom colors */
+:host ::ng-deep .p-tag {
+  &.p-tag-success {
+    background-color: #22c55e;
+  }
+
+  &.p-tag-warning {
+    background-color: #f59e0b;
+  }
+}

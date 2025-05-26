@@ -3,14 +3,14 @@ import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { SidebarComponent } from '../../nav/sidebar/sidebar.component';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+// import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+// import { MatButtonModule } from '@angular/material/button';
+// import { MatFormFieldModule } from '@angular/material/form-field';
+// import { MatInputModule } from '@angular/material/input';
 import { SupabaseSupplierService } from '../../services/supabase_supplier.service';
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
 import { Router, RouterLink } from '@angular/router';
-import { MatDividerModule } from '@angular/material/divider';
+// import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-supplier-list',
@@ -23,11 +23,11 @@ import { MatDividerModule } from '@angular/material/divider';
     SidebarComponent,
     FormsModule,
     ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatDividerModule,
+    // MatDialogModule,
+    // MatButtonModule,
+    // MatFormFieldModule,
+    // MatInputModule,
+    // MatDividerModule,
     RouterLink
   ],
 })
@@ -47,7 +47,7 @@ export class SupplierListComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private dialog: MatDialog,
+    // private dialog: MatDialog,
     private supabaseService: SupabaseSupplierService,
     private authService: SupabaseAuthService,
     private router: Router
@@ -99,16 +99,16 @@ export class SupplierListComponent implements OnInit {
   editSupplier(supplier: any): void {
     this.editingSupplier = supplier;
     this.supplierForm.patchValue(supplier);
-    this.dialog.open(this.addSupplierDialog);
+    // this.dialog.open(this.addSupplierDialog);
   }
 
   confirmDelete(id: number): void {
     this.supplierToDelete = id;
-    this.dialog.open(this.deleteDialog);
+    // this.dialog.open(this.deleteDialog);
   }
 
   closeDeleteDialog(): void {
-    this.dialog.closeAll();
+    // this.dialog.closeAll();
     this.supplierToDelete = null;
   }
 
@@ -117,7 +117,7 @@ export class SupplierListComponent implements OnInit {
 
     try {
       await this.supabaseService.deleteSupplier(this.supplierToDelete);
-      this.dialog.closeAll();
+      // this.dialog.closeAll();
       await this.fetchSuppliers();
     } catch (error) {
       alert('Failed to delete supplier. Please try again.');
@@ -143,11 +143,11 @@ export class SupplierListComponent implements OnInit {
     this.supplierForm.reset({
       status: 'active'
     });
-    this.dialog.open(this.addSupplierDialog);
+    // this.dialog.open(this.addSupplierDialog);
   }
 
   closeDialog(): void {
-    this.dialog.closeAll();
+    // this.dialog.closeAll();
   }
 
   async onSubmit(): Promise<void> {
@@ -162,7 +162,7 @@ export class SupplierListComponent implements OnInit {
       } else {
         await this.supabaseService.addSupplier(this.supplierForm.value);
       }
-      this.dialog.closeAll();
+      // this.dialog.closeAll();
       await this.fetchSuppliers();
     } catch (error) {
       alert(`Failed to ${this.editingSupplier ? 'update' : 'add'} supplier. Please try again.`);
