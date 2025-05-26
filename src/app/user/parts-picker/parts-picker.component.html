@@ -3,17 +3,70 @@
 <div class="equipment-container">
   <!-- Search Bar -->
   <div class="search-bar">
-    <input
-      type="text"
-      [(ngModel)]="searchQuery"
-      placeholder="Search by model number..."
-      class="search-input"
-    />
-    <!-- View Saved Equipment Button -->
-    <button class="view-saved-button" (click)="navigateToSavedEquipment()">
-      <i class="pi pi-folder-open"></i> Saved Equipment
+  <div class="search-mode-toggle">
+    <button (click)="toggleSearchMode()"
+            class="search-mode-button"
+            [ngClass]="{ 'active-mode': searchMode === 'semantic' }">
+      {{ searchMode === 'text' ? '🔍 Text Search' : '🧠 Semantic Search' }}
     </button>
   </div>
+
+  <input
+    type="text"
+    [(ngModel)]="searchQuery"
+    (input)="onSearch()"
+    placeholder="{{ searchMode === 'text' ? 'Search by model number...' : 'Describe what you need...' }}"
+    class="search-input"
+  />
+
+  <button class="view-saved-button" (click)="navigateToSavedEquipment()">
+    <i class="pi pi-folder-open"></i> Saved Equipment
+  </button>
+</div>
+
+<!-- Add to parts-picker.component.html -->
+<div class="test-buttons" *ngIf="isTesting">
+  <button (click)="searchQuery = 'bearing'; runSemanticSearch()">Test Bearing</button>
+  <button (click)="searchQuery = 'hydraulic'; runSemanticSearch()">Test Hydraulic</button>
+  <button (click)="searchQuery = 'electric'; runSemanticSearch()">Test Electric</button>
+</div>
+
+<div *ngIf="searchMode === 'semantic'">
+  <div *ngIf="isSemanticSearching" class="search-loading">
+    <i class="pi pi-spinner pi-spin"></i> Finding matching parts...
+  </div>
+
+  <div *ngIf="semanticSearchResults.length > 0" class="semantic-results">
+    <h3>Semantic Search Results</h3>
+    <div class="result-grid">
+      <div *ngFor="let result of semanticSearchResults" class="result-card">
+        <div class="card-header">
+          <img [src]="result.image || '/assets/no-image.png'" alt="{{ result.name }}" />
+          <div class="similarity-badge">
+            {{ (result.similarity * 100).toFixed(0) }}% match
+          </div>
+        </div>
+        <div class="card-body">
+          <h4>{{ result.name }}</h4>
+          <p class="model">{{ result.model }}</p>
+          <p class="brand">{{ result.brand }}</p>
+          <p class="price">{{ result.supplier_cost | currency: 'PHP' }}</p>
+        </div>
+        <div class="card-actions">
+          <button (click)="toggleProductSelection(result)"
+                  [ngClass]="{ 'selected': isSelected(result) }">
+            {{ isSelected(result) ? '✓ Selected' : '+ Add' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isSemanticSearching && semanticSearchResults.length === 0 && searchQuery"
+       class="no-results">
+    No matching parts found for "{{ searchQuery }}"
+  </div>
+</div>
 
  <!-- Category Tabs -->
 <div class="category-container">

@@ -344,8 +344,11 @@
 </div>
 <!-- Edit Project Modal -->
 <div class="modal-backdrop edit-project-modal" *ngIf="showEditModal && editProject">
-  <div class="modal-content" [@flyToSidebar]="animationState" [class.animating]="isAnimating"></div>
-  <div class="modal-content">
+  <div class="modal-content" [@flyToSidebar]="animationState" [class.animating]="isAnimating">
+    <span class="close-btn" (click)="showEditModal = false">&times;</span>
+    <h2 class="modal-title">Edit Project</h2>
+
+    <!-- Sections container (for horizontal layout) -->
     <span class="close-btn" (click)="showEditModal = false">&times;</span>
     <h2 class="modal-title">Edit Project</h2>
 

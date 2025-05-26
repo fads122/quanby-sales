@@ -4,18 +4,20 @@ import { FormsModule } from '@angular/forms';
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
 import { Router } from '@angular/router';
 import { createClient } from '@supabase/supabase-js';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
-    imports: [CommonModule, FormsModule, ToastModule],
-    standalone: true,
-    selector: 'app-login',
-    templateUrl: './login.component.html',
-    styleUrls: ['./login.component.css'],
-    providers: [MessageService] // Ensure MessageService is provided
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatSnackBarModule // Add this import
+  ],
+  standalone: true,
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
 })
-
 export class LoginComponent implements OnInit {
   email: string = '';
   password: string = '';
@@ -27,74 +29,93 @@ export class LoginComponent implements OnInit {
   constructor(
     private authService: SupabaseAuthService,
     private router: Router,
-    private messageService: MessageService
+    private snackBar: MatSnackBar // Replace MessageService with MatSnackBar
   ) {}
 
   ngOnInit(): void {
-    this.checkLogoutMessage(); // Check for logout message when login page loads
+    this.checkLogoutMessage();
   }
 
-  /**
-   * Show toast notification if the user was logged out.
-   */
   private checkLogoutMessage(): void {
     const logoutMessage = localStorage.getItem('logoutMessage');
     if (logoutMessage) {
-      this.messageService.add({ severity: 'success', summary: 'Logged Out', detail: logoutMessage });
-      localStorage.removeItem('logoutMessage'); // Remove message after displaying
+      this.snackBar.open(logoutMessage, 'Close', {
+        duration: 3000,
+        horizontalPosition: 'end',
+        verticalPosition: 'top',
+        panelClass: ['success-snackbar']
+      });
+      localStorage.removeItem('logoutMessage');
     }
   }
 
-  /**
-   * Handles user login.
-   */
   async login() {
-  try {
-    // Attempt to sign in the user
-    const { data, error } = await this.authService.signIn(this.email, this.password);
+    try {
+      const { data, error } = await this.authService.signIn(this.email, this.password);
 
-    if (error) {
-      this.messageService.add({ severity: 'error', summary: 'Login Failed', detail: error.message });
-      return;
-    }
-
-    // Success notification
-    this.messageService.add({ severity: 'success', summary: 'Login Successful', detail: 'Redirecting...' });
-
-    const userId = data.user.id;
-
-    // Fetch user role from 'users' table
-    const { data: userData, error: userError } = await this.supabase
-      .from('users')
-      .select('usertype')
-      .eq('id', userId)
-      .single();
-
-    if (userError) {
-      this.messageService.add({ severity: 'error', summary: 'User Error', detail: userError.message });
-      return;
-    }
-
-    const userType = userData.usertype;
-
-    // Delay redirection for a smooth user experience
-    setTimeout(() => {
-      // Check the user type and redirect accordingly
-      if (userType === 'admin') {
-        this.router.navigate(['/dashboard']);
-      } else if (userType === 'user') {
-        this.router.navigate(['/dashboard']);
-      } else if (userType === 'supplier') {
-        // Redirect to the supplier portal
-        this.router.navigate(['/supplier-portal']);
-      } else {
-        this.messageService.add({ severity: 'warn', summary: 'Unknown User Type', detail: 'Access Restricted' });
+      if (error) {
+        this.showErrorToast(error.message || 'Login failed');
+        return;
       }
-    }, 1000); // 1 second delay
-  } catch (error) {
-    console.error('Error:', error);
-    this.messageService.add({ severity: 'error', summary: 'Login Failed', detail: 'Wrong Email or Password.' });
-  }
-}
 
+      this.showSuccessToast('Login successful. Redirecting...');
+
+      const userId = data.user.id;
+
+      const { data: userData, error: userError } = await this.supabase
+        .from('users')
+        .select('usertype')
+        .eq('id', userId)
+        .single();
+
+      if (userError) {
+        this.showErrorToast(userError.message || 'User data error');
+        return;
+      }
+
+      const userType = userData.usertype;
+
+      setTimeout(() => {
+        if (userType === 'admin') {
+          this.router.navigate(['/dashboard']);
+        } else if (userType === 'user') {
+          this.router.navigate(['/dashboard']);
+        } else if (userType === 'supplier') {
+          this.router.navigate(['/supplier-portal']);
+        } else {
+          this.showWarningToast('Unknown user type. Access restricted');
+        }
+      }, 1000);
+    } catch (error) {
+      console.error('Error:', error);
+      this.showErrorToast('Wrong email or password');
+    }
+  }
+
+  private showSuccessToast(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['success-snackbar']
+    });
+  }
+
+  private showErrorToast(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
+    });
+  }
+
+  private showWarningToast(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['warning-snackbar']
+    });
+  }
 }

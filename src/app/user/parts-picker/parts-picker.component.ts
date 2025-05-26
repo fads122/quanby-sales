@@ -15,6 +15,7 @@ import { InputNumberModule } from 'primeng/inputnumber'; // Add this import
 import { DialogModule } from 'primeng/dialog';
 import { HttpClient } from '@angular/common/http';
 
+
 @Component({
   selector: 'app-parts-picker',
   standalone: true,
@@ -48,7 +49,69 @@ export class PartsPickerComponent implements OnInit {
   isCheckingCompatibility: boolean = false;
   suggestedParts: any[] = [];
   showSuggestionsPanel: boolean = false;
+  searchMode: 'text' | 'semantic' = 'text';
+  semanticSearchResults: any[] = [];
+  isSemanticSearching = false;
+  isTesting = true; 
 
+  // Add to parts-picker.component.ts
+mockProducts = [
+  {
+    id: 1,
+    name: 'Industrial Bearing',
+    model: 'IB-5000-XL',
+    brand: 'BearingTech',
+    supplier: 'Global Parts Inc.',
+    supplier_cost: 45.99,
+    price: 89.99,
+    image: '/assets/bearing.jpg',
+    description: 'Heavy-duty industrial bearing for high-load applications'
+  },
+  {
+    id: 2,
+    name: 'Hydraulic Pump',
+    model: 'HP-3000-MAX',
+    brand: 'FluidSystems',
+    supplier: 'HydraParts Co.',
+    supplier_cost: 320.50,
+    price: 599.99,
+    image: '/assets/pump.jpg',
+    description: 'High-pressure hydraulic pump for industrial machinery'
+  },
+  {
+    id: 3,
+    name: 'Conveyor Belt Roller',
+    model: 'CBR-2000-STD',
+    brand: 'MotionTech',
+    supplier: 'BeltWorld Ltd.',
+    supplier_cost: 28.75,
+    price: 49.99,
+    image: '/assets/roller.jpg',
+    description: 'Standard conveyor roller for material handling systems'
+  },
+  {
+    id: 4,
+    name: 'Electric Motor',
+    model: 'EM-7500-HP',
+    brand: 'PowerDrive',
+    supplier: 'ElectroParts Inc.',
+    supplier_cost: 425.00,
+    price: 799.99,
+    image: '/assets/motor.jpg',
+    description: 'High-performance electric motor for industrial equipment'
+  },
+  {
+    id: 5,
+    name: 'Linear Actuator',
+    model: 'LA-4000-PRO',
+    brand: 'MotionSystems',
+    supplier: 'AutoParts Global',
+    supplier_cost: 185.25,
+    price: 349.99,
+    image: '/assets/actuator.jpg',
+    description: 'Precision linear actuator for automation systems'
+  }
+];
 
 constructor(
   private supabaseService: SupabaseService,
@@ -125,6 +188,49 @@ async checkCompatibility() {
   }
 }
 
+async onSearch() {
+  if (this.searchMode === 'semantic') {
+    await this.runSemanticSearch();
+  }
+  // Regular text search happens automatically through filteredProducts()
+}
+
+// In your PartsPickerComponent
+// Update in parts-picker.component.ts
+async runSemanticSearch() {
+  if (!this.searchQuery.trim()) {
+    this.semanticSearchResults = [];
+    return;
+  }
+
+  this.isSemanticSearching = true;
+
+  try {
+    // Use this for testing with mock data
+    this.semanticSearchResults = await this.mockSemanticSearch(this.searchQuery);
+
+    // Use this for real implementation (comment out when testing)
+    // this.semanticSearchResults = await this.supabaseService.semanticSearch(this.searchQuery);
+
+    // Highlight compatible parts if any are selected
+    if (this.selectedProducts.length > 0) {
+      const compatibleParts = await this.supabaseService.getCompatibleParts(
+        this.selectedProducts[0].id,
+        this.selectedProducts[0].name
+      );
+
+      this.semanticSearchResults.forEach(result => {
+        result.compatible = compatibleParts.some(p => p.id === result.id);
+      });
+    }
+  } catch (error) {
+    console.error('Search failed:', error);
+    this.semanticSearchResults = [];
+  } finally {
+    this.isSemanticSearching = false;
+  }
+}
+
 async getCompatibleParts(selectedPartId: string, category: string) {
   try {
     return await this.supabaseService.getCompatibleParts(selectedPartId, category);
@@ -132,6 +238,11 @@ async getCompatibleParts(selectedPartId: string, category: string) {
     console.error('Failed to fetch compatible parts:', error);
     return [];
   }
+}
+
+toggleSearchMode() {
+  this.searchMode = this.searchMode === 'text' ? 'semantic' : 'text';
+  this.onSearch(); // Re-run search when mode changes
 }
 
 // Call this when a part is selected
@@ -374,4 +485,18 @@ exportToPDF() {
   navigateToSavedEquipment() {
     this.router.navigate(['/saved-equipment']);
   }
+
+  // Add to parts-picker.component.ts
+async mockSemanticSearch(query: string): Promise<any[]> {
+  // Simple mock search - in a real app this would use vector embeddings
+  const results = this.mockProducts.filter(product => {
+    const searchText = `${product.name} ${product.model} ${product.brand} ${product.description}`.toLowerCase();
+    return searchText.includes(query.toLowerCase());
+  }).map(product => ({
+    ...product,
+    similarity: Math.random() * 0.5 + 0.5 // Random similarity score between 0.5-1.0
+  })).sort((a, b) => b.similarity - a.similarity);
+
+  return results;
+}
 }

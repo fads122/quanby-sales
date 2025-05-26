@@ -1,0 +1,75 @@
+.breadcrumb-nav {
+  padding: 12px 24px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+  /* Add these positioning properties */
+  margin-left: 240px; /* Adjust this value to match your sidebar width */
+  width: calc(100% - 250px); /* Adjust to match sidebar width */
+  position: fixed;
+  top: 0;
+  z-index: 10; /* Ensure it appears above other content */
+}
+
+.breadcrumb-list {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+
+  .divider {
+    color: rgba(0, 0, 0, 0.3);
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+    margin: 0 4px;
+  }
+}
+
+.breadcrumb-link {
+  text-decoration: none;
+  color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+  font-weight: 400;
+
+  &:hover {
+    color: #3f51b5;
+  }
+
+  mat-icon {
+    margin-right: 4px;
+  }
+}
+
+.current-item {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .breadcrumb-nav {
+    padding: 8px 12px;
+  }
+
+  .breadcrumb-item {
+    font-size: 12px;
+
+    .divider {
+      font-size: 16px;
+      height: 16px;
+      width: 16px;
+    }
+  }
+}

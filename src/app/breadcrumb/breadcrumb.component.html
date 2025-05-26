@@ -1,0 +1,30 @@
+<nav aria-label="Breadcrumb" class="breadcrumb-nav"
+     *ngIf="(breadcrumbService.breadcrumbs$ | async)?.length ?? 0 > 0">
+  <ol class="breadcrumb-list">
+    <!-- Home icon -->
+    <li class="breadcrumb-item">
+      <a mat-button routerLink="/" class="breadcrumb-link" aria-label="Home">
+        <mat-icon>home</mat-icon>
+      </a>
+      <mat-icon class="divider">chevron_right</mat-icon>
+    </li>
+
+    <!-- Breadcrumb items -->
+    <ng-container *ngFor="let crumb of breadcrumbService.breadcrumbs$ | async; let last = last">
+      <li class="breadcrumb-item">
+        <a *ngIf="!last; else currentItem"
+           mat-button
+           [routerLink]="crumb.url"
+           class="breadcrumb-link">
+          {{crumb.label}}
+        </a>
+        <ng-template #currentItem>
+          <span class="current-item">
+            {{crumb.label}}
+          </span>
+        </ng-template>
+        <mat-icon *ngIf="!last" class="divider">chevron_right</mat-icon>
+      </li>
+    </ng-container>
+  </ol>
+</nav>

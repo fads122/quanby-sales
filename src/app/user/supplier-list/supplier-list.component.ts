@@ -3,14 +3,14 @@ import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { SidebarComponent } from '../../nav/sidebar/sidebar.component';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-// import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-// import { MatButtonModule } from '@angular/material/button';
-// import { MatFormFieldModule } from '@angular/material/form-field';
-// import { MatInputModule } from '@angular/material/input';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { SupabaseSupplierService } from '../../services/supabase_supplier.service';
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
 import { Router, RouterLink } from '@angular/router';
-// import { MatDividerModule } from '@angular/material/divider';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-supplier-list',
@@ -23,11 +23,11 @@ import { Router, RouterLink } from '@angular/router';
     SidebarComponent,
     FormsModule,
     ReactiveFormsModule,
-    // MatDialogModule,
-    // MatButtonModule,
-    // MatFormFieldModule,
-    // MatInputModule,
-    // MatDividerModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDividerModule,
     RouterLink
   ],
 })

@@ -1,0 +1,43 @@
+/* PrimeNG Core Styles */
+@import "primeng/resources/themes/lara-light-blue/theme.css";
+@import "primeng/resources/primeng.min.css";
+
+/* PrimeIcons */
+@import "primeicons/primeicons.css";
+
+/* PrimeFlex */
+@import "primeflex/primeflex.css";
+
+/* Fixes for PrimeNG components */
+.p-datatable {
+  font-family: inherit;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background: #f8f9fa !important;
+  border-color: #e9ecef !important;
+}
+
+.p-button {
+  transition: all 0.2s;
+}
+
+.p-dialog .p-dialog-header {
+  border-bottom: 1px solid #e9ecef;
+  background: #ffffff;
+}
+
+.p-inputtext {
+  width: 100%;
+}
+
+/* Status badge colors */
+.bg-blue-100 { background-color: #dbeafe !important; }
+.text-blue-800 { color: #1e40af !important; }
+.bg-gray-100 { background-color: #f3f4f6 !important; }
+.text-gray-800 { color: #1f2937 !important; }
+.bg-green-100 { background-color: #d1fae5 !important; }
+.text-green-800 { color: #065f46 !important; }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

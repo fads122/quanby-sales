@@ -1,251 +1,183 @@
-<app-sidebar></app-sidebar>
-<body>
-  <div class="container">
-    <div class="card">
-      <div class="card-header">
-        <div class="search-bar">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search"></i>
-            <input
-              pInputText
-              type="text"
-              [(ngModel)]="searchQuery"
-              placeholder="Search delivery receipts..."
-              class="p-inputtext-sm"/>
-          </span>
-          <button
-            pButton
-            icon="pi pi-plus"
-            label="Create Slip"
-            class="p-button-primary"
-            (click)="openCreateSlipDialog()">
+<div class="layout-container">
+  <app-sidebar></app-sidebar>
+
+  <div class="main-content">
+    <div class="content-container">
+      <div class="header-section">
+        <h1>Delivery Receipts</h1>
+        <p class="subtitle">Track all your delivery receipts in one place</p>
+      </div>
+
+      <div class="table-controls">
+        <div class="left-controls">
+          <button mat-icon-button (click)="loadReceipts()" [disabled]="loading">
+            <mat-icon>refresh</mat-icon>
           </button>
         </div>
+        <div class="right-controls">
+          <mat-form-field appearance="outline" class="search-input">
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput placeholder="Search receipts..." [(ngModel)]="searchQuery" (input)="filterReceipts()">
+          </mat-form-field>
+        </div>
       </div>
 
-      <p-table
-        #dt
-        [value]="deliveryReceipts"
-        [rows]="10"
-        [paginator]="true"
-        [globalFilterFields]="['project_name', 'client_name', 'delivery_date', 'status']"
-        [tableStyle]="{'min-width': '75rem'}"
-        [rowHover]="true"
-        dataKey="id"
-        [showCurrentPageReport]="true"
-        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-        [rowsPerPageOptions]="[10,25,50]">
+      <mat-card style="margin-bottom: 50px;" backgroundColor=" black">
+        <mat-card-content>
+          <div class="mat-elevation-z8">
+            <table mat-table [dataSource]="filteredReceipts" matSort>
+              <!-- Project Column -->
+              <ng-container matColumnDef="project">
+                <th mat-header-cell *matHeaderCellDef>Project</th>
+                <td mat-cell *matCellDef="let receipt">
+                  <span class="project-name">{{receipt.project_name}}</span>
+                </td>
+              </ng-container>
 
-        <ng-template pTemplate="header">
-          <tr>
-            <th pSortableColumn="project_name">
-              Project Name
-              <p-sortIcon field="project_name"></p-sortIcon>
-            </th>
-            <th pSortableColumn="client_name">
-              Client Name
-              <p-sortIcon field="client_name"></p-sortIcon>
-            </th>
-            <th pSortableColumn="delivery_date">
-              Delivery Date
-              <p-sortIcon field="delivery_date"></p-sortIcon>
-            </th>
-            <th pSortableColumn="status">
-              Status
-              <p-sortIcon field="status"></p-sortIcon>
-            </th>
-            <th>Attached File</th>
-            <th>Actions</th>
-          </tr>
-        </ng-template>
+              <!-- Client Column -->
+              <ng-container matColumnDef="client">
+                <th mat-header-cell *matHeaderCellDef>Client</th>
+                <td mat-cell *matCellDef="let receipt">
+                  {{receipt.client_name}}
+                </td>
+              </ng-container>
 
-        <ng-template pTemplate="body" let-slip>
-          <tr>
-            <td>{{slip.project_name}}</td>
-            <td>{{slip.client_name}}</td>
-            <td>{{slip.delivery_date | date:'mediumDate'}}</td>
-            <td>
-              <p-tag
-                [severity]="slip.status === 'Delivered' ? 'success' : 'warning'"
-                [value]="slip.status">
-              </p-tag>
-            </td>
-            <td>
-              <div class="attachment-cell">
-                <span *ngIf="isImage(slip.attached_file)"
-                      (click)="openImageDialog(slip.attached_file)"
-                      class="attachment-preview">
-                  <img [src]="slip.attached_file" alt="Preview" />
-                </span>
-                <span *ngIf="isPdf(slip.attached_file)"
-                      (click)="openPdfDialog(slip.attached_file)"
-                      class="attachment-preview pdf">
-                  <i class="pi pi-file-pdf"></i>
-                </span>
-                <span *ngIf="!slip.attached_file" class="no-file">
-                  <i class="pi pi-file-excel"></i> No File
-                </span>
-              </div>
-            </td>
-            <td>
-              <div class="action-buttons">
-                <button
-                  pButton
-                  icon="pi pi-eye"
-                  class="p-button-rounded p-button-info p-button-sm mr-2"
-                  (click)="viewDetails(slip)"
-                  pTooltip="View Details">
-                </button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
+              <!-- Delivery Date Column -->
+              <ng-container matColumnDef="delivery_date">
+                <th mat-header-cell *matHeaderCellDef>Delivery Date</th>
+                <td mat-cell *matCellDef="let receipt">
+                  {{receipt.delivery_date || 'Not delivered'}}
+                </td>
+              </ng-container>
 
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="6" class="text-center">No delivery receipts found.</td>
-          </tr>
-        </ng-template>
-      </p-table>
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let receipt">
+                  <mat-chip [color]="getStatusColor(receipt.status)" [class.status-delivered]="receipt.status === 'Delivered'">
+                    {{receipt.status}}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <!-- Attachment Column -->
+              <ng-container matColumnDef="attachment">
+                <th mat-header-cell *matHeaderCellDef>Attachment</th>
+                <td mat-cell *matCellDef="let receipt">
+                  <div *ngIf="receipt.attached_file" class="attachment-container">
+                    <button mat-icon-button (click)="openFileDialog(receipt.attached_file)">
+                      <mat-icon *ngIf="isImage(receipt.attached_file)">image</mat-icon>
+                      <mat-icon *ngIf="isPdf(receipt.attached_file)">picture_as_pdf</mat-icon>
+                    </button>
+                    <span class="file-name">
+                      {{receipt.attached_file.split('/').pop() | slice:0:20}}
+                      {{receipt.attached_file.split('/').pop().length > 20 ? '...' : ''}}
+                    </span>
+                  </div>
+                  <span *ngIf="!receipt.attached_file">No attachment</span>
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
+                <td mat-cell *matCellDef="let receipt" class="text-right">
+                  <div class="action-buttons">
+                    <button mat-icon-button color="primary" (click)="showReceiptDetails(receipt)" matTooltip="View details">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+
+            <mat-paginator [length]="filteredReceipts.length"
+                          [pageSize]="rows"
+                          [pageSizeOptions]="[10, 25, 50, 100]"
+                          (page)="pageChange($event)"
+                          showFirstLastButtons>
+            </mat-paginator>
+
+            <div *ngIf="filteredReceipts.length === 0 && !loading" class="empty-state">
+              <mat-icon class="empty-icon">local_shipping</mat-icon>
+              <h4 class="empty-title">No delivery receipts found</h4>
+              <p class="empty-description">
+                You haven't recorded any deliveries yet.
+              </p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
   </div>
+</div>
 
-  <!-- Dialog Template Moved OUTSIDE table to prevent flickering -->
-  <ng-template #imageDialog let-data>
-    <div class="image-modal">
-      <img *ngIf="isImage(data.imageUrl)"
-           [src]="data.imageUrl"
-           class="full-image"
-           alt="Full View" />
+<!-- Receipt Details Dialog -->
+<ng-template #receiptDetailsDialog>
+  <h2 mat-dialog-title>Delivery Receipt Details</h2>
+  <mat-dialog-content *ngIf="selectedReceipt">
+    <div class="client-details-container">
+      <div class="detail-row">
+        <span class="detail-label">Project:</span>
+        <span class="detail-value">{{selectedReceipt.project_name}}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Client:</span>
+        <span class="detail-value">{{selectedReceipt.client_name}}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Delivery Date:</span>
+        <span class="detail-value">{{selectedReceipt.delivery_date || 'Not delivered'}}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Status:</span>
+        <span class="detail-value">
+          <mat-chip [color]="getStatusColor(selectedReceipt.status)">
+            {{selectedReceipt.status}}
+          </mat-chip>
+        </span>
+      </div>
 
-      <iframe *ngIf="isPdf(data.imageUrl)"
-              [src]="sanitizeUrl(data.imageUrl)"
-              class="pdf-viewer"
-              width="100%" height="100%" frameborder="0">
-      </iframe>
+      <div class="detail-row">
+        <span class="detail-label">Received By:</span>
+        <span class="detail-value">
+          <input matInput [(ngModel)]="selectedReceipt.received_by" placeholder="Enter recipient name">
+        </span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Delivered Date:</span>
+        <span class="detail-value">
+          <input matInput type="date" [(ngModel)]="selectedReceipt.delivered_date">
+        </span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Delivered Time:</span>
+        <span class="detail-value">
+          <input matInput type="time" [(ngModel)]="selectedReceipt.delivered_time">
+        </span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Attachment:</span>
+        <span class="detail-value">
+          <input type="file" (change)="onFileSelectedForUpdate($event, selectedReceipt)">
+          <span *ngIf="selectedUpdateFile" class="file-name">{{selectedUpdateFile.name}}</span>
+        </span>
+      </div>
     </div>
-  </ng-template>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveUpdatedFile(selectedReceipt!)">Save</button>
+  </mat-dialog-actions>
+</ng-template>
 
-  <!-- Add Slip Dialog -->
-  <!-- <ng-template #addSlipDialog>
-    <h2 mat-dialog-title>Create Delivery Slip</h2>
-    <form [formGroup]="slipForm" class="dialog-form" (ngSubmit)="createSlip()">
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Delivered To</mat-label>
-          <input matInput formControlName="delivered_to" required />
-          <mat-error *ngIf="slipForm.get('delivered_to')?.invalid && slipForm.get('delivered_to')?.touched">
-            Delivered To is required.
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Address</mat-label>
-          <input matInput formControlName="address" rows="3" required>
-          <mat-error *ngIf="slipForm.get('address')?.invalid && slipForm.get('address')?.touched">
-            Address is required.
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Delivered By</mat-label>
-          <input matInput formControlName="delivered_by" required />
-          <mat-error *ngIf="slipForm.get('delivered_by')?.invalid && slipForm.get('delivered_by')?.touched">
-            Delivered By is required.
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Date Received</mat-label>
-          <input matInput type="date" formControlName="date_received" required />
-          <mat-error *ngIf="slipForm.get('date_received')?.invalid && slipForm.get('date_received')?.touched">
-            Date Received is required.
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="file-upload">
-        <label for="fileInput" class="file-upload-label">
-          <span class="file-upload-text">{{ selectedFile || 'Choose File' }}</span>
-          <span class="file-upload-button">Browse</span>
-        </label>
-        <input
-          id="fileInput"
-          type="file"
-          accept="image/*,.pdf"
-          (change)="onFileSelected($event)"
-          class="file-input"
-        />
-        <div class="error-message" *ngIf="fileError">
-          {{ fileError }}
-        </div>
-      </div>
-
-      <div class="actions">
-        <button mat-button type="button" (click)="closeDialog()">Cancel</button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="slipForm.invalid || fileError">
-          Create Slip
-        </button>
-      </div>
-    </form>
-  </ng-template> -->
-
-
-  <ng-template #viewSlipDialog let-data>
-    <h2 mat-dialog-title class="dialog-title">📦 Delivery Slip Details</h2>
-
-    <mat-dialog-content class="dialog-content">
-      <div class="details-box">
-        <mat-icon color="primary">info</mat-icon>
-        <div class="details-text">
-          <p><strong>Project Name:</strong> {{ data.project_name }}</p>
-          <p><strong>Client Name:</strong> {{ data.client_name }}</p>
-          <p><strong>Delivery Date:</strong> {{ data.delivery_date || 'Not delivered yet' }}</p>
-          <p><strong>Status:</strong> {{ data.status }}</p>
-        </div>
-      </div>
-
-      <div class="file-section">
-        <label for="fileInput"><strong>Attach File:</strong></label>
-        <div class="file-input-wrapper">
-          <input type="file" id="fileInput" (change)="onFileSelectedForUpdate($event, data)" />
-          <span class="file-name" *ngIf="selectedUpdateFile">{{ selectedUpdateFile.name }}</span>
-        </div>
-      </div>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Received By</mat-label>
-        <input matInput [(ngModel)]="data.received_by" placeholder="Enter recipient's name" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Delivered Date</mat-label>
-        <input matInput [matDatepicker]="picker" [(ngModel)]="data.delivered_date" />
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Delivered Time</mat-label>
-        <input matInput type="time" [(ngModel)]="data.delivered_time" placeholder="HH:mm" />
-      </mat-form-field>
-    </mat-dialog-content>
-
-    <mat-dialog-actions align="end">
-      <button mat-stroked-button color="warn" (click)="closeDialog()">Close</button>
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="saveUpdatedFile(data)"
-        [disabled]="!selectedUpdateFile"
-      >
-        Save
-      </button>
-    </mat-dialog-actions>
-  </ng-template>
-
-
-
-</body>
+<!-- File Dialog -->
+<ng-template #fileDialog let-data>
+  <div class="file-dialog-container">
+    <img *ngIf="isImage(data.url)" [src]="data.url" class="file-preview">
+    <iframe *ngIf="isPdf(data.url)" [src]="sanitizeUrl(data.url)" class="file-preview pdf"></iframe>
+  </div>
+</ng-template>

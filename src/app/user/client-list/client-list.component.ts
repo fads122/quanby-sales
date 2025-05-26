@@ -1,33 +1,34 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ClientService } from '../../services/client.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
-import { CardModule } from 'primeng/card';
 import { SidebarComponent } from '../../nav/sidebar/sidebar.component';
 import { ProjectDetailsComponent } from '../project-details/project-details.component';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // Add this
-import { MatFormFieldModule } from '@angular/material/form-field'; // Add this
-import { MatInputModule } from '@angular/material/input'; // Add this
-import { MatIconModule } from '@angular/material/icon'; // Add this
-import { MatDividerModule } from '@angular/material/divider'; // Add this
-import { MatButtonModule } from '@angular/material/button'; // Add this
-import { FormBuilder, FormGroup, Validators } from '@angular/forms'; // Add this
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCardModule } from '@angular/material/card';
+import { MatChip } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-client-list',
   standalone: true,
   imports: [
     CommonModule,
-    TableModule,
-    CardModule,
     SidebarComponent,
-    ButtonModule,
-    TagModule,
-    TooltipModule
+    MatTableModule,
+    MatPaginatorModule,
+    MatChipsModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    // MatChip
   ],
   templateUrl: './client-list.component.html',
   styleUrls: ['./client-list.component.css'],
@@ -37,8 +38,8 @@ export class ClientListComponent implements OnInit {
   clientGroups: any[] = [];
   loading: boolean = true;
   ref: DynamicDialogRef | undefined;
-  first: number = 0;
-  rows: number = 10;
+  displayedColumns: string[] = ['client', 'contact', 'address', 'projects', 'actions'];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private clientService: ClientService,
@@ -60,32 +61,10 @@ export class ClientListComponent implements OnInit {
     }
   }
 
-  next() {
-    this.first = this.first + this.rows;
-  }
-
-  prev() {
-    this.first = this.first - this.rows;
-  }
-
-  isLastPage(): boolean {
-    return this.clientGroups ? this.first + this.rows >= this.clientGroups.length : true;
-  }
-
-  isFirstPage(): boolean {
-    return this.clientGroups ? this.first === 0 : true;
-  }
-
-  pageChange(event: any) {
-    this.first = event.first;
-    this.rows = event.rows;
-  }
-
-  getProjectCountSeverity(count: number): string {
-    if (count === 0) return 'danger';
-    if (count < 3) return 'warning';
-    if (count < 6) return 'info';
-    return 'success';
+  getProjectCountColor(count: number): string {
+    if (count === 0) return 'warn';
+    if (count < 3) return 'accent';
+    return 'primary';
   }
 
   showClientDetails(clientGroup: any): void {

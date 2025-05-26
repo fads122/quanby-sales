@@ -11,6 +11,37 @@
   --transition-speed: 0.3s;
 }
 
+/* Top-right positioned snackbar */
+:host ::ng-deep .top-right-snackbar {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  max-width: 400px;
+  margin: 0 !important;
+}
+
+/* Remove default snackbar margin */
+:host ::ng-deep .mat-mdc-snack-bar-container.top-right-snackbar {
+  margin: 0 !important;
+  position: static;
+}
+
+/* Animation for top-right entry */
+:host ::ng-deep .top-right-snackbar .mdc-snackbar__surface {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 /* Main sidebar styles */
 .sidebar {
   height: 100vh;

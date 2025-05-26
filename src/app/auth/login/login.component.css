@@ -574,6 +574,28 @@
   transform: translateX(3px);
 }
 
+/* Snackbar styles */
+.success-snackbar {
+  background-color: #43a047 !important; /* Green */
+  color: white !important;
+}
+
+.error-snackbar {
+  background-color: #d32f2f !important; /* Red */
+  color: white !important;
+}
+
+.warning-snackbar {
+  background-color: #ffa000 !important; /* Amber */
+  color: white !important;
+}
+
+/* Position top-right */
+.mat-mdc-snack-bar-container.top-right-snackbar {
+  margin: 0 !important;
+  position: static;
+}
+
 
 
 

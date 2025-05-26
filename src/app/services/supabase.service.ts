@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Router } from '@angular/router';
+import * as tf from '@tensorflow/tfjs';
+import * as use from '@tensorflow-models/universal-sentence-encoder';
 
 interface UserProfileUpdates {
   first_name?: string;
@@ -58,6 +60,8 @@ interface TokenValidationResult {
 export class SupabaseService {
   private supabase: SupabaseClient;
   private equipmentId: string | null = null;
+  private model: any;
+  private isModelLoading = false;
 
 
   constructor() {
@@ -2720,4 +2724,97 @@ async getCompatibleParts(partId: string, category: string) {
 
   return data;
 }
+
+ async semanticSearch(query: string, threshold = 0.7): Promise<any[]> {
+    if (!this.model) {
+      console.warn('TensorFlow model not loaded');
+      return [];
+    }
+
+    try {
+      // 1. Get all products from Supabase
+      const { data: products, error } = await this.supabase
+        .from('equipment')
+        .select('*');
+
+      if (error) throw error;
+      if (!products?.length) return [];
+
+      // 2. Prepare text for embedding (combine relevant fields)
+      const productTexts = products.map(p =>
+        `${p.name} ${p.model} ${p.brand} ${p.supplier}`.toLowerCase()
+      );
+
+      // 3. Generate embeddings
+      const queryEmbedding = await this.model.embed([query.toLowerCase()]);
+      const productEmbeddings = await this.model.embed(productTexts);
+
+      // 4. Calculate similarities
+      const queryVector = await queryEmbedding.array();
+      const productVectors = await productEmbeddings.array();
+
+      // 5. Find similar products
+      const results = products.map((product, index) => {
+        const similarity = this.cosineSimilarity(
+          queryVector[0],
+          productVectors[index]
+        );
+        return { ...product, similarity };
+      })
+      .filter(item => item.similarity >= threshold)
+      .sort((a, b) => b.similarity - a.similarity);
+
+      return results;
+    } catch (error) {
+      console.error('Semantic search failed:', error);
+      return [];
+    }
+  }
+
+
+private async clientSideVectorSearch(query: string) {
+  // This requires the TensorFlow packages we installed earlier
+  const model = await use.load();
+  const queryEmbedding = await model.embed([query]);
+  const queryVector = (await queryEmbedding.array())[0];
+
+  // Get all products from Supabase
+  const { data: products, error } = await this.supabase
+    .from('equipment')
+    .select('*');
+
+  if (error) throw error;
+
+  // Calculate similarity for each product
+  return products.map((product: any) => {
+    // Use product description or concatenated fields for search
+    const productText = [product.name, product.model, product.brand, product.supplier].join(' ');
+    const similarity = this.cosineSimilarity(queryVector, productText);
+    return { ...product, similarity };
+  }).sort((a: any, b: any) => b.similarity - a.similarity);
+}
+
+private cosineSimilarity(a: number[], b: string) {
+  // You'll need to implement this based on your vector embedding approach
+  // This is a simplified version
+  const dotProduct = a.reduce((sum, val, i) => sum + val * b.charCodeAt(i % b.length), 0);
+  const magnitudeA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
+  const magnitudeB = Math.sqrt([...b].reduce((sum, char) => sum + char.charCodeAt(0) * char.charCodeAt(0), 0));
+  return magnitudeA * magnitudeB > 0 ? dotProduct / (magnitudeA * magnitudeB) : 0;
+}
+
+async loadModel() {
+    if (this.model || this.isModelLoading) return;
+
+    this.isModelLoading = true;
+    try {
+      await tf.ready();
+      this.model = await use.load();
+      console.log('TensorFlow model loaded');
+    } catch (error) {
+      console.error('Failed to load TensorFlow model:', error);
+    } finally {
+      this.isModelLoading = false;
+    }
+  }
 }

@@ -15,6 +15,7 @@
   transition: margin-left 0.3s ease;
   max-width: 100%;
   box-sizing: border-box;
+  margin-top: 50px; /* Space for fixed header */
 }
 
 /* Summary Cards - Compact Design */
@@ -60,8 +61,8 @@
 }
 
 /* Specific icon colors with Font Awesome icons */
-.card-icon.suppliers { 
-  background-color: #66BBDE; 
+.card-icon.suppliers {
+  background-color: #66BBDE;
 }
 .card-icon.suppliers::before {
   content: "\f0d1"; /* Font Awesome truck icon */
@@ -69,8 +70,8 @@
   font-weight: 900;
 }
 
-.card-icon.equipment { 
-  background-color: #A0143F; 
+.card-icon.equipment {
+  background-color: #A0143F;
 }
 .card-icon.equipment::before {
   content: "\f466"; /* Font Awesome boxes icon */
@@ -78,8 +79,8 @@
   font-weight: 900;
 }
 
-.card-icon.borrowed { 
-  background-color: #B71A4A; 
+.card-icon.borrowed {
+  background-color: #B71A4A;
 }
 .card-icon.borrowed::before {
   content: "\f49e"; /* Font Awesome box-open icon */
@@ -87,8 +88,8 @@
   font-weight: 900;
 }
 
-.card-icon.projects { 
-  background-color: #03045E; 
+.card-icon.projects {
+  background-color: #03045E;
 }
 .card-icon.projects::before {
   content: "\f542"; /* Font Awesome tools icon */
@@ -96,8 +97,8 @@
   font-weight: 900;
 }
 
-.card-icon.low-stock { 
-  background-color: #FFA500; 
+.card-icon.low-stock {
+  background-color: #FFA500;
 }
 .card-icon.low-stock::before {
   content: "\f071"; /* Font Awesome exclamation-triangle icon */
@@ -108,13 +109,13 @@
 .card-value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #03045E;
+  color: #4d4d55;
   margin: 0;
   line-height: 1;
 }
 
 .card-label {
-  color: #64748b;
+  color: #54585f;
   font-size: 0.75rem;
   margin-bottom: 0.75rem;
   font-weight: 500;

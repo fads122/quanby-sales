@@ -18,6 +18,7 @@ import { SavedEquipmentComponent } from './user/saved-equipment/saved-equipment.
 import { BorrowRequestComponent } from './user/borrow-request-form/borrow-request-form.component';
 import { BorrowTableUserComponent } from './user/borrow-table-user/borrow-table-user.component';
 import { SupplierProfileComponent } from './user/supplier-profile/supplier-profile.component';
+import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
 
 export const routes: Routes = [
 
@@ -38,7 +39,10 @@ export const routes: Routes = [
   { path: 'user-list', component: UserListComponent, data: { breadcrumb: 'User List' } },
   { path: 'client-list', component: ClientListComponent, data: { breadcrumb: 'Client List' } },
   { path: 'project-details/:id', component: ProjectDetailsComponent, data: { breadcrumb: 'Project Details' } },
-  { path: 'saved-equipment', component: SavedEquipmentComponent, data: { breadcrumb: 'Saved Equipment' } },
+  { path: 'saved-equipment', component: SavedEquipmentComponent, data: { breadcrumb: [
+      { label: 'Parts Picker', url: 'parts-picker' },
+      { label: 'Saved Equipment', url: '/saved-equipment' }
+    ]  }},
   { path: 'borrow', component: BorrowRequestComponent, data: { breadcrumb: 'Borrow Request' } },
   { path: 'borrow-table-user', component: BorrowTableUserComponent, data: { breadcrumb: 'Borrow Table' } },
   { path: 'supplier-profile/:id', component: SupplierProfileComponent, data: { breadcrumb: 'Supplier Profile' } },

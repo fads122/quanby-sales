@@ -1,17 +1,10 @@
-/* client-list.component.scss */
 .layout-container {
   display: flex;
   min-height: 100vh;
-  background-color: #fff;
+  background-color: #FFFAFA;
+  margin-top: 50px;
 }
 
-app-sidebar {
-  width: 250px;
-  position: fixed;
-  height: 100vh;
-  z-index: 1;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.05);
-}
 
 .main-content {
   flex: 1;
@@ -46,17 +39,19 @@ app-sidebar {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  margin-bottom: 1rem;
 }
 
 .card {
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   border: 1px solid #e9ecef;
-  padding: 0;
+  overflow: hidden;
 
   .card-header {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid #e9ecef;
+    background-color: #f8f9fa;
 
     .card-title {
       font-size: 1.25rem;
@@ -82,56 +77,42 @@ app-sidebar {
   }
 }
 
-.project-count-tag {
-  min-width: 40px;
-  display: inline-flex;
-  justify-content: center;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
 .empty-message {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
   color: #6c757d;
+  padding: 2rem;
 
   p {
     margin: 0.5rem 0;
   }
 }
 
-/* Table styling */
-.p-datatable {
-  .p-datatable-thead > tr > th {
-    background-color: #f8f9fa;
-    color: #495057;
-    font-weight: 500;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    border: none;
-    padding: 0.75rem 1rem;
-    vertical-align: middle;
-  }
+/* Angular Material table styles */
+.mat-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-  .p-datatable-tbody > tr > td {
-    padding: 0.75rem 1rem;
-    border: none;
-    border-bottom: 1px solid #e9ecef;
-    vertical-align: middle;
-  }
+.mat-header-cell {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
 
-  .p-paginator {
-    border: none;
-    background: transparent;
-    padding: 1rem;
-  }
+.mat-cell, .mat-header-cell {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.mat-paginator {
+  background: transparent;
+  border-top: 1px solid #e9ecef;
 }
 
 /* Responsive styles */
@@ -150,39 +131,19 @@ app-sidebar {
     transform: translateX(0);
   }
 
-  .p-datatable {
-    .p-datatable-thead > tr > th,
-    .p-datatable-tbody > tr > td {
-      padding: 0.5rem;
-      font-size: 0.85rem;
-    }
+  .mat-cell, .mat-header-cell {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
 
-    .p-datatable-thead > tr > th:first-child,
-    .p-datatable-tbody > tr > td:first-child {
-      padding-left: 1rem;
-    }
+  .mat-header-cell:first-child,
+  .mat-cell:first-child {
+    padding-left: 1rem;
   }
 
   .card {
     .card-header {
       padding: 0.75rem 1rem;
     }
-  }
-}
-
-/* Add to styles.scss or your component's SCSS */
-.client-details-modal {
-  .p-dialog-header {
-    border-bottom: 1px solid #e9ecef;
-    padding: 1rem 1.5rem;
-
-    .p-dialog-title {
-      font-size: 1.25rem;
-      font-weight: 500;
-    }
-  }
-
-  .p-dialog-content {
-    padding: 0;
   }
 }
