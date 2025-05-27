@@ -30,14 +30,20 @@ export const routes: Routes = [
   { path: 'sidebar', component: SidebarComponent },
   { path: 'dashboard', component: DashboardComponent, data: { breadcrumb: 'Dashboard' } },
   { path: 'equipment-list', component: EquipmentListComponent, data: { breadcrumb: 'Equipment List' } },
-  { path: 'equipment-details/:id', component: EquipmentDetailsComponent, data: { breadcrumb: 'Equipment Details' } },
+  { path: 'equipment-details/:id', component: EquipmentDetailsComponent, data: { breadcrumb: [
+    { label: 'Equipment List', url: '/equipment-list' },
+    { label: 'Equipment Details', url: '/equipment-details/:id'}
+    ] } },
   { path: 'project-materials', component: ProjectMaterialsComponent, data: { breadcrumb: 'Project Materials' } },
   { path: 'delivery-receipt', component: DeliveryReceiptComponent, data: { breadcrumb: 'Delivery Receipt' } },
   { path: 'supplier-list', component: SupplierListComponent, data: { breadcrumb: 'Supplier List' } },
   { path: 'parts-picker', component: PartsPickerComponent, data: { breadcrumb: 'Parts Picker' } },
   { path: 'supplier-portal', component: SupplierPortalComponent, data: { breadcrumb: 'Supplier Portal' } },
   { path: 'supplier-form', component: SupplierFormComponent, data: { breadcrumb: 'Supplier Form' } },
-  { path: 'operational-equipment-details/:id', component: OperationalEquipmentDetailsComponent, data: { breadcrumb: 'Operational Equipment Details' } },
+  { path: 'operational-equipment-details/:id', component: OperationalEquipmentDetailsComponent, data: { breadcrumb: [
+    { label: 'Equipment List', url: '/equipment-list' },
+    { label: 'Operational Equipment Details', url: '/operational-equipment-details/:id' }
+    ] }},
   { path: 'user-list', component: UserListComponent, data: { breadcrumb: 'User List' } },
   { path: 'client-list', component: ClientListComponent, data: { breadcrumb: 'Client List' } },
   { path: 'project-details/:id', component: ProjectDetailsComponent, data: { breadcrumb: 'Project Details' } },
@@ -47,9 +53,19 @@ export const routes: Routes = [
     ]  }},
   { path: 'borrow', component: BorrowRequestComponent, data: { breadcrumb: 'Borrow Request' } },
   { path: 'borrow-table-user', component: BorrowTableUserComponent, data: { breadcrumb: 'Borrow Table' } },
-  { path: 'borrow-form', component: BorrowRequestComponent, data: { breadcrumb: 'Borrow Form' } },
-  { path: 'equipment-borrow', component: EquipmentBorrowComponent, data: { breadcrumb: 'Equipment' } },
-  { path: 'supplier-profile/:id', component: SupplierProfileComponent, data: { breadcrumb: 'Supplier Profile' } },
+  { path: 'borrow-form', component: BorrowRequestComponent, data: { breadcrumb:[
+    { label: 'Borrow table', url: 'borrow-table-user' },
+    { label: 'Borrow Form', url: '/borrow-form' }
+    ] } },
+  { path: 'equipment-borrow', component: EquipmentBorrowComponent, data: { breadcrumb: [
+    { label: 'Borrow table', url: 'borrow-table-user' },
+    { label: 'Borrow Form', url: 'borrow-form' },
+    { label: 'Equipment Borrow', url: '/equipment-borrow' }
+    ] } },
+  { path: 'supplier-profile/:id', component: SupplierProfileComponent, data: { breadcrumb: [
+    { label: 'Supplier List', url: '/supplier-list' },
+    { label: 'Supplier Profile', url: '/supplier-profile/:id' }
+    ] } },
   { path: 'breadcrumb', component: BreadcrumbComponent, data: { breadcrumb: 'Breadcrumb' } },
 
 
