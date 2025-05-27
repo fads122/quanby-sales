@@ -1,13 +1,12 @@
 import { Component, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';  // Add Router here
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ConfirmationService } from 'primeng/api';
 import { MessageService } from 'primeng/api';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatButtonModule } from '@angular/material/button';
-
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-sidebar',
@@ -15,12 +14,12 @@ import { MatButtonModule } from '@angular/material/button';
   imports: [
     CommonModule,
     RouterModule,
-     MatButtonModule,
-
+    ConfirmDialogModule,
+    ToastModule
   ],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css'],
-  providers: [ConfirmationService, MessageService, MatSnackBar],
+  providers: [ConfirmationService, MessageService],
 })
 export class SidebarComponent {
   isCollapsed = false;
@@ -53,7 +52,8 @@ export class SidebarComponent {
     @Inject(PLATFORM_ID) private platformId: Object,
      private authService: SupabaseAuthService,
      private supabaseService: SupabaseService,
-    private snackBar: MatSnackBar,
+     private confirmationService: ConfirmationService,
+    private messageService: MessageService,
     private router: Router  // Add this line
   ) {
     if (isPlatformBrowser(this.platformId)) {
@@ -89,34 +89,29 @@ export class SidebarComponent {
   }
 
   confirmLogout(): void {
-    // Show Material snackbar with action
-    const snackBarRef = this.snackBar.open('Are you sure you want to logout?', 'LOGOUT', {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'bottom',
-      panelClass: ['logout-snackbar']
+    this.confirmationService.confirm({
+      header: 'Confirm Logout',
+      icon: 'pi pi-info-circle',
+      message: 'Are you sure you want to logout?',
+      acceptLabel: 'Yes',
+      acceptButtonStyleClass: 'p-button-danger', // Make the Yes button red
+      rejectVisible: false, // Hide No button
+      accept: () => {
+        // Store logout message BEFORE delay
+        localStorage.setItem('logoutMessage', 'Successfully logged out.');
+
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Logging Out',
+          detail: 'You are being logged out...',
+        });
+
+        // Delay logout by 2 seconds to show the toast
+        setTimeout(() => {
+          this.logout();
+        }, 2000);
+      },
     });
-
-    snackBarRef.onAction().subscribe(() => {
-      // User clicked "LOGOUT" - proceed with logout
-      this.performLogout();
-    });
-  }
-
-   private performLogout(): void {
-    // Store logout message
-    localStorage.setItem('logoutMessage', 'Successfully logged out.');
-
-    // Show loading message
-    const loadingSnackbar = this.snackBar.open('Logging out...', undefined, {
-      duration: 2000
-    });
-
-    // Delay logout by 2 seconds to show the message
-    setTimeout(() => {
-      loadingSnackbar.dismiss();
-      this.logout();
-    }, 2000);
   }
 
   async logout(): Promise<void> {
@@ -128,22 +123,14 @@ export class SidebarComponent {
       localStorage.clear();
       console.log('LocalStorage cleared');
 
-      // Show success message before navigating
-      this.snackBar.open('Logged out successfully', 'Close', {
-        duration: 3000,
-        panelClass: ['success-snackbar']
-      });
-
-      // Small delay to let user see the message
-      setTimeout(() => {
-        this.router.navigate(['/login']);
-      }, 500);
-
+      await this.router.navigate(['/login']);
+      console.log('Navigation completed');
     } catch (error) {
       console.error('Logout failed:', error);
-      this.snackBar.open('Logout failed. Please try again.', 'Close', {
-        duration: 3000,
-        panelClass: ['error-snackbar']
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Logout failed. Please try again.',
       });
     }
   }

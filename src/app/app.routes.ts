@@ -21,6 +21,7 @@ import { SupplierProfileComponent } from './user/supplier-profile/supplier-profi
 import { EquipmentBorrowComponent } from './user/equipment-borrow/equipment-borrow.component';
 import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
 
+
 export const routes: Routes = [
 
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -49,5 +50,7 @@ export const routes: Routes = [
   { path: 'borrow-form', component: BorrowRequestComponent, data: { breadcrumb: 'Borrow Form' } },
   { path: 'equipment-borrow', component: EquipmentBorrowComponent, data: { breadcrumb: 'Equipment' } },
   { path: 'supplier-profile/:id', component: SupplierProfileComponent, data: { breadcrumb: 'Supplier Profile' } },
+  { path: 'breadcrumb', component: BreadcrumbComponent, data: { breadcrumb: 'Breadcrumb' } },
+
 
 ];
