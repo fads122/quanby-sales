@@ -18,6 +18,7 @@ import { SavedEquipmentComponent } from './user/saved-equipment/saved-equipment.
 import { BorrowRequestComponent } from './user/borrow-request-form/borrow-request-form.component';
 import { BorrowTableUserComponent } from './user/borrow-table-user/borrow-table-user.component';
 import { SupplierProfileComponent } from './user/supplier-profile/supplier-profile.component';
+import { EquipmentBorrowComponent } from './user/equipment-borrow/equipment-borrow.component';
 import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
 
 export const routes: Routes = [
@@ -45,6 +46,8 @@ export const routes: Routes = [
     ]  }},
   { path: 'borrow', component: BorrowRequestComponent, data: { breadcrumb: 'Borrow Request' } },
   { path: 'borrow-table-user', component: BorrowTableUserComponent, data: { breadcrumb: 'Borrow Table' } },
+  { path: 'borrow-form', component: BorrowRequestComponent, data: { breadcrumb: 'Borrow Form' } },
+  { path: 'equipment-borrow', component: EquipmentBorrowComponent, data: { breadcrumb: 'Equipment' } },
   { path: 'supplier-profile/:id', component: SupplierProfileComponent, data: { breadcrumb: 'Supplier Profile' } },
 
 ];

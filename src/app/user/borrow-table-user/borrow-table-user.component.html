@@ -1,64 +1,83 @@
 <app-sidebar></app-sidebar>
 <body>
-  <!-- ✅ Borrow Item & Search Container -->
-  <!-- After (button is moved to the end) -->
-<div class="flex justify-between items-center mb-4">
-  <!-- 🔍 Search First -->
-  <span class="p-input-icon-left">
+  <div class="search-borrow-container">
+  <!-- 🔍 Search Bar (Left) -->
+  <span class="p-input-icon-left search-wrapper">
     <i class="pi pi-search"></i>
-    <input type="text" class="sirch" pInputText placeholder="   Search Borrower Department"
-      [(ngModel)]="searchTerm" (input)="filterBorrowRequests()" />
+    <input 
+      type="text" 
+      pInputText 
+      class="search-input" 
+      placeholder="Search Borrower Department"
+      [(ngModel)]="searchTerm" 
+      (input)="filterBorrowRequests()" 
+    />
   </span>
 
-  <!-- ➕ Button Last (now right-aligned) -->
-   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   <button class="p-button custom-borrow-button" (click)="goToBorrowForm()">
+  <!-- ➕ Borrow Button (Right) -->
+  <button class="borrow-item-btn" (click)="goToBorrowForm()">
     <i class="pi pi-plus"></i> Borrow Item
   </button>
 </div>
   <br>
 
-  <!-- ✅ PrimeNG Table -->
-  <p-table #dt [value]="filteredBorrowRequests" [paginator]="true" [rows]="7" [rowsPerPageOptions]="[7,10,15,20]"
-    [responsiveLayout]="'scroll'" [globalFilterFields]="['borrower_name', 'borrower_department']"
-    [sortField]="'borrow_date'" [sortOrder]="-1"> <!-- Default sort by borrow_date descending -->
+    <!-- ✅ Angular Material Table -->
+  <div class="mat-table-container">
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+      <!-- Borrower Name Column -->
+      <ng-container matColumnDef="borrower_name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Borrower Name </th>
+        <td mat-cell *matCellDef="let request"> {{request.borrower_name}} </td>
+      </ng-container>
 
-    <ng-template pTemplate="header">
-      <tr>
-        <th pSortableColumn="borrower_name">Borrower Name</th>
-        <th pSortableColumn="borrower_department">Department/Location <p-sortIcon field="borrower_department"></p-sortIcon></th>
-        <th pSortableColumn="borrow_date">Borrow Date <p-sortIcon field="borrow_date"></p-sortIcon></th>
-        <th pSortableColumn="return_date">Return Date <p-sortIcon field="return_date"></p-sortIcon></th>
-        <th>Action</th>
-      </tr>
-    </ng-template>
+      <!-- Department Column -->
+      <ng-container matColumnDef="borrower_department">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Department/Location </th>
+        <td mat-cell *matCellDef="let request"> {{request.borrower_department}} </td>
+      </ng-container>
 
-    <ng-template pTemplate="body" let-request>
-      <tr (click)="openDetailsModal(request)" class="clickable-row">
-        <td>{{ request.borrower_name }}</td>
-        <td>{{ request.borrower_department }}</td>
-        <td>{{ request.borrow_date }}</td>
-        <td>{{ request.return_date }}</td>
-        <td>
+      <!-- Borrow Date Column -->
+      <ng-container matColumnDef="borrow_date">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Borrow Date </th>
+        <td mat-cell *matCellDef="let request"> {{request.borrow_date}} </td>
+      </ng-container>
+
+      <!-- Return Date Column -->
+      <ng-container matColumnDef="return_date">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Return Date </th>
+        <td mat-cell *matCellDef="let request"> {{request.return_date}} </td>
+      </ng-container>
+
+      <!-- Action Column -->
+      <ng-container matColumnDef="action">
+        <th mat-header-cell *matHeaderCellDef> Action </th>
+        <td mat-cell *matCellDef="let request">
           <button *ngIf="request.status !== 'Returned' && request.status !== 'returned'"
-                  class="p-button p-button-success p-button-sm"
-                  (click)="markAsReturned(request.id); $event.stopPropagation();">
+                  mat-raised-button color="primary" class="action-btn"
+                  (click)="markAsReturned(request.id); $event.stopPropagation()">
             Return
           </button>
-          <span *ngIf="request.status?.toLowerCase() === 'returned'" class="p-tag p-tag-primary disabled">Returned</span>
+          <span *ngIf="request.status?.toLowerCase() === 'returned'" class="returned-label">
+            Returned
+          </span>
         </td>
-      </tr>
-    </ng-template>
+      </ng-container>
 
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="5" class="text-center">
-          <i class="pi pi-box text-4xl text-gray-400"></i>
-          <p class="text-gray-600 mt-2">No borrowed items found</p>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+          (click)="openDetailsModal(row)" class="clickable-row"></tr>
+
+      <!-- No data row -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="no-items" colspan="5">
+          <mat-icon class="no-items-icon">inventory</mat-icon>
+          <p class="no-items-message">No borrowed items found</p>
         </td>
       </tr>
-    </ng-template>
-  </p-table>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[8, 10, 15, 20]" showFirstLastButtons></mat-paginator>
+  </div>
 
   <!-- ✅ Borrow Details Modal -->
   <p-dialog [(visible)]="showDetailsModal" [modal]="true" [style]="{width: '50rem'}" [closable]="false">
@@ -96,7 +115,7 @@
       <h3 class="equipment-title">Borrowed Equipment</h3>
       <div class="equipment-grid">
         <div class="equipment-card" *ngFor="let item of selectedBorrower.equipmentList">
-          <img [src]="item.image" alt="{{ item.name }}" class="equipment-image"/>
+          <img [src]="getImagePath(item.image)" alt="{{ item.name }}" class="equipment-image"/>
           <div class="equipment-details">
             <h4>{{ item.name }}</h4>
             <p>Quantity: <strong>{{ item.quantity }}</strong></p>

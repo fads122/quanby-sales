@@ -1,0 +1,67 @@
+<app-sidebar></app-sidebar>
+
+<div class="scrollable-table">
+    <div class="proceed-button-container">
+        <button (click)="proceedToBorrowForm()" class="proceed-button">
+            🚀 Proceed to Borrow Form
+        </button>
+    </div>
+
+    <table class="equipment-table">
+    <thead>
+        <tr>
+            <th>Select</th>
+            <th>Image</th>
+            <th>Equipment</th>
+            <th>Brand</th>
+            <th>Model</th>
+            <th>Serial No.</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let equipment of equipmentList">
+        <td>
+          <input type="checkbox" [(ngModel)]="equipment.selected" [disabled]="equipment.borrowed || equipment.status === 'Borrowed'" />
+        </td>
+        <td class="pic">
+          <img [src]="getValidImage(equipment)" alt="{{ equipment.name }}" class="product-image" />
+        </td>
+        <td>{{ equipment.name }}</td>
+        <td>{{ equipment.brand || 'N/A' }}</td>
+        <td>{{ equipment.model || 'N/A' }}</td>
+        <td>{{ equipment.serial_number || 'N/A' }}</td>
+        <td>
+  <span [ngClass]="{
+    'status-available': equipment.status === 'Available',
+    'status-inactive': equipment.status === 'Inactive',
+    'status-borrowed': equipment.status === 'Borrowed' || equipment.quantity <= 0,
+    'status-working': equipment.status === 'Working'
+  }">
+    <span class="status-content">
+      {{ equipment.quantity <= 0 ? 'Borrowed' : equipment.status }}
+    </span>
+    <span *ngIf="equipment.status === 'Inactive' && equipment.inactive_reason" class="status-detail">
+      ({{ equipment.inactive_reason }})
+    </span>
+  </span>
+</td>
+      <td>
+  <button 
+    (click)="addToBorrowedList(equipment.id)" 
+    class="action-button" 
+    [disabled]="equipment.status === 'Borrowed' || equipment.quantity <= 0 || 
+              equipment.status === 'Maintenance' || 
+              equipment.status === 'Working' ||
+              equipment.status === 'Inactive'">
+    {{ equipment.status === 'Borrowed' || equipment.quantity <= 0 ? 'Borrowed' : 
+      equipment.status === 'Working' ? 'Borrow' : 
+      equipment.status === 'Inactive' ? 'Borrow' : 'Borrow' }}
+      
+  </button>
+</td>
+      </tr>
+    </tbody>
+    </table>
+</div>

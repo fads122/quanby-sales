@@ -6,12 +6,23 @@ import { SidebarComponent } from "../../nav/sidebar/sidebar.component";
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
+
+
+import { MatTableModule } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
+
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+import { ViewChild, AfterViewInit } from '@angular/core';
+
+
 // ✅ PrimeNG Imports
-import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
+
+
+
 import { DialogModule } from 'primeng/dialog';
-import { TagModule } from 'primeng/tag';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 interface InhouseEquipment {
@@ -48,11 +59,19 @@ interface BorrowRequest {
 @Component({
   selector: 'app-borrow-table-user',
   standalone: true,
-  imports: [NgIf, NgFor,NgClass, SidebarComponent, FormsModule, TableModule, ButtonModule, InputTextModule, DialogModule, TagModule ],
+  imports: [NgIf, NgFor,NgClass, SidebarComponent, MatPaginatorModule, FormsModule, MatIconModule ,MatTableModule, MatTableModule, DialogModule, ],
   templateUrl: './borrow-table-user.component.html',
   styleUrl: './borrow-table-user.component.css'
 })
-export class BorrowTableUserComponent implements OnInit {
+export class BorrowTableUserComponent implements OnInit, AfterViewInit {
+
+displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_date', 'return_date', 'action'];
+  dataSource = new MatTableDataSource<BorrowRequest>([]);
+
+@ViewChild(MatPaginator) paginator!: MatPaginator;
+@ViewChild(MatSort) sort!: MatSort;
+
+
   // borrowRequests: any[] = [];
   userEmail: string | null = null;
   filteredBorrowRequests: any[] = [];
@@ -71,11 +90,16 @@ export class BorrowTableUserComponent implements OnInit {
     private sanitizer: DomSanitizer
   ) {}
 
+
   async ngOnInit() {
-    await this.loadUserEmail();  // Ensure user ID is set first
-    this.fetchBorrowRequests();  // Now fetch borrow requests
+    await this.loadUserEmail();
+    this.fetchBorrowRequests();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
 
   async loadUserEmail() {
     const isLoggedIn = await this.authService.isLoggedIn();
@@ -95,32 +119,32 @@ export class BorrowTableUserComponent implements OnInit {
   }
 
   goToBorrowForm() {
+      console.log('Button clicked'); // Check if this appears in console
     this.router.navigate(['/borrow-form']);
   }
 
+async fetchBorrowRequests(): Promise<void> {
+  try {
+    if (!this.userEmail) {
+      console.warn("⚠ No user ID found. Skipping data fetch.");
+      return;
+    }
 
-  async fetchBorrowRequests(): Promise<void> {
-    try {
-      if (!this.userEmail) {
-        console.warn("⚠ No user ID found. Skipping data fetch.");
-        return;
-      }
+    console.log(`🔍 Fetching borrow requests for user ID: ${this.userEmail}`);
 
-      console.log(`🔍 Fetching borrow requests for user ID: ${this.userEmail}`);
+    // Fetch basic request data
+    const { data: requests, error: requestsError } = await this.supabaseService
+      .from('borrow_requests')
+      .select(`id, user_id, borrow_date, return_date, borrower_name, borrower_department, 
+              borrower_contact, borrower_email, purpose, status`)
+      .eq('user_id', this.userEmail);
 
-      const { data: requests, error: requestsError } = await this.supabaseService
-        .from('borrow_requests')
-        .select(`id, user_id, borrow_date, return_date, borrower_name, borrower_department, borrower_contact, borrower_email, purpose, status`)
-        .eq('user_id', this.userEmail);
+    if (requestsError) throw requestsError;
 
-      if (requestsError) {
-        console.error('❌ Error fetching borrow requests:', requestsError);
-        throw requestsError;
-      }
-
-      const processedRequests = await Promise.all(
-        requests.map(async (request) => {
-          const { data: equipmentData, error: equipmentError } = await this.supabaseService
+    // Process each request with equipment data
+    const processedRequests = await Promise.all(
+      requests.map(async (request) => {
+        const { data: equipmentData, error: equipmentError } = await this.supabaseService
           .from('borrow_request_equipment')
           .select(`
             inhouse_equipment_id,
@@ -129,18 +153,14 @@ export class BorrowTableUserComponent implements OnInit {
           `)
           .eq('borrow_request_id', request.id);
 
-          if (equipmentError) {
-            console.error('❌ Error fetching equipment data for request ID:', request.id, equipmentError);
-            return {
-              ...request,
-              equipmentList: []
-            };
-          }
+        if (equipmentError) {
+          console.error('❌ Error fetching equipment:', equipmentError);
+          return { ...request, equipmentList: [] };
+        }
 
-          // ✅ Group equipment by name while summing their quantities
-          const equipmentMap = new Map<string, any>();
-
-          equipmentData.forEach((bre: any) => {
+        // Process equipment data
+        const equipmentMap = new Map<string, any>();
+        equipmentData.forEach((bre: any) => {
           const equipmentName = bre.inhouse?.name || "Unknown Equipment";
           const equipmentImage = bre.inhouse?.images?.[0] || "assets/no-image.png";
 
@@ -155,34 +175,38 @@ export class BorrowTableUserComponent implements OnInit {
           }
         });
 
-          return {
-            ...request,
-            equipmentList: Array.from(equipmentMap.values()) // ✅ Convert map to array
-          };
-        })
-      );
+        return {
+          ...request,
+          equipmentList: Array.from(equipmentMap.values())
+        };
+      })
+    );
 
-      this.borrowRequests = processedRequests;
-      this.filteredBorrowRequests = [...this.borrowRequests]; // ✅ Initialize filtered list
+    // Update both the data source and borrowRequests
+    this.borrowRequests = processedRequests;
+    this.dataSource.data = this.borrowRequests; // This is the critical line for Material Table
+    console.log('✅ Updated dataSource with:', this.dataSource.data);
 
-    } catch (error) {
-      console.error('❌ Failed to load borrow requests:', error);
-      alert('An error occurred while loading borrow requests. Please try again later.');
-    }
+  } catch (error) {
+    console.error('❌ Failed to load borrow requests:', error);
+    alert('Error loading borrow requests. Please try again.');
   }
+}
 
-
-
-  // Filter function for search input
-  filterBorrowRequests(): void {
-    const term = this.searchTerm.toLowerCase().trim();
-    this.filteredBorrowRequests = this.borrowRequests.filter(request =>
+filterBorrowRequests(): void {
+  const term = this.searchTerm.toLowerCase().trim();
+  
+  if (!term) {
+    this.dataSource.data = this.borrowRequests; // Reset to all data
+  } else {
+    this.dataSource.data = this.borrowRequests.filter(request =>
       request.borrower_name.toLowerCase().includes(term) ||
       request.borrower_department.toLowerCase().includes(term) ||
       (request.borrower_contact && request.borrower_contact.toLowerCase().includes(term)) ||
       (request.borrower_email && request.borrower_email.toLowerCase().includes(term))
     );
   }
+}
 
 
 
@@ -326,6 +350,7 @@ async markAsReturned(requestId: string): Promise<void> {
 
   openDetailsModal(request: any) {
     console.log("🟢 Opening details for:", request);
+     console.log("Equipment List:", request.equipmentList);
 
     if (!request) {
       console.error("❌ No request data provided.");
