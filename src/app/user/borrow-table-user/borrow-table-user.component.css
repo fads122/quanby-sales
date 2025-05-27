@@ -2,56 +2,64 @@
 body{
   margin-top: 80px;
   margin-left: 260px;
-}.search-borrow-container {
+}
+/* ✅ Main Container (Flex Layout) */
+.search-borrow-container {
   display: flex;
+  justify-content: space-between; /* Pushes items to opposite ends */
   align-items: center;
-  justify-content: flex-end; /* ✅ Align to the right */
-  gap: 39rem; /* ✅ Adjust spacing between button & input */
-  margin-top: 80px;
-  margin-right: 4%; /* ✅ Move the container to the right */
-  margin-bottom: 20px;
+  margin: 20px 0; /* Adjust top/bottom margin as needed */
+  padding: 0 20px; /* Add side padding if needed */
 }
 
-.small-dropdown ::ng-deep .p-dropdown-label {
-  font-size: 12px;
-  padding: 5px 10px;
+/* 🔍 Search Bar Styling */
+.search-wrapper {
+  position: relative;
 }
 
-.sirch{
-  min-width: 300px;
-  margin-left: -15px;
+.search-input {
+  width: 300px; /* Fixed width */
+  padding: 10px 10px 10px 35px; /* Space for icon */
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s;
 }
 
-/* ✅ Borrow Item Button */
+.search-input:focus {
+  border-color: #01024a; /* Match button color */
+  outline: none;
+}
+
+.p-input-icon-left i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d; /* Muted icon color */
+}
+
+/* ➕ Borrow Button Styling */
 .borrow-item-btn {
   background-color: #01024a; /* Dark blue */
   color: white;
-  padding: 10px 15px;
   border: none;
   border-radius: 6px;
-  cursor: pointer;
+  padding: 10px 20px;
   font-size: 14px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px; /* Space between icon & text */
-  transition: background 0.3s ease-in-out;
+  gap: 8px;
+  transition: background 0.3s;
+}
+
+.borrow-item-btn:hover {
+  background-color: #000126; /* Darker hover */
 }
 
 .borrow-item-btn i {
   font-size: 16px;
-}
-
-.borrow-item-btn:hover {
-  background-color: #000126; /* Darker blue on hover */
-}
-
-/* ✅ Search Input */
-.search-input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  width: 250px; /* ✅ Set a fixed width */
 }
 
 /* ✅ Table Container */
@@ -107,55 +115,35 @@ body{
     background-color: #f9f9f9;
   }
 
-  /* No items message styling */
-  .no-items {
-    text-align: center;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.9rem;
-    color: #666;
-  }
+ /* Action button styling */
+.action-btn {
+  padding: 0 12px;
+  line-height: 28px;
+  font-size: 12px;
+}
 
-.return-btn {
-    background-color: #1e3a8a;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-  }
+/* Status labels */
+.returned-label {
+  color: #28a745;
+  font-weight: 500;
+}
 
-  .return-btn:hover {
-    background-color: #163d7a;
-  }
-
-  .returned-label {
-    color: #28a745;
-    font-weight: bold;
-  }
-
-
-/* ✅ No Borrowed Items Message Container */
-.no-items-container {
+/* No items styling */
+.no-items {
   text-align: center;
-  padding: 20px;
-  margin-top: 20px;
+  padding: 24px;
 }
 
-/* ✅ No Items Icon */
 .no-items-icon {
-  font-size: 50px;  /* Adjust size */
-  color: #777;      /* Grey color */
-  margin-bottom: 10px;
-  opacity: 0.8;
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #757575;
 }
 
-/* ✅ No Items Text */
 .no-items-message {
-  font-size: 18px;
-  font-weight: bold;
-  color: #777;
+  margin-top: 8px;
+  color: #757575;
 }
 
 

@@ -31,7 +31,7 @@ export class SidebarComponent {
     { path: '/dashboard', icon: 'pi pi-home', label: 'Home' },
     { path: '/equipment-list', icon: 'pi pi-list', label: 'Product List' },
     { path: '/supplier-list', icon: 'pi pi-truck', label: 'Suppliers' },
-    { path: '/project-materials', icon: 'pi pi-file-edit', label: 'Project Proposals' },
+    { path: '/project-materials', icon: 'pi pi-file-edit', label: 'Projects' },
     { path: '/client-list', icon: 'pi pi-users', label: 'Client Directory' },
     { path: '/delivery-receipt', icon: 'pi pi-shopping-cart', label: 'Sales Order' },
     { path: '/parts-picker', icon: 'pi pi-box', label: 'Parts Picker' },

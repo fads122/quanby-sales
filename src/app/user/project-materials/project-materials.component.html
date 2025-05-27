@@ -4,16 +4,19 @@
 <div class="container">
   <div class="main-content">
     <div class="button-row">
-      <button class="btn-add-materials" (click)="openModal()">
-        <i class="fas fa-plus-circle"></i> Add Project
-      </button>
+  <h4>My Projects</h4>
+  <div class="action-buttons">
+    <button class="btn-add-materials" (click)="openModal()">
+      <i class="fas fa-plus-circle"></i> Add Project
+    </button>
+    <button class="btn-view-templates" (click)="openTemplatesModal()">
+      <i class="fas fa-layer-group"></i> View Templates
+    </button>
+  </div>
+</div>
 
-      <button class="btn-view-templates" (click)="openTemplatesModal()">
-        <i class="fas fa-layer-group"></i> View Templates
-      </button>
-    </div>
 
-    <div class="modal-backdrop" *ngIf="showTemplatesModal">
+    <div class="modal-backdrop" *ngIf="showTemplatesModal"> 
       <div class="modal-content template-modal">
         <span class="close-btn" (click)="closeTemplatesModal()">&times;</span>
         <h2 class="modal-title">Saved Equipment Templates</h2>
@@ -38,7 +41,6 @@
 
 
     <!-- ✅ My Projects Section -->
-    <h2>My Projects</h2>
 <div class="project-card-grid">
   <div *ngFor="let project of myProjects" class="project-card" (click)="viewProject(project)">
     <h3 class="project-title"><i class="fas fa-folder"></i> {{ project.name }}</h3>
@@ -72,7 +74,7 @@
   </div>
 </div>
 
-<h2>Other Users' Projects</h2>
+<h4>Other Users' Projects</h4>
 <div class="project-card-grid">
   <div *ngFor="let project of otherProjects" class="project-card" (click)="viewProject(project)">
     <h3 class="project-title"><i class="fas fa-folder"></i> {{ project.name }}</h3>

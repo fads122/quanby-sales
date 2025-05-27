@@ -9,7 +9,7 @@ body {
   color: #333;
   line-height: 1.6;
   padding-left: 10px;
-  padding-right: 10px;
+  padding-right: 10px; 
   padding-top: 50px;
 }
 .toast {
@@ -41,10 +41,14 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   color: #2c3e50;
 }
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
 
-h2 {
+h4 {
   font-size: 24px;
-  margin-bottom: 16px;
+  margin: 0; /* Remove bottom margin to better align vertically */
 }
 
 p {
@@ -94,7 +98,7 @@ p {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 13px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -268,9 +272,10 @@ z-index: 1000;
 }
 
 .button-row {
-display: flex;
-gap: 10px;
-margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Vertically center buttons with h2 */
+  margin-bottom: 1rem;
 }
 
 .btn-view-templates {

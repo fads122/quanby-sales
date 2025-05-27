@@ -1,0 +1,424 @@
+/* Fixed Table Container */
+.scrollable-table {
+    position: absolute;
+    top: 10%;
+    left: 17%;
+    right: 20px;
+    bottom: 20px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    background: white;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent double scrollbars */
+}
+
+/* Table Wrapper for Scrollable Content */
+.table-scroll-wrapper {
+    overflow-y: auto;
+    flex: 1;
+    margin-top: 60px; /* Space for proceed button */
+}
+
+/* Equipment Table */
+.equipment-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: 'Poppins', sans-serif;
+    table-layout: fixed;
+}
+
+/* Table header styling */
+.equipment-table thead {
+    position: sticky;
+    top: 60px; /* Below proceed button */
+    z-index: 20;
+    background-color: #f8fafc;
+}
+
+/* Table body styling */
+.equipment-table tbody {
+    display: block;
+
+}
+
+/* Table row styling */
+.equipment-table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* Table cell styling */
+.equipment-table th,
+.equipment-table td {
+    padding: 12px 15px;
+    text-align: left;
+    font-size: 0.85rem;
+    color: #2d3748;
+    border-bottom: 1px solid #edf2f7;
+    vertical-align: middle;
+}
+
+/* Header cell specific styling */
+.equipment-table th {
+    color: #1e3a8a;
+    font-weight: 600;
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* First column styling */
+.equipment-table th:first-child,
+.equipment-table td:first-child {
+    width: 50px;
+    padding-right: 25px;
+}
+
+
+/* Product Image */
+.product-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s ease;
+}
+
+.product-image:hover {
+    transform: scale(1.05);
+}
+
+/* Consistent Status Styles */
+.status-available,
+.status-borrowed,
+.status-working,
+.status-inactive {
+  position: relative;
+  overflow: hidden;
+  padding: 8px 12px 8px 16px;
+  border-radius: 12px 8px 8px 12px;
+  min-width: 100px;
+  margin-right: 15px;
+  display: inline-block;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  border: 1px solid transparent;
+}
+
+/* Left accent border for all statuses */
+.status-available::before,
+.status-borrowed::before,
+.status-working::before,
+.status-inactive::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  border-radius: 12px 0 0 12px;
+}
+
+/* Available Status - Green */
+.status-available {
+  background-color: #f0fdf4;
+  color: #15803d;
+  border-color: #bbf7d0;
+  font-weight: 700;
+}
+
+.status-available::before {
+  background-color: #22c55e;
+}
+
+.status-available .status-content::before {
+  content: "";
+  margin-right: 8px;
+  font-size: 0.9em;
+  color: #22c55e;
+}
+
+/* Borrowed Status - Orange */
+.status-borrowed {
+  background-color: #fff7ed;
+  color: #9a3412;
+  border-color: #fed7aa;
+  font-weight: 700;
+}
+
+.status-borrowed::before {
+  background-color: #ea580c;
+}
+
+.status-borrowed .status-content::after {
+  content: "";
+  margin-left: 8px;
+  font-size: 0.9em;
+}
+
+/* Working Status - Gold */
+.status-working {
+  background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
+  color: #854d0e;
+  border-color: #fde047;
+  font-weight: 700;
+}
+
+.status-working::before {
+  background-color: #ca8a04;
+}
+
+.status-working .status-content::after {
+  content: "";
+  margin-left: 8px;
+  font-size: 0.9em;
+}
+
+/* Inactive Status - Gray */
+.status-inactive {
+  background-color: #f8f9fa;
+  color: #495057;
+  border-color: #dee2e6;
+  font-weight: 700;
+}
+
+.status-inactive::before {
+  background-color: #6c757d;
+}
+
+.status-inactive .status-content::before {
+  content: "⏸";
+  margin-right: 8px;
+  font-size: 0.9em;
+  color: #6c757d;
+}
+
+/* Status content container */
+.status-content {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Status detail (reason text) - for inactive */
+.status-detail {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 4px;
+  padding-left: 22px;
+  position: relative;
+}
+
+.status-detail::before {
+  content: "→";
+  position: absolute;
+  left: 8px;
+  color: inherit;
+}
+
+/* Color variations for detail text */
+.status-available .status-detail::before { color: #86efac; }
+.status-borrowed .status-detail::before { color: #fdba74; }
+.status-working .status-detail::before { color: #fde047; }
+.status-inactive .status-detail::before { color: #adb5bd; }
+
+/* Keep all other existing styles the same */
+td:nth-child(7) {
+  padding-right: 20px;
+  position: relative;
+  min-width: 180px;
+}
+
+td:nth-child(8) {
+  padding-left: 20px;
+  min-width: 120px;
+}
+
+tr td:nth-child(7)::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 60%;
+  width: 1px;
+  background-color: #e9ecef;
+}
+
+/* Disabled button styling */
+.action-button:disabled {
+  background-color: #e9ecef !important;
+  color: #adb5bd !important;
+  border: 1px solid #dee2e6 !important;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none !important;
+}
+
+/* ===== Keep all other existing styles ===== */
+/* ... [your existing CSS for other elements] ... */
+/* Hover Effects */
+.status-available:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(34, 197, 94, 0.1);
+}
+
+.status-borrowed:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(249, 115, 22, 0.1);
+}
+
+.status-working:hover {
+  transform: translateY(-1px);
+  animation: pulse 1.5s infinite;
+}
+
+.status-inactive:hover {
+  transform: translateY(-1px);
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  70% { box-shadow: 0 0 0 5px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+/* Action Button */
+.action-button {
+    background-color: #1e3a8a;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-transform: capitalize;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.action-button:hover:not(:disabled) {
+    background-color: #1e40af;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.action-button:disabled {
+    background-color: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed;
+    border: 1px solid #e2e8f0 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Add this new rule to adjust checkbox column padding */
+td:first-child {
+  padding-right: 25px; /* Increased from default padding */
+  width: 50px; /* Fixed width for checkbox column */
+}
+
+/* Update the checkbox styling */
+.equipment-table input[type="checkbox"] {
+    position: absolute;
+    width: 18px; /* Slightly larger */
+    height: 15px;
+    cursor: pointer;
+    accent-color: #1e3a8a;
+    margin-right: 8px; /* Space between checkbox and edge */
+}
+
+
+/* Proceed Button Container */
+.proceed-button-container {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: flex-end;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+}
+
+/* Proceed Button */
+.proceed-button {
+    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.proceed-button:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #172554 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.proceed-button:active {
+    transform: scale(0.98);
+}
+
+.proceed-button:disabled {
+    background: #cbd5e1;
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .equipment-table th, 
+    .equipment-table td {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .product-image {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Custom scrollbar */
+.scrollable-table {
+  max-height: 745px;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+  background: white;
+}
+.scrollable-table::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.scrollable-table::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.scrollable-table::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.scrollable-table::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
