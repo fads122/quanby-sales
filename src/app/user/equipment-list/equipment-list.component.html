@@ -1,5 +1,16 @@
 <app-sidebar></app-sidebar>
 <body class="body-equip-list">
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-content">
+      <div class="logo-loader">
+        <div class="logo-glow"></div>
+        <img src="/images/quanby.png" alt="Quanby Logo">
+      </div>
+      <h3>Loading Products List</h3>
+    </div>
+  </div>
+
   <div class="equipment-list-container" [@tableSwitch]="tableSwitchState">
     <!-- Table Controls -->
     <div class="table-controls">
@@ -29,14 +40,6 @@
       <button class="add" (click)="openEquipmentModal()">
         <i class="fas fa-plus"></i> Add Equipment
       </button>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div *ngIf="isLoading" class="loading-overlay" @fadeInOut>
-      <div class="loading-content">
-        <div class="spinner"></div>
-        <h3>Loading {{ selectedTable === 'inhouse' ? 'Operational' : 'For Sale' }} Equipment</h3>
-      </div>
     </div>
 
     <!-- Main Content -->

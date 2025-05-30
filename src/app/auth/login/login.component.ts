@@ -19,6 +19,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
+  
   email: string = '';
   password: string = '';
   private supabase = createClient(

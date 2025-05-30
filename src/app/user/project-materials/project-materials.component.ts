@@ -111,6 +111,7 @@ export class ProjectMaterialsComponent implements OnInit {
   private supabase: SupabaseClient;
   userEmail: string | null = null;
   userId: string | null = null;
+  isLoading: boolean = true; // Add loading state
   showModal: boolean = false;
   showEditModal: boolean = false;
   showDeleteModal: boolean = false;
@@ -162,10 +163,17 @@ toastMessage = '';
   }
 
   async ngOnInit() {
-    await this.loadUser();
-    await this.fetchEquipment();
-    await this.fetchProjects();
-    this.updateDateTime();
+    this.isLoading = true; // Set loading to true at start
+    try {
+      await this.loadUser();
+      await this.fetchEquipment();
+      await this.fetchProjects();
+      this.updateDateTime();
+    } finally {
+      setTimeout(() => {
+        this.isLoading = false; // Set loading to false after a minimum delay
+      }, 1000); // Minimum 1 second loading time for better UX
+    }
   }
 
   updateDateTime() {

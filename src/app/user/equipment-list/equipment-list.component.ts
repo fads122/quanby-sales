@@ -20,6 +20,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { AddEquipmentComponent } from '../add-equipment/add-equipment.component';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Inject } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 
 interface RepairLog {
@@ -46,7 +48,8 @@ interface GroupedEquipment {
     MatIconModule,
     MatExpansionModule,
     MatInputModule,
-    MatDialogModule], // ✅ No need to import ZXingScannerModule
+    MatDialogModule,
+    MatSnackBarModule], // ✅ No need to import ZXingScannerModule
   templateUrl: './equipment-list.component.html',
   styleUrls: ['./equipment-list.component.css'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -149,22 +152,35 @@ export class EquipmentListComponent implements OnInit {
     private supabaseService: SupabaseService,
     private router: Router,
     private cdRef: ChangeDetectorRef,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {}
 
   async ngOnInit() {
-  this.selectedTable = 'inhouse'; // Default to operational equipment
-  this.equipmentList = await this.supabaseService.getEquipmentList() || [];
-  console.log("📋 Loaded Equipment List:", this.equipmentList);
+    this.selectedTable = 'inhouse'; // Default to operational equipment
+    this.isLoading = true; // Set loading state to true
 
-  this.filteredEquipmentList = [...this.equipmentList];
-  console.log("🛠 ngOnInit() is running...");
+    try {
+      // Fetch data
+      this.equipmentList = await this.supabaseService.getEquipmentList() || [];
+      console.log("📋 Loaded Equipment List:", this.equipmentList);
 
-  await this.loadEquipment();
+      this.filteredEquipmentList = [...this.equipmentList];
+      console.log("🛠 ngOnInit() is running...");
 
-  // Listen for scanner input
-  window.addEventListener('keydown', this.handleScannerInput.bind(this));
-}
+      await this.loadEquipment();
+
+      // Listen for scanner input
+      window.addEventListener('keydown', this.handleScannerInput.bind(this));
+    } catch (error) {
+      console.error('Error initializing equipment list:', error);
+    } finally {
+      // Ensure a minimum loading time of 1 second for better UX
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 1000);
+    }
+  }
 
   // Add this method to your EquipmentListComponent class
 openImagePreview(imageUrl: string) {
@@ -307,17 +323,14 @@ async processScannedCode(scannedCode: string) {
     return;
   }
 
-  // First try to find equipment in inhouse table
   let equipmentData = await this.supabaseService.getInHouseEquipment();
   console.log("📋 Fetched Equipment Data:", equipmentData);
 
-  // Try exact match first
   let matchedEquipment = equipmentData?.find(equipment =>
     equipment.qr_code === scannedCode ||
     equipment.barcode === scannedCode
   );
 
-  // If no exact match, try matching by name
   if (!matchedEquipment && scannedCode.includes('-')) {
     const parts = scannedCode.split('-');
     const name = parts[parts.length - 1].trim();
@@ -334,12 +347,11 @@ async processScannedCode(scannedCode: string) {
   if (matchedEquipment) {
     console.log("✅ Equipment Found:", matchedEquipment);
 
-    // Make sure to include the barcode in scannedData
     this.scannedData = {
       ...matchedEquipment,
       serial_no: matchedEquipment.serial_number,
       model: matchedEquipment.product_type,
-      barcode: matchedEquipment.barcode, // Add this line
+      barcode: matchedEquipment.barcode,
       repair_logs: []
     };
 
@@ -348,16 +360,19 @@ async processScannedCode(scannedCode: string) {
       this.scannedData.repair_logs = Array.isArray(repairLogs) ? repairLogs : [];
     }
 
-    // Log the barcode for debugging
     console.log("📊 Barcode data:", this.scannedData.barcode);
 
-    // Update UI and show modal
     this.expandedEquipment = matchedEquipment;
     this.isScannedEquipmentModalOpen = true;
     this.cdRef.detectChanges();
   } else {
     console.warn("⚠ No matching equipment found");
-    alert("No matching equipment found for the scanned code.");
+    this.snackBar.open('No matching equipment found for the scanned code.', 'Close', {
+      duration: 3000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: ['warning-snackbar']
+    });
   }
 }
 
@@ -383,22 +398,35 @@ closeMoveToTrashModal() {
 // ✅ Confirm Move to Trash with Reason
 async confirmMoveToTrash() {
   if (!this.equipmentToTrashId || !this.trashReason.trim()) {
-    alert("⚠️ Please provide a reason before moving to trash.");
+    this.snackBar.open('Please provide a reason before moving to trash.', 'Close', {
+      duration: 3000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: ['warning-snackbar']
+    });
     return;
   }
 
   const success = await this.supabaseService.softDeleteEquipment(this.equipmentToTrashId, this.trashReason);
   if (success) {
-    // ✅ Show success alert
-    alert("✅ Equipment successfully moved to trash.");
+    this.snackBar.open('Equipment successfully moved to trash.', 'Close', {
+      duration: 3000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: ['success-snackbar']
+    });
 
     console.log(`✅ Equipment moved to trash with reason: ${this.trashReason}`);
 
-    await this.loadEquipment(); // Refresh list
-    this.closeMoveToTrashModal(); // Close modal
+    await this.loadEquipment();
+    this.closeMoveToTrashModal();
   } else {
-    // ✅ Handle failure
-    alert("❌ Failed to move equipment to trash.");
+    this.snackBar.open('Failed to move equipment to trash.', 'Close', {
+      duration: 3000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
+    });
   }
 }
 
@@ -759,19 +787,39 @@ editEquipment(equipment: any) {
 }
 
   async deleteEquipment(id: string) {
-    if (confirm('Are you sure you want to delete this equipment?')) {
-      const success = await this.supabaseService.deleteEquipment(id);
+    const dialogRef = this.dialog.open(DeleteConfirmationDialog, {
+      width: '300px',
+      data: { message: 'Are you sure you want to delete this equipment?' }
+    });
 
-      if (success) {
-        console.log('✅ Equipment deleted:', id);
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        const success = await this.supabaseService.deleteEquipment(id);
 
-        this.equipmentList = this.equipmentList.filter(equipment => equipment.id !== id);
-        this.filteredEquipmentList = this.filteredEquipmentList.filter(equipment => equipment.id !== id);
-        this.groupEquipment();
+        if (success) {
+          console.log('✅ Equipment deleted:', id);
+          this.snackBar.open('Equipment successfully deleted.', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          });
 
-        this.cdRef.detectChanges(); // 🔹 Force UI update
+          this.equipmentList = this.equipmentList.filter(equipment => equipment.id !== id);
+          this.filteredEquipmentList = this.filteredEquipmentList.filter(equipment => equipment.id !== id);
+          this.groupEquipment();
+
+          this.cdRef.detectChanges();
+        } else {
+          this.snackBar.open('Failed to delete equipment.', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
+        }
       }
-    }
+    });
   }
 
   viewDetails(equipmentGroup: any) {
@@ -967,45 +1015,105 @@ closeQRCodeModal() {
 
   async moveToTrash(id: string) {
     if (!this.trashReason.trim()) {
-      alert("Please provide a reason before moving to trash.");
+      this.snackBar.open('Please provide a reason before moving to trash.', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['warning-snackbar']
+      });
       return;
     }
 
-    if (confirm('Are you sure you want to move this equipment to trash?')) {
-      const success = await this.supabaseService.softDeleteEquipment(id, this.trashReason);
-      if (success) {
-        console.log(`✅ Equipment ID ${id} moved to trash.`);
-        await this.loadEquipment(); // Refresh list
-        this.closeMoveToTrashModal(); // Close modal
-      } else {
-        console.error(`❌ Failed to move equipment ID ${id} to trash.`);
+    const dialogRef = this.dialog.open(DeleteConfirmationDialog, {
+      width: '300px',
+      data: { message: 'Are you sure you want to move this equipment to trash?' }
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        const success = await this.supabaseService.softDeleteEquipment(id, this.trashReason);
+        if (success) {
+          console.log(`✅ Equipment ID ${id} moved to trash.`);
+          this.snackBar.open('Equipment moved to trash successfully.', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          });
+          await this.loadEquipment();
+          this.closeMoveToTrashModal();
+        } else {
+          console.error(`❌ Failed to move equipment ID ${id} to trash.`);
+          this.snackBar.open('Failed to move equipment to trash.', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
+        }
       }
-    }
+    });
   }
 
 
   async restoreEquipment(id: string) {
-    if (confirm('Restore this equipment?')) {
-      const success = await this.supabaseService.restoreEquipment(id);
-      if (success) {
-        await this.loadEquipment(); // ✅ Refresh equipment list
-        this.groupEquipment(); // ✅ Ensure restored items merge correctly
+    const dialogRef = this.dialog.open(DeleteConfirmationDialog, {
+      width: '300px',
+      data: { message: 'Restore this equipment?' }
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        const success = await this.supabaseService.restoreEquipment(id);
+        if (success) {
+          this.snackBar.open('Equipment restored successfully.', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          });
+          await this.loadEquipment();
+          this.groupEquipment();
+        } else {
+          this.snackBar.open('Failed to restore equipment.', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
+        }
       }
-    }
+    });
   }
 
 
   async permanentlyDeleteEquipment(id: string) {
-    if (confirm('This action is irreversible. Permanently delete?')) {
-      const success = await this.supabaseService.permanentlyDeleteEquipment(id);
-      if (success) {
-        alert('✅ Equipment permanently deleted.');
-        // ✅ Remove the deleted item from the local trashedEquipmentList
-        this.trashedEquipmentList = this.trashedEquipmentList.filter(item => item.id !== id);
-      } else {
-        alert('❌ Failed to delete the equipment.');
+    const dialogRef = this.dialog.open(DeleteConfirmationDialog, {
+      width: '300px',
+      data: { message: 'This action is irreversible. Permanently delete?' }
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        const success = await this.supabaseService.permanentlyDeleteEquipment(id);
+        if (success) {
+          this.snackBar.open('Equipment permanently deleted.', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          });
+          this.trashedEquipmentList = this.trashedEquipmentList.filter(item => item.id !== id);
+        } else {
+          this.snackBar.open('Failed to delete the equipment.', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
+        }
       }
-    }
+    });
   }
   applyFilter() {
     const query = this.searchQuery.toLowerCase().trim();
@@ -1039,4 +1147,24 @@ closeQRCodeModal() {
     this.groupEquipment(filteredItems);
   }
 
+}
+
+@Component({
+  selector: 'delete-confirmation-dialog',
+  template: `
+    <h2 mat-dialog-title>Confirm Action</h2>
+    <mat-dialog-content>{{ data.message }}</mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button [mat-dialog-close]="false">Cancel</button>
+      <button mat-button [mat-dialog-close]="true" color="warn">Confirm</button>
+    </mat-dialog-actions>
+  `,
+  standalone: true,
+  imports: [MatDialogModule, MatButtonModule]
+})
+export class DeleteConfirmationDialog {
+  constructor(
+    public dialogRef: MatDialogRef<DeleteConfirmationDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: { message: string }
+  ) {}
 }

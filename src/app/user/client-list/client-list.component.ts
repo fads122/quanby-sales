@@ -1,18 +1,24 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { ClientService } from '../../services/client.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { CommonModule } from '@angular/common';
 import { SidebarComponent } from '../../nav/sidebar/sidebar.component';
 import { ProjectDetailsComponent } from '../project-details/project-details.component';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCardModule } from '@angular/material/card';
-import { MatChip } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableDataSource } from '@angular/material/table';
+import { DialogModule } from 'primeng/dialog';
+
+interface PaginatedResponse {
+  data: any[];
+  total: number;
+}
 
 @Component({
   selector: 'app-client-list',
@@ -28,32 +34,51 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatTooltipModule,
     MatCardModule,
     MatProgressSpinnerModule,
-    // MatChip
+    DialogModule
   ],
   templateUrl: './client-list.component.html',
   styleUrls: ['./client-list.component.css'],
   providers: [DialogService]
 })
-export class ClientListComponent implements OnInit {
-  clientGroups: any[] = [];
+export class ClientListComponent implements OnInit, AfterViewInit {
+  dataSource: MatTableDataSource<any>;
+  totalItems = 0;
   loading: boolean = true;
   ref: DynamicDialogRef | undefined;
   displayedColumns: string[] = ['client', 'contact', 'address', 'projects', 'actions'];
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  pageSize = 5;
+  pageIndex = 0;
 
   constructor(
     private clientService: ClientService,
     private dialogService: DialogService
-  ) {}
+  ) {
+    this.dataSource = new MatTableDataSource<any>([]);
+  }
 
   async ngOnInit(): Promise<void> {
     await this.loadProjects();
   }
 
+  ngAfterViewInit() {
+    if (this.paginator) {
+      // Subscribe to paginator events
+      this.paginator.page.subscribe((event: PageEvent) => {
+        this.pageSize = event.pageSize;
+        this.pageIndex = event.pageIndex;
+        this.loadProjects();
+      });
+    }
+  }
+
   async loadProjects(): Promise<void> {
     this.loading = true;
     try {
-      this.clientGroups = await this.clientService.getProjectsGroupedByClient();
+      const offset = this.pageIndex * this.pageSize;
+      const response = await this.clientService.getProjectsGroupedByClient(offset, this.pageSize);
+      this.dataSource.data = response.data;
+      this.totalItems = response.total;
     } catch (error) {
       console.error('Error loading projects:', error);
     } finally {
@@ -76,15 +101,20 @@ export class ClientListComponent implements OnInit {
     };
 
     this.ref = this.dialogService.open(ProjectDetailsComponent, {
-      header: `Client Details`,
-      width: 'min(90vw, 900px)',
-      contentStyle: {
-        'max-height': '80vh',
-        'overflow': 'auto',
-        'border-radius': '8px'
+      header: '',
+      width: '85%',
+      style: {
+        maxWidth: '900px',
+        maxHeight: '85vh',
+        borderRadius: '12px',
+        overflow: 'hidden'
       },
-      styleClass: 'client-details-modal',
+      modal: true,
+      dismissableMask: true,
+      closeOnEscape: true,
+      showHeader: false,
       baseZIndex: 10000,
+      transitionOptions: '300ms cubic-bezier(0.4, 0, 0.2, 1)',
       data: modalData
     });
   }

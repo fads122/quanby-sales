@@ -35,3 +35,13 @@ body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
+
+/* Ensure proper stacking and no overflow */
+body {
+  overflow-x: hidden;
+}
+
+.login-main-wrapper {
+  display: flex;
+  min-height: 100vh;
+}

@@ -6,11 +6,19 @@ import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { ClientService } from '../../services/client.service';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { DialogModule } from 'primeng/dialog';
 
 @Component({
   selector: 'app-project-details',
   standalone: true,
-  imports: [CommonModule, ButtonModule, TagModule, DividerModule, ProgressSpinnerModule],
+  imports: [
+    CommonModule,
+    ButtonModule,
+    TagModule,
+    DividerModule,
+    ProgressSpinnerModule,
+    DialogModule
+  ],
   templateUrl: './project-details.component.html',
   styleUrls: ['./project-details.component.css']
 })

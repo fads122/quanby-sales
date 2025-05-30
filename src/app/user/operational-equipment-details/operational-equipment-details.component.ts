@@ -6,6 +6,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SidebarComponent } from "../../nav/sidebar/sidebar.component";
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 
 
 
@@ -39,6 +40,7 @@ interface OperationalEquipment {
     CommonModule,
     FormsModule,
     SidebarComponent,
+    MatSnackBarModule,
   ],
 })
 export class OperationalEquipmentDetailsComponent implements OnInit {
@@ -57,7 +59,8 @@ export class OperationalEquipmentDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private supabaseService: SupabaseService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -67,27 +70,39 @@ export class OperationalEquipmentDetailsComponent implements OnInit {
   }
 
   async loadEquipmentDetails() {
-  console.log('Loading equipment details for ID:', this.equipmentId);
-  try {
-    const { data, error } = await this.supabaseService.getInHouseEquipmentById(this.equipmentId);
-    console.log('API Response:', { data, error });
+    console.log('Loading equipment details for ID:', this.equipmentId);
+    try {
+      const { data, error } = await this.supabaseService.getInHouseEquipmentById(this.equipmentId);
+      console.log('API Response:', { data, error });
 
-    if (error) {
-      console.error('Error loading equipment:', error);
-      return;
+      if (error) {
+        console.error('Error loading equipment:', error);
+        this.snackBar.open('Error loading equipment details.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        });
+        return;
+      }
+
+      this.equipmentData = data;
+      console.log('Barcode exists:', !!this.equipmentData?.barcode);
+
+      if (this.equipmentData && !this.equipmentData.barcode && this.equipmentData.serial_number) {
+        console.log('Generating barcode...');
+        await this.generateBarcode();
+      }
+    } catch (err) {
+      console.error('Unexpected error loading equipment:', err);
+      this.snackBar.open('An unexpected error occurred while loading equipment details.', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['error-snackbar']
+      });
     }
-
-    this.equipmentData = data;
-    console.log('Barcode exists:', !!this.equipmentData?.barcode); // Add this line
-
-    if (this.equipmentData && !this.equipmentData.barcode && this.equipmentData.serial_number) {
-      console.log('Generating barcode...');
-      await this.generateBarcode();
-    }
-  } catch (err) {
-    console.error('Unexpected error loading equipment:', err);
   }
-}
 
   async loadEquipmentMovements() {
     try {
@@ -96,6 +111,12 @@ export class OperationalEquipmentDetailsComponent implements OnInit {
     } catch (error) {
       console.error('Error loading movements:', error);
       this.equipmentMovements = [];
+      this.snackBar.open('Error loading equipment movements.', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['error-snackbar']
+      });
     }
   }
 
@@ -115,9 +136,23 @@ export class OperationalEquipmentDetailsComponent implements OnInit {
 
       if (!error && this.equipmentData) {
         this.equipmentData.barcode = barcodeUrl;
+        this.snackBar.open('Barcode generated successfully.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['success-snackbar']
+        });
+      } else {
+        throw error;
       }
     } catch (error) {
       console.error('Error generating barcode:', error);
+      this.snackBar.open('Error generating barcode.', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['error-snackbar']
+      });
     }
   }
 

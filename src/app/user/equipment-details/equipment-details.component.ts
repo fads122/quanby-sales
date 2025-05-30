@@ -7,6 +7,7 @@ import { SidebarComponent } from '../../nav/sidebar/sidebar.component';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as bootstrap from 'bootstrap';
 import { FormsModule } from '@angular/forms';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 
 interface SupplierEditingState {
   supplier_cost?: boolean;
@@ -82,7 +83,7 @@ interface EquipmentData {
 @Component({
   selector: 'app-equipment-details',
   standalone: true,
-  imports: [CommonModule, SidebarComponent, FormsModule],
+  imports: [CommonModule, SidebarComponent, FormsModule, MatSnackBarModule],
   templateUrl: './equipment-details.component.html',
   styleUrls: ['./equipment-details.component.css'],
 })
@@ -128,7 +129,8 @@ export class EquipmentDetailsComponent implements OnInit {
     private supabaseService: SupabaseService,
     private route: ActivatedRoute,
     private router: Router,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private snackBar: MatSnackBar
   ) {}
 
   async ngOnInit() {
@@ -257,13 +259,23 @@ export class EquipmentDetailsComponent implements OnInit {
         supplier.editing[field] = false;
       }
 
-      alert('Changes saved successfully!');
+      this.snackBar.open('Changes saved successfully!', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['success-snackbar']
+      });
     } catch (err) {
       console.error('Error saving supplier cost:', err);
       if (supplier.originalValues) {
         supplier[field] = supplier.originalValues[field]!;
       }
-      alert('Failed to save changes. Please try again.');
+      this.snackBar.open('Failed to save changes. Please try again.', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['error-snackbar']
+      });
     }
   }
 
@@ -420,7 +432,12 @@ export class EquipmentDetailsComponent implements OnInit {
         if (error) {
           console.error('Error updating equipment:', error);
           this.equipmentData[field] = this.originalValues[field];
-          alert('Failed to update equipment. Please try again.');
+          this.snackBar.open('Failed to update equipment. Please try again.', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
         } else {
           console.log('Equipment updated successfully:', data);
           if (data && data[0]) {
@@ -431,12 +448,22 @@ export class EquipmentDetailsComponent implements OnInit {
             await this.handleCostUpdate();
           }
 
-          alert('Changes saved successfully!');
+          this.snackBar.open('Changes saved successfully!', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          });
         }
       } catch (err) {
         console.error('Error in toggleEdit:', err);
         this.equipmentData[field] = this.originalValues[field];
-        alert('An error occurred while saving changes.');
+        this.snackBar.open('An error occurred while saving changes.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        });
       }
     } else {
       this.originalValues[field] = this.equipmentData[field];
