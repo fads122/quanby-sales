@@ -1,79 +1,84 @@
-<div class="project-card" *ngIf="client">
-  <!-- Client Header -->
-  <div class="card-header">
-    <h2 class="project-title">{{client.client_name || 'No client name'}}</h2>
-    <span class="project-count">{{client.projects?.length || 0}} projects</span>
-  </div>
-
-  <!-- Project Selection Tabs -->
-    <div class="project-tabs" *ngIf="client.projects?.length">
-    <button *ngFor="let project of client.projects"
-            [class.active]="project.id === selectedProject?.id"
-            (click)="selectProject(project)">
-      {{project.name || 'Unnamed project'}}
-      ({{ getDeliveryStatusText(project.delivery_status) }})
-    </button>
-  </div>
-
-  <!-- Client Info Section -->
-  <!-- <div class="card-section">
-    <h3 class="section-title"><i class="pi pi-user mr-2"></i>Client Information</h3>
-    <div class="info-grid">
-      <div class="info-item">
-        <span class="info-label">Name:</span>
-        <span class="info-value">{{client.client_name || 'N/A'}}</span>
+<div class="project-details-container" *ngIf="client">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="client-info">
+        <h2>{{client.client_name || 'No client name'}}</h2>
+        <div class="meta-info">
+          <span class="project-count">{{client.projects?.length || 0}} projects</span>
+          <span class="separator">•</span>
+          <span class="status" [ngClass]="getStatusSeverity(deliveryStatus)">
+            {{ getDeliveryStatusText(deliveryStatus) }}
+          </span>
+        </div>
       </div>
-      <div class="info-item">
-        <span class="info-label">Email:</span>
-        <span class="info-value">{{client.client_email || 'N/A'}}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Phone:</span>
-        <span class="info-value">{{client.client_phone || 'N/A'}}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Address:</span>
-        <span class="info-value">{{client.client_address || 'N/A'}}</span>
-      </div>
-    </div>
-  </div> -->
-
-  <!-- Selected Project Details -->
-  <div class="card-section" *ngIf="selectedProject">
-    <h3 class="section-title"><i class="pi pi-folder mr-2"></i>Project Details</h3>
-    <div class="info-grid">
-      <div class="info-item">
-        <span class="info-label">Name:</span>
-        <span class="info-value">{{selectedProject.name || 'N/A'}}</span>
-      </div>
-            <div class="info-item">
-        <span class="info-label">Status:</span>
-        <span class="status-badge" [ngClass]="'status-' + getStatusSeverity(deliveryStatus)">
-          {{ getDeliveryStatusText(deliveryStatus) }}
-        </span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Created:</span>
-        <span class="info-value">{{(selectedProject.created_at | date) || 'N/A'}}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Description:</span>
-        <span class="info-value">{{selectedProject.description || 'N/A'}}</span>
-      </div>
-      <div class="info-item highlight">
-        <span class="info-label">Total:</span>
-        <span class="info-value">{{(selectedProject.total | currency) || 'N/A'}}</span>
-      </div>
+      <button class="close-btn" (click)="ref.close()">
+        <i class="pi pi-times"></i>
+      </button>
     </div>
   </div>
 
-  <!-- Attachments Section -->
-  <div class="card-section" *ngIf="selectedProject?.file_url">
-    <h3 class="section-title"><i class="pi pi-paperclip mr-2"></i>Attachments</h3>
-    <button pButton
-            icon="pi pi-download"
-            label="Download File"
-            class="p-button-rounded p-button-outlined download-btn"
-            (click)="downloadFile(selectedProject.file_url)"></button>
+  <!-- Project Navigation -->
+  <div class="project-nav" *ngIf="client.projects?.length">
+    <div class="nav-scroll">
+      <button *ngFor="let project of client.projects"
+              [class.active]="project.id === selectedProject?.id"
+              (click)="selectProject(project)"
+              class="project-nav-btn">
+        <i class="pi pi-folder"></i>
+        <span class="project-name">{{project.name || 'Unnamed project'}}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content-section" *ngIf="selectedProject">
+    <div class="loading-overlay" *ngIf="isLoading">
+      <p-progressSpinner [style]="{width: '50px', height: '50px'}"></p-progressSpinner>
+    </div>
+
+    <!-- Project Details Grid -->
+    <div class="details-grid">
+      <div class="detail-card">
+        <h3><i class="pi pi-info-circle"></i>Basic Information</h3>
+        <div class="detail-content">
+          <div class="detail-row">
+            <span class="label">Project Name</span>
+            <span class="value">{{selectedProject.name || 'N/A'}}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Created</span>
+            <span class="value">{{(selectedProject.created_at | date:'mediumDate') || 'N/A'}}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Description</span>
+            <span class="value description">{{selectedProject.description || 'No description available'}}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-card">
+        <h3><i class="pi pi-dollar"></i>Financial Details</h3>
+        <div class="detail-content">
+          <div class="detail-row highlight">
+            <span class="label">Total Amount</span>
+            <span class="value amount">{{(selectedProject.total | currency) || 'N/A'}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attachments Section -->
+      <div class="detail-card" *ngIf="selectedProject?.file_url">
+        <h3><i class="pi pi-paperclip"></i>Attachments</h3>
+        <div class="detail-content">
+          <button pButton
+                  icon="pi pi-download"
+                  label="Download Attachment"
+                  class="p-button-outlined download-btn"
+                  (click)="downloadFile(selectedProject.file_url)">
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

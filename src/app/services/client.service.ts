@@ -67,47 +67,65 @@ export class ClientService {
     return data;
   }
 
+  async getProjectsGroupedByClient(offset: number = 0, limit: number = 5): Promise<{ data: any[], total: number }> {
+    // First, get distinct clients with their latest project
+    const { data: distinctClients, error: countError } = await this.supabase
+      .from('projects')
+      .select('client_name')
+      .not('client_name', 'is', null)
+      .order('created_at', { ascending: false });
 
-  async getProjectsGroupedByClient(): Promise<any[]> {
-  const { data, error } = await this.supabase
-    .from('projects')
-    .select('*')
-    .order('created_at', { ascending: false });
+    if (countError) throw countError;
 
-  if (error) throw error;
+    // Get unique client names
+    const uniqueClients = [...new Set(distinctClients.map(p => p.client_name))];
+    const total = uniqueClients.length;
 
-  // Group projects by client
-  const grouped = data.reduce((acc, project) => {
-    const key = project.client_name;
-    if (!acc[key]) {
-      acc[key] = {
-        client_name: project.client_name,
-        client_phone: project.client_phone,
-        client_email: project.client_email,
-        client_address: project.client_address,
-        projects: []
-      };
-    }
-    acc[key].projects.push(project);
-    return acc;
-  }, {});
+    // Get the paginated unique clients
+    const paginatedClientNames = uniqueClients.slice(offset, offset + limit);
 
-  return Object.values(grouped);
-}
+    // Then get all projects for these paginated clients
+    const { data, error } = await this.supabase
+      .from('projects')
+      .select('*')
+      .in('client_name', paginatedClientNames)
+      .order('created_at', { ascending: false });
 
-async getDeliveryReceipts(projectId: string): Promise<any[]> {
-  const { data, error } = await this.supabase
-    .from('delivery_receipts')
-    .select('*')
-    .eq('project_id', projectId)
-    .order('created_at', { ascending: false });
+    if (error) throw error;
 
-  if (error) {
-    console.error('Error fetching delivery receipts:', error);
-    return [];
+    // Group projects by client
+    const grouped = data.reduce((acc, project) => {
+      const key = project.client_name;
+      if (!acc[key]) {
+        acc[key] = {
+          client_name: project.client_name,
+          client_phone: project.client_phone,
+          client_email: project.client_email,
+          client_address: project.client_address,
+          projects: []
+        };
+      }
+      acc[key].projects.push(project);
+      return acc;
+    }, {});
+
+    return {
+      data: Object.values(grouped),
+      total: total
+    };
   }
-  return data;
-}
 
+  async getDeliveryReceipts(projectId: string): Promise<any[]> {
+    const { data, error } = await this.supabase
+      .from('delivery_receipts')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
 
+    if (error) {
+      console.error('Error fetching delivery receipts:', error);
+      return [];
+    }
+    return data;
+  }
 }

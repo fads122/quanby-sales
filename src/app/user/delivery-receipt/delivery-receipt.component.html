@@ -1,179 +1,230 @@
 <div class="layout-container">
   <app-sidebar></app-sidebar>
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="loading-content">
+      <div class="logo-loader">
+        <div class="logo-glow"></div>
+        <img src="/images/quanby.png" alt="Quanby Logo">
+      </div>
+      <h3>Loading Receipts...</h3>
+    </div>
+  </div>
 
   <div class="main-content">
     <div class="content-container">
-      <div class="header-controls">
-  <div class="header-section">
-    <h1>Delivery Receipts</h1>
-    <p class="subtitle">Track all your delivery receipts in one place</p>
-  </div>
+      <div class="header-section">
+        <h1>Delivery Receipts</h1>
+        <p class="subtitle">Track and manage your delivery receipts</p>
+      </div>
 
-  <div class="right-controls">
-    <mat-form-field appearance="outline" class="search-input">
-      <mat-icon matPrefix>search</mat-icon>
-      <input matInput placeholder="Search receipts..." [(ngModel)]="searchQuery" (input)="filterReceipts()">
-    </mat-form-field>
-  </div>
-</div>
-
-
-      <mat-card style="margin-bottom: 50px;" backgroundColor=" black">
-        <mat-card-content>
-          <div class="mat-elevation-z8">
-            <table mat-table [dataSource]="filteredReceipts" matSort>
-              <!-- Project Column -->
-              <ng-container matColumnDef="project">
-                <th mat-header-cell *matHeaderCellDef>Project</th>
-                <td mat-cell *matCellDef="let receipt">
-                  <span class="project-name">{{receipt.project_name}}</span>
-                </td>
-              </ng-container>
-
-              <!-- Client Column -->
-              <ng-container matColumnDef="client">
-                <th mat-header-cell *matHeaderCellDef>Client</th>
-                <td mat-cell *matCellDef="let receipt">
-                  {{receipt.client_name}}
-                </td>
-              </ng-container>
-
-              <!-- Delivery Date Column -->
-              <ng-container matColumnDef="delivery_date">
-                <th mat-header-cell *matHeaderCellDef>Delivery Date</th>
-                <td mat-cell *matCellDef="let receipt">
-                  {{receipt.delivery_date || 'Not delivered'}}
-                </td>
-              </ng-container>
-
-              <!-- Status Column -->
-              <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef>Status</th>
-                <td mat-cell *matCellDef="let receipt">
-                  <mat-chip [color]="getStatusColor(receipt.status)" [class.status-delivered]="receipt.status === 'Delivered'">
-                    {{receipt.status}}
-                  </mat-chip>
-                </td>
-              </ng-container>
-
-              <!-- Attachment Column -->
-              <ng-container matColumnDef="attachment">
-                <th mat-header-cell *matHeaderCellDef>Attachment</th>
-                <td mat-cell *matCellDef="let receipt">
-                  <div *ngIf="receipt.attached_file" class="attachment-container">
-                    <button mat-icon-button (click)="openFileDialog(receipt.attached_file)">
-                      <mat-icon *ngIf="isImage(receipt.attached_file)">image</mat-icon>
-                      <mat-icon *ngIf="isPdf(receipt.attached_file)">picture_as_pdf</mat-icon>
-                    </button>
-                    <span class="file-name">
-                      {{receipt.attached_file.split('/').pop() | slice:0:20}}
-                      {{receipt.attached_file.split('/').pop().length > 20 ? '...' : ''}}
-                    </span>
-                  </div>
-                  <span *ngIf="!receipt.attached_file">No attachment</span>
-                </td>
-              </ng-container>
-
-              <!-- Actions Column -->
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
-                <td mat-cell *matCellDef="let receipt" class="text-right">
-                  <div class="action-buttons">
-                    <button mat-icon-button color="primary" (click)="showReceiptDetails(receipt)" matTooltip="View details">
-                      <mat-icon>visibility</mat-icon>
-                    </button>
-                  </div>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-            </table>
-
-            <mat-paginator [length]="filteredReceipts.length"
-                          [pageSize]="rows"
-                          [pageSizeOptions]="[10, 25, 50, 100]"
-                          (page)="pageChange($event)"
-                          showFirstLastButtons>
-            </mat-paginator>
-
-            <div *ngIf="filteredReceipts.length === 0 && !loading" class="empty-state">
-              <mat-icon class="empty-icon">local_shipping</mat-icon>
-              <h4 class="empty-title">No delivery receipts found</h4>
-              <p class="empty-description">
-                You haven't recorded any deliveries yet.
-              </p>
-            </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="header-content">
+            <h2 class="card-title">Receipts</h2>
+            <mat-form-field appearance="outline" class="search-input">
+              <mat-icon matPrefix>search</mat-icon>
+              <input matInput placeholder="Search receipts..." [(ngModel)]="searchQuery" (input)="filterReceipts()">
+            </mat-form-field>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+
+        <div class="mat-elevation-z8">
+          <table mat-table [dataSource]="dataSource" matSort>
+            <!-- Project Column -->
+            <ng-container matColumnDef="project">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Project</th>
+              <td mat-cell *matCellDef="let receipt">
+                <div class="project-name">{{receipt.project_name}}</div>
+              </td>
+            </ng-container>
+
+            <!-- Client Column -->
+            <ng-container matColumnDef="client">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Client</th>
+              <td mat-cell *matCellDef="let receipt">{{receipt.client_name}}</td>
+            </ng-container>
+
+            <!-- Delivery Date Column -->
+            <ng-container matColumnDef="delivery_date">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Delivery Date</th>
+              <td mat-cell *matCellDef="let receipt">
+                {{receipt.delivery_date || 'Not delivered'}}
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+              <td mat-cell *matCellDef="let receipt">
+                <mat-chip-listbox>
+                  <mat-chip [ngClass]="{'status-delivered': receipt.status === 'Delivered', 'status-delivering': receipt.status === 'Delivering'}">
+                    <div class="chip-content">
+                      <mat-icon *ngIf="receipt.status === 'Delivered'" class="status-icon">check_circle</mat-icon>
+                      <mat-icon *ngIf="receipt.status === 'Delivering'" class="status-icon">local_shipping</mat-icon>
+                      <span>{{receipt.status}}</span>
+                    </div>
+                  </mat-chip>
+                </mat-chip-listbox>
+              </td>
+            </ng-container>
+
+            <!-- Attachment Column -->
+            <ng-container matColumnDef="attachment">
+              <th mat-header-cell *matHeaderCellDef>Attachment</th>
+              <td mat-cell *matCellDef="let receipt">
+                <div *ngIf="receipt.attached_file" class="attachment-container">
+                  <button mat-icon-button (click)="openFileDialog(receipt.attached_file)" 
+                          [matTooltip]="'View ' + (isImage(receipt.attached_file) ? 'Image' : 'PDF')">
+                    <mat-icon *ngIf="isImage(receipt.attached_file)">image</mat-icon>
+                    <mat-icon *ngIf="isPdf(receipt.attached_file)">picture_as_pdf</mat-icon>
+                  </button>
+                  <span class="file-name">{{receipt.attached_file.split('/').pop()}}</span>
+                </div>
+                <span *ngIf="!receipt.attached_file" class="no-attachment">
+                  <mat-icon>attach_file_off</mat-icon>
+                  No attachment
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let receipt">
+                <div class="action-buttons">
+                  <button mat-icon-button color="primary" (click)="showReceiptDetails(receipt)" 
+                          matTooltip="View details">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+            <!-- Empty state -->
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell" colspan="6">
+                <div class="empty-state">
+                  <mat-icon class="empty-icon">inventory_2</mat-icon>
+                  <h4 class="empty-title">No delivery receipts found</h4>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <mat-paginator 
+            [length]="dataSource.data.length"
+            [pageSize]="rows"
+            [pageSizeOptions]="[5, 10, 25, 100]"
+            [showFirstLastButtons]="true"
+            (page)="pageChange($event)">
+          </mat-paginator>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Receipt Details Dialog -->
 <ng-template #receiptDetailsDialog>
-  <h2 mat-dialog-title>Delivery Receipt Details</h2>
-  <mat-dialog-content *ngIf="selectedReceipt">
-    <div class="client-details-container">
-      <div class="detail-row">
-        <span class="detail-label">Project:</span>
-        <span class="detail-value">{{selectedReceipt.project_name}}</span>
+  <div class="modern-dialog">
+    <div class="dialog-header">
+      <div class="status-badge" [ngClass]="selectedReceipt?.status?.toLowerCase()">
+        <mat-icon *ngIf="selectedReceipt?.status === 'Delivered'">task_alt</mat-icon>
+        <mat-icon *ngIf="selectedReceipt?.status === 'Delivering'">local_shipping</mat-icon>
+        {{selectedReceipt?.status}}
       </div>
-      <div class="detail-row">
-        <span class="detail-label">Client:</span>
-        <span class="detail-value">{{selectedReceipt.client_name}}</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Delivery Date:</span>
-        <span class="detail-value">{{selectedReceipt.delivery_date || 'Not delivered'}}</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Status:</span>
-        <span class="detail-value">
-          <mat-chip [color]="getStatusColor(selectedReceipt.status)">
-            {{selectedReceipt.status}}
-          </mat-chip>
-        </span>
-      </div>
+      <button mat-icon-button mat-dialog-close class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
 
-      <div class="detail-row">
-        <span class="detail-label">Received By:</span>
-        <span class="detail-value">
-          <input matInput [(ngModel)]="selectedReceipt.received_by" placeholder="Enter recipient name">
-        </span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Delivered Date:</span>
-        <span class="detail-value">
-          <input matInput type="date" [(ngModel)]="selectedReceipt.delivered_date">
-        </span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Delivered Time:</span>
-        <span class="detail-value">
-          <input matInput type="time" [(ngModel)]="selectedReceipt.delivered_time">
-        </span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Attachment:</span>
-        <span class="detail-value">
-          <input type="file" (change)="onFileSelectedForUpdate($event, selectedReceipt)">
-          <span *ngIf="selectedUpdateFile" class="file-name">{{selectedUpdateFile.name}}</span>
-        </span>
+    <div class="dialog-title">
+      <div class="title-content">
+        <mat-icon>description</mat-icon>
+        <div class="title-text">
+          <h2>{{selectedReceipt?.project_name}}</h2>
+          <p>{{selectedReceipt?.client_name}}</p>
+        </div>
       </div>
     </div>
-  </mat-dialog-content>
-  <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Cancel</button>
-    <button mat-raised-button color="primary" (click)="saveUpdatedFile(selectedReceipt!)">Save</button>
-  </mat-dialog-actions>
-</ng-template>
 
-<!-- File Dialog -->
-<ng-template #fileDialog let-data>
-  <div class="file-dialog-container">
-    <img *ngIf="isImage(data.url)" [src]="data.url" class="file-preview">
-    <iframe *ngIf="isPdf(data.url)" [src]="sanitizeUrl(data.url)" class="file-preview pdf"></iframe>
+    <mat-dialog-content>
+      <form class="receipt-form" *ngIf="selectedReceipt">
+        <mat-form-field appearance="outline">
+          <mat-label>Received By</mat-label>
+          <input matInput [(ngModel)]="selectedReceipt.received_by" name="receivedBy" placeholder="Enter recipient name">
+          <mat-icon matPrefix>account_circle</mat-icon>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Delivered Date</mat-label>
+            <input matInput [matDatepicker]="picker" [(ngModel)]="selectedReceipt.delivered_date" name="deliveredDate">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-icon matPrefix>calendar_today</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Delivered Time</mat-label>
+            <input matInput type="time" [(ngModel)]="selectedReceipt.delivered_time" name="deliveredTime">
+            <mat-icon matPrefix>access_time</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="upload-section">
+          <div class="upload-area" (click)="fileInput.click()">
+            <div class="upload-content">
+              <mat-icon>upload_file</mat-icon>
+              <div class="upload-text">
+                <ng-container *ngIf="!selectedUpdateFile">
+                  <span class="upload-title">Upload Document</span>
+                  <span class="upload-subtitle">Click to browse files</span>
+                </ng-container>
+                <ng-container *ngIf="selectedUpdateFile">
+                  <span class="file-selected">{{selectedUpdateFile.name}}</span>
+                  <span class="file-ready">Ready to upload</span>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+          <input #fileInput type="file" (change)="onFileSelectedForUpdate($event, selectedReceipt)" style="display: none">
+        </div>
+      </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions>
+      <button mat-button mat-dialog-close class="cancel-btn">
+        <mat-icon>close</mat-icon>
+        Cancel
+      </button>
+      <button mat-flat-button color="primary" (click)="saveUpdatedFile(selectedReceipt!)" class="save-btn">
+        <mat-icon>check</mat-icon>
+        Save Changes
+      </button>
+    </mat-dialog-actions>
   </div>
 </ng-template>
+
+<!-- File Preview Dialog -->
+<ng-template #fileDialog let-dialogData="data">
+  <mat-dialog-content class="file-dialog-container">
+    <img *ngIf="isImage(dialogData.url)" [src]="dialogData.url" class="file-preview">
+    <iframe *ngIf="isPdf(dialogData.url)" [src]="sanitizeUrl(dialogData.url)" class="file-preview pdf"></iframe>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Close</button>
+  </mat-dialog-actions>
+</ng-template>
+<div class="loading-overlay" *ngIf="loading">
+  <div class="loading-content">
+    <div class="logo-loader">
+      <div class="logo-glow"></div>
+      <img src="/images/quanby.png" alt="Quanby Logo">
+    </div>
+    <h3>Loading Sales Orders...</h3>
+  </div>
+</div>

@@ -1,4 +1,3 @@
-
 import { Component, OnInit, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { SupabaseService } from '../../services/supabase.service';
 import Chart from 'chart.js/auto';
@@ -105,54 +104,76 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   lowestPriceDate: string | null = null;
   highestPriceDate: string | null = null;
   
+  isLoading: boolean = true;
+  
+  // Add new properties for sparkline data
+  supplierSparkline: Chart | null = null;
+  equipmentSparkline: Chart | null = null;
+  borrowedSparkline: Chart | null = null;
+  projectsSparkline: Chart | null = null;
+
+  // Historical data arrays
+  supplierHistory: number[] = [];
+  equipmentHistory: number[] = [];
+  borrowedHistory: number[] = [];
+  projectsHistory: number[] = [];
+
   constructor(private supabaseService: SupabaseService, private cdr: ChangeDetectorRef, private router: Router) {}
 
   async ngOnInit() {
-    this.loadUserEmail();
-    const rawEquipmentList = await this.supabaseService.getEquipmentList() || [];
+    try {
+      this.isLoading = true;
+      await this.loadUserEmail();
+      const rawEquipmentList = await this.supabaseService.getEquipmentList() || [];
 
-    // Group equipment by model while preserving all individual records
-    const equipmentGroups = new Map<string, any[]>();
-    rawEquipmentList.forEach(item => {
-        // Use model as the primary grouping key, fallback to name if model is empty
-        const groupKey = item.model?.trim() || item.name?.trim() || 'uncategorized';
+      // Group equipment by model while preserving all individual records
+      const equipmentGroups = new Map<string, any[]>();
+      rawEquipmentList.forEach(item => {
+          const groupKey = item.model?.trim() || item.name?.trim() || 'uncategorized';
 
-        if (!equipmentGroups.has(groupKey)) {
-            equipmentGroups.set(groupKey, []);
-        }
-        equipmentGroups.get(groupKey)?.push(item);
-    });
+          if (!equipmentGroups.has(groupKey)) {
+              equipmentGroups.set(groupKey, []);
+          }
+          equipmentGroups.get(groupKey)?.push(item);
+      });
 
-    // Create a grouped equipment list for the dropdown
-    this.equipmentList = Array.from(equipmentGroups.entries()).map(([model, items]) => ({
-        id: items[0].id, // Use first item's ID as the representative ID
-        model: model,    // Store model instead of name
-        name: items[0].name, // Keep name for backward compatibility if needed
-        allItems: items  // Store all items for this equipment model
-    }));
+      this.equipmentList = Array.from(equipmentGroups.entries()).map(([model, items]) => ({
+          id: items[0].id,
+          model: model,
+          name: items[0].name,
+          allItems: items
+      }));
 
-    // Sort equipment list alphabetically by model
-    this.equipmentList.sort((a, b) => a.model.localeCompare(b.model));
+      this.equipmentList.sort((a, b) => a.model.localeCompare(b.model));
 
-    this.totalEquipment = rawEquipmentList.length; // Use actual count, not grouped count
-    this.borrowedEquipment = await this.supabaseService.getBorrowedEquipmentCount();
-    this.cdr.detectChanges();
+      this.totalEquipment = rawEquipmentList.length;
+      this.borrowedEquipment = await this.supabaseService.getBorrowedEquipmentCount();
+      this.cdr.detectChanges();
 
-    const suppliers = await this.supabaseService.getSuppliers();
-    this.totalSuppliers = suppliers.length;
-    this.usedInProjects = await this.supabaseService.getUsedInProjectsCount();
+      const suppliers = await this.supabaseService.getSuppliers();
+      this.totalSuppliers = suppliers.length;
+      this.usedInProjects = await this.supabaseService.getUsedInProjectsCount();
 
-    // Fetch recent activities
-    this.recentActivities = await this.supabaseService.getRecentActivities();
+      this.recentActivities = await this.supabaseService.getRecentActivities();
+      this.recentActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-    // Sort activities by timestamp (newest first)
-    this.recentActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      this.computeLowStock();
+      this.updatePagination();
 
-    // Call the function to compute low-stock items
-    this.computeLowStock();
+      // Load historical data
+      await this.loadHistoricalData();
+      
+      // Initialize sparkline charts
+      this.initializeSparklines();
 
-    this.updatePagination();
-}
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 1000); // Minimum 1 second loading time for better UX
+    }
+  }
 
   navigateTo(route: string) {
     this.router.navigate([route]);
@@ -458,10 +479,17 @@ private getUniqueSuppliers(costData: any[], allSuppliers: any[]): {id: string, n
 
 private generateColorPalette(count: number): void {
   // Generate a dynamic color palette based on number of suppliers
-  const hueStep = 360 / count;
-  this.supplierColors = Array.from({length: count}, (_, i) => {
-    const hue = i * hueStep;
-    return `hsl(${hue}, 70%, 50%)`;
+  const baseColors = [
+    '#66BBDE', // Light blue
+    '#4FA8D1', // Medium blue
+    '#3B95C4', // Darker blue
+    '#2982B7', // Deep blue
+    '#1E6FA0', // Navy blue
+  ];
+
+  this.supplierColors = Array.from({ length: count }, (_, i) => {
+    // If we have more suppliers than base colors, cycle through the base colors
+    return baseColors[i % baseColors.length];
   });
 }
 // Add these methods to your DashboardComponent
@@ -530,16 +558,14 @@ initializeChart() {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  // Removed the fixed canvas height setting (now handled in CSS)
-
   // Create gradient effects for better visualization
   const gradientSupplier = ctx.createLinearGradient(0, 0, 0, 400);
-  gradientSupplier.addColorStop(0, 'rgba(60, 40, 204, 0.5)');
-  gradientSupplier.addColorStop(1, 'rgba(60, 40, 204, 0)');
+  gradientSupplier.addColorStop(0, 'rgba(102, 187, 222, 0.2)');  // Light blue
+  gradientSupplier.addColorStop(1, 'rgba(102, 187, 222, 0.0)');
 
   const gradientSRP = ctx.createLinearGradient(0, 0, 0, 400);
-  gradientSRP.addColorStop(0, 'rgba(218, 91, 150, 0.5)');
-  gradientSRP.addColorStop(1, 'rgba(218, 91, 150, 0)');
+  gradientSRP.addColorStop(0, 'rgba(183, 26, 74, 0.2)');  // Light red
+  gradientSRP.addColorStop(1, 'rgba(183, 26, 74, 0.0)');
 
   this.costChart = new Chart(ctx, {
     type: 'line',
@@ -549,79 +575,143 @@ initializeChart() {
         {
           label: 'Supplier Cost',
           data: [],
-          borderColor: '#3C28CC',
+          borderColor: '#66BBDE',
           backgroundColor: gradientSupplier,
-          borderWidth: 3,
+          borderWidth: 2,
           tension: 0.4,
           fill: true,
-          pointBackgroundColor: '#3C28CC',
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          borderDash: [5, 5]
+          pointBackgroundColor: '#66BBDE',
+          pointBorderColor: '#FFFFFF',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointHoverBorderWidth: 3,
+          pointHoverBackgroundColor: '#66BBDE',
+          pointHoverBorderColor: '#FFFFFF'
         },
         {
-          label: 'Your Retail Price (SRP)', // Updated label for clarity
+          label: 'Your Retail Price (SRP)',
           data: [],
-          borderColor: '#DA5B96',
+          borderColor: '#B71A4A',
           backgroundColor: gradientSRP,
-          borderWidth: 3,
+          borderWidth: 2,
           tension: 0.4,
           fill: true,
-          pointBackgroundColor: '#DA5B96',
-          pointRadius: 6,
-          pointHoverRadius: 8
+          pointBackgroundColor: '#B71A4A',
+          pointBorderColor: '#FFFFFF',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointHoverBorderWidth: 3,
+          pointHoverBackgroundColor: '#B71A4A',
+          pointHoverBorderColor: '#FFFFFF'
         }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
       plugins: {
-        tooltip: {
-          callbacks: {
-            label: function (context) {
-              const value = Number(context.raw);
-              return `₱${value.toLocaleString()}`;
-            }
-          }
-        },
         legend: {
-          display: true,
-          labels: {
-            color: '#333',
-            font: {
-              size: 14
+          display: false
+        },
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          titleColor: '#1a1a1a',
+          titleFont: {
+            size: 13,
+            weight: 600,
+            family: "'Inter', sans-serif"
+          },
+          bodyColor: '#666666',
+          bodyFont: {
+            size: 12,
+            family: "'Inter', sans-serif"
+          },
+          padding: 12,
+          boxPadding: 6,
+          usePointStyle: true,
+          borderColor: 'rgba(0, 0, 0, 0.1)',
+          borderWidth: 1,
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                label += new Intl.NumberFormat('en-PH', {
+                  style: 'currency',
+                  currency: 'PHP',
+                  minimumFractionDigits: 2
+                }).format(context.parsed.y);
+              }
+              return label;
             }
           }
         }
       },
       scales: {
-        y: {
-          beginAtZero: false,
-          grid: {
-            color: 'rgba(200, 200, 200, 0.3)'
-          },
-          ticks: {
-            font: {
-              size: 12
-            },
-            callback: function(value) {
-              const numericValue = Number(value);
-              if (numericValue >= 1_000_000) return `₱${(numericValue / 1_000_000).toFixed(1)}M`;
-              if (numericValue >= 1_000) return `₱${(numericValue / 1_000).toFixed(1)}K`;
-              return `₱${numericValue}`;
-            }
-          }
-        },
         x: {
           grid: {
             display: false
           },
+          border: {
+            display: false
+          },
           ticks: {
             font: {
-              size: 12
+              size: 11,
+              family: "'Inter', sans-serif",
+              weight: 500
+            },
+            color: '#666666',
+            maxRotation: 45,
+            minRotation: 45,
+            padding: 8
+          }
+        },
+        y: {
+          border: {
+            display: false
+          },
+          grid: {
+            color: 'rgba(0, 0, 0, 0.06)',
+            display: false,
+            lineWidth: 1
+          },
+          ticks: {
+            font: {
+              size: 11,
+              family: "'Inter', sans-serif",
+              weight: 500
+            },
+            color: '#666666',
+            padding: 8,
+            callback: function(value) {
+              return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                notation: 'compact',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 1
+              }).format(value as number);
             }
           }
+        }
+      },
+      animations: {
+        tension: {
+          duration: 1000,
+          easing: 'easeInOutQuart',
+          from: 0.8,
+          to: 0.4,
+          loop: false
         }
       }
     }
@@ -643,80 +733,156 @@ updateChart() {
       return;
     }
 
-    // Filter cost history based on selected suppliers
-    const filteredCostHistory = this.selectedSuppliers.length > 0
-      ? this.costHistory.filter(entry =>
-          this.selectedSuppliers.includes(
-            this.selectedEquipmentSuppliers.find(s => s.name === entry.supplier)?.id || ''
-          )
-        )
-      : this.costHistory;
+    // Get all unique dates for consistent x-axis
+    const allDates = [...new Set(this.costHistory.map(entry => entry.date_updated))].sort();
 
-    // Format dates with month abbreviations for better readability
-    const labels = filteredCostHistory.map((entry: any) => {
-      const date = new Date(entry.date_updated);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    // Create a map of all SRP values by date
+    const srpByDate = new Map();
+    this.costHistory.forEach(entry => {
+      if (!srpByDate.has(entry.date_updated) || entry.srp > srpByDate.get(entry.date_updated)) {
+        srpByDate.set(entry.date_updated, entry.srp);
+      }
     });
 
-    const supplierCosts = filteredCostHistory.map((entry: any) => entry.supplier_cost);
-    const srpCosts = filteredCostHistory.map((entry: any) => entry.srp);
+    // Prepare datasets for each selected supplier
+    const supplierDatasets = this.selectedSuppliers.length > 0 
+      ? this.selectedSuppliers.map((supplierId, index) => {
+          const supplier = this.selectedEquipmentSuppliers.find(s => s.id === supplierId);
+          const supplierData = this.costHistory.filter(entry => 
+            supplier && entry.supplier === supplier.name
+          );
+          
+          // Create data points for this supplier
+          const dataPoints = allDates.map(date => {
+            const entry = supplierData.find(d => d.date_updated === date);
+            return entry ? entry.supplier_cost : null;
+          });
 
-    // Improved gradient effects
-    const gradientSupplier = ctx.createLinearGradient(0, 0, 0, 400);
-    gradientSupplier.addColorStop(0, 'rgba(60, 40, 204, 0.3)');
-    gradientSupplier.addColorStop(0.7, 'rgba(60, 40, 204, 0.1)');
-    gradientSupplier.addColorStop(1, 'rgba(60, 40, 204, 0)');
+          // Create gradient for this supplier
+          const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+          const color = this.supplierColors[index];
+          gradient.addColorStop(0, `${color}33`); // 20% opacity
+          gradient.addColorStop(1, `${color}00`); // 0% opacity
 
-    const gradientSRP = ctx.createLinearGradient(0, 0, 0, 400);
-    gradientSRP.addColorStop(0, 'rgba(218, 91, 150, 0.3)');
-    gradientSRP.addColorStop(0.7, 'rgba(218, 91, 150, 0.1)');
-    gradientSRP.addColorStop(1, 'rgba(218, 91, 150, 0)');
+          return {
+            label: supplier ? supplier.name : 'Unknown Supplier',
+            data: dataPoints,
+            borderColor: color,
+            backgroundColor: gradient,
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: color,
+            pointBorderColor: '#FFFFFF',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointHoverBorderWidth: 3,
+            pointHoverBackgroundColor: color,
+            pointHoverBorderColor: '#FFFFFF',
+            spanGaps: true
+          };
+        })
+      : [{
+          label: 'Average Supplier Cost',
+          data: allDates.map(date => {
+            const entriesForDate = this.costHistory.filter(entry => entry.date_updated === date);
+            if (entriesForDate.length === 0) return null;
+            const totalCost = entriesForDate.reduce((sum, entry) => sum + entry.supplier_cost, 0);
+            return totalCost / entriesForDate.length;
+          }),
+          borderColor: '#66BBDE',
+          backgroundColor: (() => {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(102, 187, 222, 0.2)');
+            gradient.addColorStop(1, 'rgba(102, 187, 222, 0.0)');
+            return gradient;
+          })(),
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: '#66BBDE',
+          pointBorderColor: '#FFFFFF',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointHoverBorderWidth: 3,
+          pointHoverBackgroundColor: '#66BBDE',
+          pointHoverBorderColor: '#FFFFFF',
+          spanGaps: true
+        }];
 
+    // Prepare SRP dataset
+    const srpDataset = {
+      label: 'Your Retail Price (SRP)',
+      data: allDates.map(date => srpByDate.get(date) || null),
+      borderColor: '#B71A4A',
+      backgroundColor: (() => {
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, 'rgba(183, 26, 74, 0.2)');
+        gradient.addColorStop(1, 'rgba(183, 26, 74, 0.0)');
+        return gradient;
+      })(),
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#B71A4A',
+      pointBorderColor: '#FFFFFF',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      pointHoverBorderWidth: 3,
+      pointHoverBackgroundColor: '#B71A4A',
+      pointHoverBorderColor: '#FFFFFF',
+      spanGaps: true
+    };
+
+    // Format dates
+    const labels = allDates.map(date => {
+      return new Date(date).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    });
+
+    // Create the chart with all datasets
     this.costChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
-        datasets: [
-          {
-            label: 'Supplier Cost',
-            data: supplierCosts,
-            borderColor: '#3C28CC',
-            backgroundColor: gradientSupplier,
-            borderWidth: 2.5,
-            tension: 0.3,
-            fill: true,
-            pointBackgroundColor: '#3C28CC',
-            pointBorderColor: '#fff',
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            pointBorderWidth: 2
-          },
-          {
-            label: 'SRP',
-            data: srpCosts,
-            borderColor: '#DA5B96',
-            backgroundColor: gradientSRP,
-            borderWidth: 2.5,
-            tension: 0.3,
-            fill: true,
-            pointBackgroundColor: '#DA5B96',
-            pointBorderColor: '#fff',
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            pointBorderWidth: 2
-          }
-        ]
+        datasets: [...supplierDatasets, srpDataset]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
         plugins: {
+          legend: {
+            display: false
+          },
           tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            titleFont: { size: 14, weight: 'bold' },
-            bodyFont: { size: 13 },
+            enabled: true,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            titleColor: '#1a1a1a',
+            titleFont: {
+              size: 13,
+              weight: 600,
+              family: "'Inter', sans-serif"
+            },
+            bodyColor: '#666666',
+            bodyFont: {
+              size: 12,
+              family: "'Inter', sans-serif"
+            },
             padding: 12,
-            displayColors: true,
+            boxPadding: 6,
+            usePointStyle: true,
+            borderColor: 'rgba(0, 0, 0, 0.1)',
+            borderWidth: 1,
             callbacks: {
               label: function(context) {
                 let label = context.dataset.label || '';
@@ -724,71 +890,85 @@ updateChart() {
                   label += ': ';
                 }
                 if (context.parsed.y !== null) {
-                  label += new Intl.NumberFormat('en-US', {
+                  label += new Intl.NumberFormat('en-PH', {
                     style: 'currency',
-                    currency: 'PHP'
+                    currency: 'PHP',
+                    minimumFractionDigits: 2
                   }).format(context.parsed.y);
                 }
                 return label;
               }
             }
-          },
-          legend: {
-            display: false
           }
         },
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        },
         scales: {
-          y: {
-            beginAtZero: false,
-            grid: {
-              color: 'rgba(0, 0, 0, 0.05)',
-              drawTicks: false
-            },
-            ticks: {
-              font: {
-                size: 12
-              },
-              callback: function(value) {
-                const numericValue = Number(value);
-                if (numericValue >= 1_000_000) return `₱${(numericValue / 1_000_000).toFixed(1)}M`;
-                if (numericValue >= 1_000) return `₱${(numericValue / 1_000).toFixed(1)}K`;
-                return `₱${numericValue}`;
-              },
-              padding: 10
-            },
-            border: {
-              display: false
-            }
-          },
           x: {
             grid: {
               display: false
             },
-            ticks: {
-              font: {
-                size: 12
-              },
-              padding: 10
-            },
             border: {
               display: false
+            },
+            ticks: {
+              font: {
+                size: 11,
+                family: "'Inter', sans-serif",
+                weight: 500
+              },
+              color: '#666666',
+              maxRotation: 45,
+              minRotation: 45,
+              padding: 8
+            }
+          },
+          y: {
+            border: {
+              display: false
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.06)',
+              display: false,
+              lineWidth: 1
+            },
+            ticks: {
+              font: {
+                size: 11,
+                family: "'Inter', sans-serif",
+                weight: 500
+              },
+              color: '#666666',
+              padding: 8,
+              callback: function(value) {
+                return new Intl.NumberFormat('en-PH', {
+                  style: 'currency',
+                  currency: 'PHP',
+                  notation: 'compact',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 1
+                }).format(value as number);
+              }
             }
           }
         },
-        elements: {
-          line: {
-            cubicInterpolationMode: 'monotone'
+        animations: {
+          tension: {
+            duration: 1000,
+            easing: 'easeInOutQuart',
+            from: 0.8,
+            to: 0.4,
+            loop: false
           }
         }
       }
     });
 
     // Update the filtered cost history for display
-    this.filteredCostHistory = filteredCostHistory;
+    this.filteredCostHistory = this.costHistory.filter(entry => 
+      this.selectedSuppliers.length === 0 || 
+      this.selectedSuppliers.includes(
+        this.selectedEquipmentSuppliers.find(s => s.name === entry.supplier)?.id || ''
+      )
+    );
   }, 100);
 }
 
@@ -839,6 +1019,83 @@ updateChart() {
       this.currentPage = page;
       this.updatePagination();
     }
+  }
+
+  async loadHistoricalData() {
+    // Get last 7 days of data
+    const today = new Date();
+    const dates = Array.from({length: 7}, (_, i) => {
+      const date = new Date();
+      date.setDate(today.getDate() - (6 - i));
+      return date.toISOString().split('T')[0];
+    });
+
+    // Mock data for demonstration - replace with actual API calls
+    this.supplierHistory = dates.map(() => Math.floor(Math.random() * 20) + 10);
+    this.equipmentHistory = dates.map(() => Math.floor(Math.random() * 50) + 30);
+    this.borrowedHistory = dates.map(() => Math.floor(Math.random() * 15) + 5);
+    this.projectsHistory = dates.map(() => Math.floor(Math.random() * 25) + 15);
+  }
+
+  initializeSparklines() {
+    this.createSparkline('supplierSparkline', this.supplierHistory, '#66BBDE');
+    this.createSparkline('equipmentSparkline', this.equipmentHistory, '#A0143F');
+    this.createSparkline('borrowedSparkline', this.borrowedHistory, '#B71A4A');
+    this.createSparkline('projectsSparkline', this.projectsHistory, '#03045E');
+  }
+
+  createSparkline(canvasId: string, data: number[], color: string) {
+    const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Array(data.length).fill(''),
+        datasets: [{
+          data: data,
+          backgroundColor: color,
+          borderColor: color,
+          borderWidth: 1,
+          borderRadius: 2,
+          barThickness: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: false
+          }
+        },
+        scales: {
+          x: {
+            display: false,
+            grid: {
+              display: false
+            }
+          },
+          y: {
+            display: false,
+            grid: {
+              display: false
+            },
+            min: 0
+          }
+        },
+        animation: {
+          duration: 1000,
+          easing: 'easeInOutQuart'
+        }
+      }
+    });
   }
 
 }

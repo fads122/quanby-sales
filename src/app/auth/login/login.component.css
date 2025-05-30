@@ -9,11 +9,13 @@
 
 .login-container {
   position: relative;
-  width: 100%;
+  width: calc(100% - var(--sidebar-width)); /* Add this line */
+  margin-left: var(--sidebar-width); /* Add this line */
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: margin-left var(--transition-speed) ease; /* Add transition */
 }
 
 .logo-background {
@@ -594,4 +596,61 @@
 .mat-mdc-snack-bar-container.top-right-snackbar {
   margin: 0 !important;
   position: static;
+}
+
+/* When sidebar is collapsed */
+.sidebar.collapsed ~ .login-container {
+  margin-left: var(--collapsed-width);
+  width: calc(100% - var(--collapsed-width));
+}
+
+/* Mobile view - remove margin */
+@media (max-width: 768px) {
+  .login-container {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* Loader Styles */
+.logout-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.logout-loader.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.loader-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #4AA8E8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loader-text {
+  margin-top: 20px;
+  color: #4AA8E8;
+  font-weight: 500;
+  text-align: center;
 }

@@ -1,10 +1,10 @@
-import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
+import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -30,6 +30,10 @@ interface DeliveryReceipt {
   received_by?: string;
   delivered_date?: string;
   delivered_time?: string;
+}
+
+interface FileDialogData {
+  url: string;
 }
 
 @Component({
@@ -58,19 +62,20 @@ interface DeliveryReceipt {
   templateUrl: './delivery-receipt.component.html',
   styleUrls: ['./delivery-receipt.component.css']
 })
-export class DeliveryReceiptComponent implements OnInit {
+export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
   private supabase: SupabaseClient;
-  deliveryReceipts: DeliveryReceipt[] = [];
-  filteredReceipts: DeliveryReceipt[] = [];
+  dataSource: MatTableDataSource<DeliveryReceipt>;
   loading: boolean = true;
   searchQuery: string = '';
   selectedReceipt: DeliveryReceipt | null = null;
   selectedUpdateFile: File | null = null;
 
   displayedColumns: string[] = ['project', 'client', 'delivery_date', 'status', 'attachment', 'actions'];
-  first: number = 0;
-  rows: number = 10;
+  rows: number = 5;
+  pageIndex = 0;
 
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
   @ViewChild('receiptDetailsDialog') receiptDetailsDialog!: TemplateRef<any>;
   @ViewChild('fileDialog') fileDialog!: TemplateRef<any>;
 
@@ -83,10 +88,25 @@ export class DeliveryReceiptComponent implements OnInit {
       'https://xvcgubrtandfivlqcmww.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2Y2d1YnJ0YW5kZml2bHFjbXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxNDk4NjYsImV4cCI6MjA1NDcyNTg2Nn0.yjd-SXfzJe6XmuNpI2HsZcI9EsS9AxBXI-qukzgcZig'
     );
+    this.dataSource = new MatTableDataSource<DeliveryReceipt>([]);
+    
+    // Set up custom filter predicate
+    this.dataSource.filterPredicate = (data: DeliveryReceipt, filter: string) => {
+      const searchStr = filter.toLowerCase();
+      return data.project_name.toLowerCase().includes(searchStr) ||
+             data.client_name.toLowerCase().includes(searchStr) ||
+             data.delivery_date.toLowerCase().includes(searchStr) ||
+             data.status.toLowerCase().includes(searchStr);
+    };
   }
 
   async ngOnInit(): Promise<void> {
     await this.loadReceipts();
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   async loadReceipts(): Promise<void> {
@@ -98,14 +118,14 @@ export class DeliveryReceiptComponent implements OnInit {
 
       if (error) throw error;
 
-      this.deliveryReceipts = data.map(receipt => ({
+      const receipts = data.map(receipt => ({
         ...receipt,
         attached_file: receipt.attached_file ?
           `https://xvcgubrtandfivlqcmww.supabase.co/storage/v1/object/public/delivery_receipts/${receipt.attached_file}` :
           undefined
       }));
 
-      this.filteredReceipts = [...this.deliveryReceipts];
+      this.dataSource.data = receipts;
     } catch (error) {
       console.error('Error loading receipts:', error);
       this.snackBar.open('Failed to load delivery receipts', 'Close', { duration: 3000 });
@@ -115,29 +135,25 @@ export class DeliveryReceiptComponent implements OnInit {
   }
 
   filterReceipts(): void {
-    if (!this.searchQuery) {
-      this.filteredReceipts = [...this.deliveryReceipts];
-      return;
+    this.dataSource.filter = this.searchQuery.trim().toLowerCase();
+    
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
     }
-
-    const query = this.searchQuery.toLowerCase();
-    this.filteredReceipts = this.deliveryReceipts.filter(receipt =>
-      receipt.project_name.toLowerCase().includes(query) ||
-      receipt.client_name.toLowerCase().includes(query) ||
-      receipt.delivery_date.toLowerCase().includes(query) ||
-      receipt.status.toLowerCase().includes(query)
-    );
   }
 
   pageChange(event: PageEvent): void {
-    this.first = event.pageIndex * event.pageSize;
     this.rows = event.pageSize;
+    this.pageIndex = event.pageIndex;
   }
 
   showReceiptDetails(receipt: DeliveryReceipt): void {
     this.selectedReceipt = receipt;
     this.dialog.open(this.receiptDetailsDialog, {
-      width: '600px'
+      width: '600px',
+      maxHeight: '90vh',
+      panelClass: 'receipt-dialog',
+      autoFocus: false
     });
   }
 
@@ -151,8 +167,10 @@ export class DeliveryReceiptComponent implements OnInit {
 
   openFileDialog(url: string): void {
     this.dialog.open(this.fileDialog, {
-      data: { url },
-      panelClass: this.isPdf(url) ? 'pdf-dialog' : 'image-dialog'
+      data: { url } as FileDialogData,
+      panelClass: this.isPdf(url) ? ['pdf-dialog', 'file-dialog'] : ['image-dialog', 'file-dialog'],
+      maxHeight: '90vh',
+      maxWidth: '90vw'
     });
   }
 
