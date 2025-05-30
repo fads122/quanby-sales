@@ -12,13 +12,13 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatPaginatorModule } from '@angular/material/paginator';
-
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { ViewChild, AfterViewInit } from '@angular/core';
-
-
-// ✅ PrimeNG Imports
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCardModule } from '@angular/material/card';
+import { NgTemplateOutlet } from '@angular/common';
 
 
 
@@ -59,7 +59,7 @@ interface BorrowRequest {
 @Component({
   selector: 'app-borrow-table-user',
   standalone: true,
-  imports: [NgIf, NgFor,NgClass, SidebarComponent, MatPaginatorModule, FormsModule, MatIconModule ,MatTableModule, MatTableModule, DialogModule, ],
+  imports: [NgIf, NgFor,NgClass, SidebarComponent, NgTemplateOutlet, MatPaginatorModule, MatCardModule, MatTooltipModule, MatDialogModule, FormsModule, MatIconModule ,MatTableModule, MatTableModule, DialogModule, ],
   templateUrl: './borrow-table-user.component.html',
   styleUrl: './borrow-table-user.component.css'
 })
@@ -118,6 +118,10 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
     }
   }
 
+  getFullRequest(id: string): any {
+  return this.borrowRequests.find(request => request.id === id);
+}
+
   goToBorrowForm() {
       console.log('Button clicked'); // Check if this appears in console
     this.router.navigate(['/borrow-form']);
@@ -132,33 +136,39 @@ async fetchBorrowRequests(): Promise<void> {
 
     console.log(`🔍 Fetching borrow requests for user ID: ${this.userEmail}`);
 
-    // Fetch basic request data
+    // 1. Fetch basic request data (same as before)
     const { data: requests, error: requestsError } = await this.supabaseService
       .from('borrow_requests')
-      .select(`id, user_id, borrow_date, return_date, borrower_name, borrower_department, 
-              borrower_contact, borrower_email, purpose, status`)
+      .select(`id, user_id, borrow_date, return_date, borrower_name, 
+              borrower_department, borrower_contact, borrower_email, purpose, status`)
       .eq('user_id', this.userEmail);
 
     if (requestsError) throw requestsError;
+    if (!requests || requests.length === 0) {
+      console.warn("⚠ No borrow requests found for user");
+      return;
+    }
 
-    // Process each request with equipment data
+    // 2. Process requests using the WORKING equipment query from your old code
     const processedRequests = await Promise.all(
       requests.map(async (request) => {
         const { data: equipmentData, error: equipmentError } = await this.supabaseService
           .from('borrow_request_equipment')
           .select(`
-            inhouse_equipment_id,
-            quantity,
+            inhouse_equipment_id, 
+            quantity, 
             inhouse!borrow_request_equipment_inhouse_equipment_id_fkey (name, images)
           `)
           .eq('borrow_request_id', request.id);
 
         if (equipmentError) {
-          console.error('❌ Error fetching equipment:', equipmentError);
+          console.error(`❌ Error fetching equipment for request ${request.id}:`, equipmentError);
           return { ...request, equipmentList: [] };
         }
 
-        // Process equipment data
+        console.log(`🛠 Equipment data for request ${request.id}:`, equipmentData);
+
+        // Process equipment data using the WORKING logic from old code
         const equipmentMap = new Map<string, any>();
         equipmentData.forEach((bre: any) => {
           const equipmentName = bre.inhouse?.name || "Unknown Equipment";
@@ -175,23 +185,101 @@ async fetchBorrowRequests(): Promise<void> {
           }
         });
 
+        const equipmentList = Array.from(equipmentMap.values());
+        console.log(`📊 Final equipment list for request ${request.id}:`, equipmentList);
+        
         return {
           ...request,
-          equipmentList: Array.from(equipmentMap.values())
+          equipmentList: equipmentList
         };
       })
     );
 
-    // Update both the data source and borrowRequests
+    // 3. Update both data sources
     this.borrowRequests = processedRequests;
-    this.dataSource.data = this.borrowRequests; // This is the critical line for Material Table
-    console.log('✅ Updated dataSource with:', this.dataSource.data);
+    this.dataSource.data = this.borrowRequests;
+    this.filteredBorrowRequests = [...this.borrowRequests]; // Maintain this for compatibility
+
+    console.log('✅ Updated data with:', {
+      borrowRequests: this.borrowRequests,
+      dataSource: this.dataSource.data,
+      sampleWithEquipment: this.borrowRequests.find(r => r.equipmentList?.length > 0)
+    });
 
   } catch (error) {
     console.error('❌ Failed to load borrow requests:', error);
     alert('Error loading borrow requests. Please try again.');
   }
 }
+// async fetchBorrowRequests(): Promise<void> {
+//   try {
+//     if (!this.userEmail) {
+//       console.warn("⚠ No user ID found. Skipping data fetch.");
+//       return;
+//     }
+
+//     console.log(`🔍 Fetching borrow requests for user ID: ${this.userEmail}`);
+
+//     // Fetch basic request data
+//     const { data: requests, error: requestsError } = await this.supabaseService
+//       .from('borrow_requests')
+//       .select(`id, user_id, borrow_date, return_date, borrower_name, borrower_department, 
+//               borrower_contact, borrower_email, purpose, status`)
+//       .eq('user_id', this.userEmail);
+
+//     if (requestsError) throw requestsError;
+
+//     // Process each request with equipment data
+//     const processedRequests = await Promise.all(
+//       requests.map(async (request) => {
+//         const { data: equipmentData, error: equipmentError } = await this.supabaseService
+//           .from('borrow_request_equipment')
+//           .select(`
+//             inhouse_equipment_id,
+//             quantity,
+//             inhouse!borrow_request_equipment_inhouse_equipment_id_fkey (name, images)
+//           `)
+//           .eq('borrow_request_id', request.id);
+
+//         if (equipmentError) {
+//           console.error('❌ Error fetching equipment:', equipmentError);
+//           return { ...request, equipmentList: [] };
+//         }
+
+//         // Process equipment data
+//         const equipmentMap = new Map<string, any>();
+//         equipmentData.forEach((bre: any) => {
+//           const equipmentName = bre.inhouse?.name || "Unknown Equipment";
+//           const equipmentImage = bre.inhouse?.images?.[0] || "assets/no-image.png";
+
+//           if (equipmentMap.has(equipmentName)) {
+//             equipmentMap.get(equipmentName).quantity += bre.quantity;
+//           } else {
+//             equipmentMap.set(equipmentName, {
+//               name: equipmentName,
+//               quantity: bre.quantity || 0,
+//               image: equipmentImage
+//             });
+//           }
+//         });
+
+//         return {
+//           ...request,
+//           equipmentList: Array.from(equipmentMap.values())
+//         };
+//       })
+//     );
+
+//     // Update both the data source and borrowRequests
+//     this.borrowRequests = processedRequests;
+//     this.dataSource.data = this.borrowRequests; // This is the critical line for Material Table
+//     console.log('✅ Updated dataSource with:', this.dataSource.data);
+
+//   } catch (error) {
+//     console.error('❌ Failed to load borrow requests:', error);
+//     alert('Error loading borrow requests. Please try again.');
+//   }
+// }
 
 filterBorrowRequests(): void {
   const term = this.searchTerm.toLowerCase().trim();

@@ -63,9 +63,8 @@
         </td>
       </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
-          (click)="openDetailsModal(row)" class="clickable-row"></tr>
+    (click)="openDetailsModal(getFullRequest(row.id))" class="clickable-row"></tr>
 
       <!-- No data row -->
       <tr class="mat-row" *matNoDataRow>
@@ -79,58 +78,72 @@
     <mat-paginator [pageSizeOptions]="[8, 10, 15, 20]" showFirstLastButtons></mat-paginator>
   </div>
 
-  <!-- ✅ Borrow Details Modal -->
-  <p-dialog [(visible)]="showDetailsModal" [modal]="true" [style]="{width: '50rem'}" [closable]="false">
+    <!-- Add this modal container RIGHT HERE -->
+  <div *ngIf="showDetailsModal" class="modal-backdrop">
+    <div class="modal-content">
+      <ng-container *ngTemplateOutlet="borrowDetailsModal"></ng-container>
+    </div>
+  </div>
+
+<!-- In your main component template (keep this at the bottom) -->
+<ng-template #borrowDetailsModal>
+  <div class="dialog-container">
     <!-- Close Button -->
-    <button class="close-button" (click)="showDetailsModal = false">✖</button>
-    <ng-container *ngIf="selectedBorrower">
-      <!-- Borrower Information -->
-      <div class="borrower-info">
-        <h3>Borrower Information</h3>
-        <div class="info-grid">
-          <p><strong>Name:</strong> {{ selectedBorrower.borrower_name }}</p>
-          <p><strong>Department:</strong> {{ selectedBorrower.borrower_department }}</p>
-          <p><strong>Contact:</strong> {{ selectedBorrower.borrower_contact }}</p>
-          <p><strong>Email:</strong> {{ selectedBorrower.borrower_email }}</p>
-          <p><strong>Borrow Date:</strong> {{ selectedBorrower.borrow_date }}</p>
-          <p><strong>Return Date:</strong> {{ selectedBorrower.return_date }}</p>
-          <p><strong>Status:</strong>
-            <span [ngClass]="{
-              'status-pending': selectedBorrower.status !== 'Returned',
-              'status-returned': selectedBorrower.status === 'Returned'
-            }">
-              {{ selectedBorrower.status }}
-            </span>
-          </p>
-        </div>
-        <div class="purpose-container">
-          <strong>Purpose:</strong>
-          <span class="purpose-content" [title]="selectedBorrower.purpose || 'No purpose specified'">
-            {{ selectedBorrower.purpose || 'No purpose specified' }}
+    <button mat-icon-button class="close-button" (click)="closeDetailsModal()">
+      <mat-icon>close</mat-icon>
+    </button>
+    
+    <!-- Borrower Information -->
+    <div class="borrower-info">
+      <h3>Borrower Information</h3>
+      <div class="info-grid">
+        <p><strong>Name:</strong> {{ selectedBorrower?.borrower_name }}</p>
+        <p><strong>Department:</strong> {{ selectedBorrower?.borrower_department }}</p>
+        <p><strong>Contact:</strong> {{ selectedBorrower?.borrower_contact }}</p>
+        <p><strong>Email:</strong> {{ selectedBorrower?.borrower_email }}</p>
+        <p><strong>Borrow Date:</strong> {{ selectedBorrower?.borrow_date }}</p>
+        <p><strong>Return Date:</strong> {{ selectedBorrower?.return_date }}</p>
+        <p><strong>Status:</strong>
+          <span [ngClass]="{
+            'status-pending': selectedBorrower?.status !== 'Returned',
+            'status-returned': selectedBorrower?.status === 'Returned'
+          }">
+            {{ selectedBorrower?.status }}
           </span>
-        </div>
+        </p>
       </div>
+      <div class="purpose-container">
+        <strong>Purpose:</strong>
+        <span class="purpose-content">
+          {{ selectedBorrower?.purpose || 'No purpose specified' }}
+        </span>
+      </div>
+    </div>
 
-      <!-- Borrowed Equipment Section -->
-      <h3 class="equipment-title">Borrowed Equipment</h3>
-      <div class="equipment-grid">
-        <div class="equipment-card" *ngFor="let item of selectedBorrower.equipmentList">
-          <img [src]="getImagePath(item.image)" alt="{{ item.name }}" class="equipment-image"/>
-          <div class="equipment-details">
-            <h4>{{ item.name }}</h4>
-            <p>Quantity: <strong>{{ item.quantity }}</strong></p>
-          </div>
-        </div>
-      </div>
+    <!-- Borrowed Equipment Section -->
+    <h3 class="equipment-title">Borrowed Equipment</h3>
+    <div *ngIf="selectedBorrower?.equipmentList?.length; else noEquipment" class="equipment-grid">
+      <mat-card class="equipment-card" *ngFor="let item of selectedBorrower.equipmentList">
+        <img [src]="getImagePath(item.image)" alt="{{ item.name }}" class="equipment-image"/>
+        <mat-card-content class="equipment-details">
+          <h4>{{ item.name }}</h4>
+          <p>Quantity: <strong>{{ item.quantity }}</strong></p>
+        </mat-card-content>
+      </mat-card>
+    </div>
 
-      <!-- PDF Viewer -->
-      <div *ngIf="isPdf(selectedBorrower.attached_file)" class="pdf-container">
-        <iframe
-          [src]="sanitizeUrl(selectedBorrower.attached_file)"
-          class="pdf-viewer"
-          frameborder="0">
-        </iframe>
-      </div>
-    </ng-container>
-  </p-dialog>
+    <ng-template #noEquipment>
+      <p class="no-equipment">No equipment was borrowed in this request</p>
+    </ng-template>
+
+    <!-- PDF Viewer -->
+    <div *ngIf="selectedBorrower?.attached_file && isPdf(selectedBorrower.attached_file)" class="pdf-container">
+      <iframe
+        [src]="sanitizeUrl(selectedBorrower.attached_file)"
+        class="pdf-viewer"
+        frameborder="0">
+      </iframe>
+    </div>
+  </div>
+</ng-template>
 </body>
