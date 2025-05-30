@@ -54,6 +54,11 @@ export class PartsPickerComponent implements OnInit {
   isSemanticSearching = false;
   isTesting = true; 
 
+  first: number = 0;
+rows: number = 5; // Items per page
+currentPage: number = 1;
+totalRecords: number = 0;
+
   // Add to parts-picker.component.ts
 mockProducts = [
   {
@@ -499,4 +504,6 @@ async mockSemanticSearch(query: string): Promise<any[]> {
 
   return results;
 }
+
+
 }
