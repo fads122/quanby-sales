@@ -1,15 +1,15 @@
 /* ✅ Flex Container for Borrow Button & Search Bar */
 body{
   margin-top: 80px;
-  margin-left: 260px;
+  margin-left: 270px;
+  margin-right: 40px;
 }
 /* ✅ Main Container (Flex Layout) */
 .search-borrow-container {
   display: flex;
   justify-content: space-between; /* Pushes items to opposite ends */
   align-items: center;
-  margin: 20px 0; /* Adjust top/bottom margin as needed */
-  padding: 0 20px; /* Add side padding if needed */
+
 }
 
 /* 🔍 Search Bar Styling */
