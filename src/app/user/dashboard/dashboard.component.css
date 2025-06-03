@@ -21,9 +21,10 @@
 /* Summary Cards - Compact Design */
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 .summary-card {
@@ -35,6 +36,7 @@
   border: 1px solid #e2e8f0;
   position: relative;
   overflow: hidden;
+  width: 100%; /* Ensure cards take full width of their grid cell */
 }
 
 .summary-card:hover {
