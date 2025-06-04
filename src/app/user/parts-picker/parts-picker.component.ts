@@ -52,7 +52,7 @@ export class PartsPickerComponent implements OnInit {
   searchMode: 'text' | 'semantic' = 'text';
   semanticSearchResults: any[] = [];
   isSemanticSearching = false;
-  isTesting = true; 
+  isTesting = true;
 
   first: number = 0;
 rows: number = 5; // Items per page
@@ -505,6 +505,13 @@ async mockSemanticSearch(query: string): Promise<any[]> {
   return results;
 }
 
+
+// Add this method to your PartsPickerComponent class
+onPageChange(event: any) {
+  this.first = event.first;
+  this.rows = event.rows;
+  this.currentPage = event.page + 1; // Primeng uses 0-based index
+}
 
 // Add this method to your PartsPickerComponent class
 onPageChange(event: any) {
