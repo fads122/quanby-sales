@@ -418,6 +418,7 @@ async loadSupplierEquipment(supplierName: string) {
       alert('Failed to submit equipment. Please try again.');
     }
   }
+  
  async submitInhouseEquipment() {
   try {
     this.isSubmitting = true;

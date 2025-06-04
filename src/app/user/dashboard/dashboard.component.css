@@ -843,3 +843,68 @@
     transform: translateY(0);
   }
 }
+
+/* Smooth transition for the entire container */
+.equipment-list-container {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Animation for table rows */
+.p-datatable .p-datatable-tbody > tr {
+  transition: all 0.3s ease;
+}
+
+/* Fade in animation for new content */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slide animation for table switch */
+.slide-in {
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Snackbar Styles */
+::ng-deep .success-snackbar {
+  background: #4caf50 !important;
+  color: white !important;
+}
+
+::ng-deep .warning-snackbar {
+  background: #ff9800 !important;
+  color: white !important;
+}
+
+::ng-deep .error-snackbar {
+  background: #f44336 !important;
+  color: white !important;
+}
+
+::ng-deep .mat-mdc-snack-bar-container {
+  margin-top: 70px !important;
+}
+
+::ng-deep .mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  border-radius: 8px !important;
+}
+
+::ng-deep .mat-mdc-snack-bar-container .mat-mdc-button {
+  color: white !important;
+}
+
+::ng-deep .mat-mdc-snack-bar-container .mdc-snackbar__label {
+  font-weight: 500;
+  font-size: 14px;
+}
+

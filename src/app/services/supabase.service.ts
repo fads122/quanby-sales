@@ -173,11 +173,14 @@ export class SupabaseService {
     return data;
   }
 
-  async addEquipment(equipmentData: any) {
+ async addEquipment(equipmentData: any) {
     // Ensure category is being passed in the equipment data
     if (!equipmentData.category) {
       equipmentData.category = 'Default Category'; // Set a default if not provided
     }
+
+    // Remove any unwanted fields
+    const { ...cleanEquipmentData } = equipmentData;
 
     // Determine if it's a new equipment or updating existing one
     if (this.equipmentId) {
@@ -185,30 +188,30 @@ export class SupabaseService {
       const { data, error } = await this.supabase
         .from('equipments')
         .update({
-          serial_no: equipmentData.serial_no,
-          name: equipmentData.name,
-          model: equipmentData.model,
-          brand: equipmentData.brand,
-          supplier: equipmentData.supplier,
-          supplier_cost: equipmentData.supplier_cost,
-          srp: equipmentData.srp,
-          quantity: equipmentData.quantity,
-          location: equipmentData.location,
-          description: equipmentData.description,
-          variety: equipmentData.variety,
-          qr_code: equipmentData.qr_code,
-          barcode: equipmentData.barcode,
-          damaged: equipmentData.damaged,
-          return_slip: equipmentData.return_slip,
-          product_images: equipmentData.product_images,
-          condition: equipmentData.condition,
-          date_acquired: equipmentData.date_acquired,
-          lifespan_months: equipmentData.item_type === 'Semi-Expendable' ? equipmentData.lifespan_months : null,
-          item_type: equipmentData.item_type || 'Expendable',
-          category: equipmentData.category, // Add category field here
-          brochure_url: equipmentData.brochure_url || null,
+          serial_no: cleanEquipmentData.serial_no,
+          name: cleanEquipmentData.name,
+          model: cleanEquipmentData.model,
+          brand: cleanEquipmentData.brand,
+          supplier: cleanEquipmentData.supplier,
+          supplier_cost: cleanEquipmentData.supplier_cost,
+          srp: cleanEquipmentData.srp,
+          quantity: cleanEquipmentData.quantity,
+          location: cleanEquipmentData.location,
+          description: cleanEquipmentData.description,
+          variety: cleanEquipmentData.variety,
+          qr_code: cleanEquipmentData.qr_code,
+          barcode: cleanEquipmentData.barcode,
+          damaged: cleanEquipmentData.damaged,
+          return_slip: cleanEquipmentData.return_slip,
+          product_images: cleanEquipmentData.product_images,
+          condition: cleanEquipmentData.condition,
+          date_acquired: cleanEquipmentData.date_acquired,
+          lifespan_months: cleanEquipmentData.item_type === 'Semi-Expendable' ? cleanEquipmentData.lifespan_months : null,
+          item_type: cleanEquipmentData.item_type || 'Expendable',
+          category: cleanEquipmentData.category,
+          brochure_url: cleanEquipmentData.brochure_url || null
         })
-        .eq('id', this.equipmentId)  // Specify the equipment to update by ID
+        .eq('id', this.equipmentId)
         .select()
         .single();
 
@@ -222,8 +225,8 @@ export class SupabaseService {
 
       // Handle image URLs if new ones are provided
       let imageUrls: string[] = [];
-      if (equipmentData.product_images && equipmentData.product_images.length > 0) {
-        for (const imageUrl of equipmentData.product_images) {
+      if (cleanEquipmentData.product_images && cleanEquipmentData.product_images.length > 0) {
+        for (const imageUrl of cleanEquipmentData.product_images) {
           const { data: imageData, error: imageError } = await this.supabase
             .from('equipment_images')
             .insert([{ equipment_id: equipmentId, image_url: imageUrl }])
@@ -253,8 +256,8 @@ export class SupabaseService {
       }
 
       // 🔹 Handle Repair Logs Update (if any)
-      if (equipmentData.repair_logs && equipmentData.repair_logs.length > 0) {
-        for (const repair of equipmentData.repair_logs) {
+      if (cleanEquipmentData.repair_logs && cleanEquipmentData.repair_logs.length > 0) {
+        for (const repair of cleanEquipmentData.repair_logs) {
           const { data: repairData, error: repairError } = await this.supabase
             .from('equipment_repair_logs')
             .insert([{
@@ -281,28 +284,28 @@ export class SupabaseService {
       const { data, error } = await this.supabase
         .from('equipments')
         .insert([{
-          serial_no: equipmentData.serial_no,
-          name: equipmentData.name,
-          model: equipmentData.model,
-          brand: equipmentData.brand,
-          supplier: equipmentData.supplier,
-          supplier_cost: equipmentData.supplier_cost,
-          srp: equipmentData.srp,
-          quantity: equipmentData.quantity,
-          location: equipmentData.location,
-          description: equipmentData.description,
-          variety: equipmentData.variety,
-          qr_code: equipmentData.qr_code,
-          barcode: equipmentData.barcode,
-          damaged: equipmentData.damaged,
-          return_slip: equipmentData.return_slip,
+          serial_no: cleanEquipmentData.serial_no,
+          name: cleanEquipmentData.name,
+          model: cleanEquipmentData.model,
+          brand: cleanEquipmentData.brand,
+          supplier: cleanEquipmentData.supplier,
+          supplier_cost: cleanEquipmentData.supplier_cost,
+          srp: cleanEquipmentData.srp,
+          quantity: cleanEquipmentData.quantity,
+          location: cleanEquipmentData.location,
+          description: cleanEquipmentData.description,
+          variety: cleanEquipmentData.variety,
+          qr_code: cleanEquipmentData.qr_code,
+          barcode: cleanEquipmentData.barcode,
+          damaged: cleanEquipmentData.damaged,
+          return_slip: cleanEquipmentData.return_slip,
           product_images: [],
-          condition: equipmentData.condition,
-          date_acquired: equipmentData.date_acquired,
-          lifespan_months: equipmentData.item_type === 'Semi-Expendable' ? equipmentData.lifespan_months : null, // ✅ Only store lifespan if semi-expendable
-          item_type: equipmentData.item_type, // ✅ Store type (Expendable/Semi-Expendable)
-          category: equipmentData.category, // Add category field here
-          brochure_url: equipmentData.brochure_url || null,
+          condition: cleanEquipmentData.condition,
+          date_acquired: cleanEquipmentData.date_acquired,
+          lifespan_months: cleanEquipmentData.item_type === 'Semi-Expendable' ? cleanEquipmentData.lifespan_months : null,
+          item_type: cleanEquipmentData.item_type,
+          category: cleanEquipmentData.category,
+          brochure_url: cleanEquipmentData.brochure_url || null
         }])
         .select()
         .single();
@@ -319,7 +322,7 @@ export class SupabaseService {
       let repairLogs: any[] = [];
 
       // 🔹 Insert Product Images
-      for (const imageUrl of equipmentData.product_images) {
+      for (const imageUrl of cleanEquipmentData.product_images) {
         const { data: imageData, error: imageError } = await this.supabase
           .from('equipment_images')
           .insert([{ equipment_id: equipmentId, image_url: imageUrl }])
@@ -333,8 +336,8 @@ export class SupabaseService {
       }
 
       // Insert Repair Logs
-      if (equipmentData.repair_logs && equipmentData.repair_logs.length > 0) {
-        for (const repair of equipmentData.repair_logs) {
+      if (cleanEquipmentData.repair_logs && cleanEquipmentData.repair_logs.length > 0) {
+        for (const repair of cleanEquipmentData.repair_logs) {
           const { data: repairData, error: repairError } = await this.supabase
             .from('equipment_repair_logs')
             .insert([{
@@ -368,8 +371,7 @@ export class SupabaseService {
         console.log('✅ Equipment updated with images & repair logs');
       }
 
-        // Ensure the log message uses model
-      await this.logActivity('add', equipmentId, `Equipment "${equipmentData.model}" was added to inventory.`);
+      await this.logActivity('add', equipmentId, `Equipment "${cleanEquipmentData.model}" was added to inventory.`);
 
       return data;
     }
