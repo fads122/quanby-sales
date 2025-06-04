@@ -506,4 +506,11 @@ async mockSemanticSearch(query: string): Promise<any[]> {
 }
 
 
+// Add this method to your PartsPickerComponent class
+onPageChange(event: any) {
+  this.first = event.first;
+  this.rows = event.rows;
+  this.currentPage = event.page + 1; // Primeng uses 0-based index
+}
+
 }
