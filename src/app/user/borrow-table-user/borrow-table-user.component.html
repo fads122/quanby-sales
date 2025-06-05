@@ -21,64 +21,75 @@
 </div>
   <br>
 
-    <!-- ✅ Angular Material Table -->
-  <div class="mat-table-container">
-    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-      <!-- Borrower Name Column -->
-      <ng-container matColumnDef="borrower_name">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Borrower Name </th>
-        <td mat-cell *matCellDef="let request"> {{request.borrower_name}} </td>
+<!-- ✅ Angular Material Table -->
+<div class="mat-table-container">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+    <!-- Borrower Name Column -->
+    <ng-container matColumnDef="borrower_name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Borrower Name </th>
+      <td mat-cell *matCellDef="let request"> {{request.borrower_name}} </td>
+    </ng-container>
+
+    <!-- Department Column -->
+    <ng-container matColumnDef="borrower_department">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Department/Location </th>
+      <td mat-cell *matCellDef="let request"> {{request.borrower_department}} </td>
+    </ng-container>
+
+    <!-- Borrow Date Column -->
+    <ng-container matColumnDef="borrow_date">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Borrow Date </th>
+      <td mat-cell *matCellDef="let request"> {{request.borrow_date}} </td>
+    </ng-container>
+
+    <!-- Return Date Column -->
+    <ng-container matColumnDef="return_date">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Return Date </th>
+      <td mat-cell *matCellDef="let request"> {{request.return_date}} </td>
+    </ng-container>
+
+   <ng-container matColumnDef="action">
+  <th mat-header-cell *matHeaderCellDef>Action</th>
+  <td mat-cell *matCellDef="let request">
+    <div class="action-container">
+      <!-- View Button -->
+      <button mat-icon-button color="primary" 
+              class="view-btn"
+              (click)="openDetailsModal(getFullRequest(request.id)); $event.stopPropagation()"
+              matTooltip="View Details">
+        <mat-icon>visibility</mat-icon>
+      </button>
+      
+      <!-- Return Button or Status -->
+      <ng-container *ngIf="request.status !== 'Returned' && request.status !== 'returned'; else returnedStatus">
+        <button mat-raised-button color="primary" class="action-btn"
+                (click)="markAsReturned(request.id); $event.stopPropagation()">
+          Return
+        </button>
       </ng-container>
+      <ng-template #returnedStatus>
+        <span class="returned-label">Returned</span>
+      </ng-template>
+    </div>
+  </td>
+</ng-container>
 
-      <!-- Department Column -->
-      <ng-container matColumnDef="borrower_department">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Department/Location </th>
-        <td mat-cell *matCellDef="let request"> {{request.borrower_department}} </td>
-      </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
 
-      <!-- Borrow Date Column -->
-      <ng-container matColumnDef="borrow_date">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Borrow Date </th>
-        <td mat-cell *matCellDef="let request"> {{request.borrow_date}} </td>
-      </ng-container>
+    <!-- Remove the click handler from the row if you want to use only the view button -->
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
-      <!-- Return Date Column -->
-      <ng-container matColumnDef="return_date">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Return Date </th>
-        <td mat-cell *matCellDef="let request"> {{request.return_date}} </td>
-      </ng-container>
+    <!-- No data row -->
+    <tr class="mat-row" *matNoDataRow>
+      <td class="no-items" colspan="5">
+        <mat-icon class="no-items-icon">inventory</mat-icon>
+        <p class="no-items-message">No borrowed items found</p>
+      </td>
+    </tr>
+  </table>
 
-      <!-- Action Column -->
-      <ng-container matColumnDef="action">
-        <th mat-header-cell *matHeaderCellDef> Action </th>
-        <td mat-cell *matCellDef="let request">
-          <button *ngIf="request.status !== 'Returned' && request.status !== 'returned'"
-                  mat-raised-button color="primary" class="action-btn"
-                  (click)="markAsReturned(request.id); $event.stopPropagation()">
-            Return
-          </button>
-          <span *ngIf="request.status?.toLowerCase() === 'returned'" class="returned-label">
-            Returned
-          </span>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
-    (click)="openDetailsModal(getFullRequest(row.id))" class="clickable-row"></tr>
-
-      <!-- No data row -->
-      <tr class="mat-row" *matNoDataRow>
-        <td class="no-items" colspan="5">
-          <mat-icon class="no-items-icon">inventory</mat-icon>
-          <p class="no-items-message">No borrowed items found</p>
-        </td>
-      </tr>
-    </table>
-
-    <mat-paginator [pageSizeOptions]="[8, 10, 15, 20]" showFirstLastButtons></mat-paginator>
-  </div>
+  <mat-paginator [pageSizeOptions]="[8, 10, 15, 20]" showFirstLastButtons></mat-paginator>
+</div>
 
     <!-- Add this modal container RIGHT HERE -->
   <div *ngIf="showDetailsModal" class="modal-backdrop">

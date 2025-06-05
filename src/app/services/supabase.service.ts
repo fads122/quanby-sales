@@ -209,7 +209,9 @@ export class SupabaseService {
           lifespan_months: cleanEquipmentData.item_type === 'Semi-Expendable' ? cleanEquipmentData.lifespan_months : null,
           item_type: cleanEquipmentData.item_type || 'Expendable',
           category: cleanEquipmentData.category,
-          brochure_url: cleanEquipmentData.brochure_url || null
+          brochure_url: cleanEquipmentData.brochure_url || null,
+          ownership_type: cleanEquipmentData.ownership_type,
+
         })
         .eq('id', this.equipmentId)
         .select()
@@ -305,7 +307,8 @@ export class SupabaseService {
           lifespan_months: cleanEquipmentData.item_type === 'Semi-Expendable' ? cleanEquipmentData.lifespan_months : null,
           item_type: cleanEquipmentData.item_type,
           category: cleanEquipmentData.category,
-          brochure_url: cleanEquipmentData.brochure_url || null
+          brochure_url: cleanEquipmentData.brochure_url || null,
+          ownership_type: cleanEquipmentData.ownership_type,
         }])
         .select()
         .single();
@@ -1345,7 +1348,7 @@ async getPCParts() {
     const additionActivities: any[] = [];
 
     data.forEach(activity => {
-    console.log('🔍 Checking Activity:', activity.message);
+    // console.log('🔍 Checking Activity:', activity.message);
 
           // Normalize message for comparison
           const normalizedMsg = activity.message.toLowerCase();
@@ -1441,73 +1444,7 @@ async getPCParts() {
     console.log('✅ Final Activities:', combinedActivities);
     return combinedActivities;
 }
-//   async getRecentActivities(): Promise<any[]> {
-//     const { data, error } = await this.supabase
-//         .from('recent_activities')
-//         .select('*')
-//         .order('timestamp', { ascending: false })
-//         .limit(100);
 
-//     if (error) {
-//         console.error('❌ Error fetching recent activities:', error);
-//         return [];
-//     }
-
-//     if (!data || data.length === 0) {
-//         console.warn('⚠ No recent activities found in database.');
-//         return [];
-//     }
-
-//     const borrowActivities: any[] = [];
-//     const returnActivities: any[] = [];
-//     const groupedActivities: any[] = [];
-//     const projectActivities: any[] = [];
-
-//     data.forEach(activity => {
-//         console.log('🔍 Checking Activity:', activity.message);
-
-//         if (activity.activity_type === "project_created" || activity.activity_type === "project_deleted") {
-//             projectActivities.push(activity); // ✅ Keep project activities as they are
-//         } else if (activity.message.toLowerCase().includes("borrowed")) {
-//             borrowActivities.push(activity);
-//         } else if (activity.message.toLowerCase().includes("returned")) {
-//             returnActivities.push(activity);
-//         } else {
-//             const match = activity.message.match(/(\d+)?\s?"(.+?)"/);
-//             const quantity = match && match[1] ? parseInt(match[1]) : 1;
-//             const equipmentName = match ? match[2] : null;
-
-//             if (equipmentName) {
-//                 const lastEntry = groupedActivities.length > 0 ? groupedActivities[groupedActivities.length - 1] : null;
-//                 const lastTimestamp = lastEntry ? new Date(lastEntry.timestamp).getTime() : null;
-//                 const currentTimestamp = new Date(activity.timestamp).getTime();
-
-//                 if (
-//                     lastEntry &&
-//                     lastEntry.message.includes(equipmentName) &&
-//                     lastTimestamp &&
-//                     currentTimestamp - lastTimestamp <= 60 * 1000
-//                 ) {
-//                     const countMatch = lastEntry.message.match(/^(\d+)/);
-//                     const prevCount = countMatch ? parseInt(countMatch[1]) : 1;
-//                     lastEntry.message = `${prevCount + quantity} ${equipmentName} ${prevCount + quantity > 1 ? 'were' : 'was'} added to inventory.`;
-//                     lastEntry.timestamp = activity.timestamp;
-//                 } else {
-//                     groupedActivities.push({
-//                         message: `${quantity} ${equipmentName} ${quantity > 1 ? 'were' : 'was'} added to inventory.`,
-//                         timestamp: activity.timestamp
-//                     });
-//                 }
-//             }
-//         }
-//     });
-
-//     // ✅ Combine all activities (Project + Borrow + Return + Time-Grouped Additions)
-//     const combinedActivities = [...projectActivities, ...borrowActivities, ...returnActivities, ...groupedActivities];
-
-//     console.log('✅ Final Activities (Project + Borrow + Return + Time-Based Grouped):', combinedActivities);
-//     return combinedActivities;
-// }
 
 async getAvailableEquipment(): Promise<any[]> {
   const { data, error } = await this.supabase

@@ -20,6 +20,17 @@
       </select>
     </div>
 
+    <div class="form-row" *ngIf="selectedFormType === 'pcParts'">
+      <div class="form-group" *ngFor="let equipment of equipmentDataArray; let i = index">
+        <label>Ownership Type</label>
+        <select class="form-control" [(ngModel)]="equipment.ownership_type" name="ownership_type{{i}}" required>
+          <option value="" disabled selected>Select Ownership</option>
+          <option value="government">🏛️ Government</option>
+          <option value="private">🏢 Private</option>
+        </select>
+      </div>
+    </div>
+
     <!-- Loop through each equipment entry (For Sale) -->
     <div *ngIf="selectedFormType === 'pcParts'">
       <div class="equipment-box" *ngFor="let equipment of equipmentDataArray; let i = index">

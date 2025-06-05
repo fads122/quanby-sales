@@ -2357,7 +2357,7 @@ addDeliveryReceipt(projectId: string, projectName: string, clientName: string, d
     project_name: projectName,
     client_name: clientName,
     delivery_date: deliveryDate,
-    status: 'delivering',
+    status: 'Delivering',
     attached_file: null,
   };
 

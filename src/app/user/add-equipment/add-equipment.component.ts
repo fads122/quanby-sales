@@ -29,6 +29,7 @@ interface InhouseEquipment {
   return_slip: string | File;
   inactive_reason?: string;  // New field
   inactive_location?: string; // New field
+  ownership_type: 'government' | 'private'; 
 }
 
 
@@ -106,7 +107,8 @@ inhouseEquipmentArray: InhouseEquipment[] = [{
   condition: '',
   damaged: false,
   repair_logs: [],
-  return_slip: ''
+  return_slip: '',
+  ownership_type: 'private'
 }];
 
   productCategories = [
@@ -153,6 +155,7 @@ inhouseEquipmentArray: InhouseEquipment[] = [{
     category: '',
     brochure: null as File | null,
     brochure_url: '',
+    ownership_type: 'private'
   }];
 
   constructor(
@@ -197,6 +200,7 @@ inhouseEquipmentArray: InhouseEquipment[] = [{
         category: '',
         brochure: null as File | null,
         brochure_url: '',
+        ownership_type: this.data.equipmentData.ownership_type || 'private'
       }];
 
       console.log('🔄 Editing Equipment:', this.equipmentDataArray);
@@ -221,23 +225,24 @@ removeInhouseEquipment(index: number) {
 
 addInhouseEquipment() {
   this.inhouseEquipmentArray.push({
-    name: '',
-    brand: '',
-    model: '',
-    quantity: 1,
-    serial_number: '',
-    qr_code: '',
-    barcode: '',
-    images: [],
-    date_acquired: new Date().toISOString().split('T')[0],
-    product_type: 'operational_equipment',
-    condition: '',
-    damaged: false,
-    repair_logs: [],
-    return_slip: '',
-    inactive_reason: '', // Initialize new field
-    inactive_location: '' // Initialize new field
-  });
+      name: '',
+      brand: '',
+      model: '',
+      quantity: 1,
+      serial_number: '',
+      qr_code: '',
+      barcode: '',
+      images: [],
+      date_acquired: new Date().toISOString().split('T')[0],
+      product_type: 'operational_equipment',
+      condition: '',
+      damaged: false,
+      repair_logs: [],
+      return_slip: '',
+      inactive_reason: '', // Initialize new field
+      inactive_location: '', // Initialize new field
+      ownership_type: 'private' // Add required property with default value
+    });
 }
 
   onSupplierChange(event: any, index: number) {
@@ -543,6 +548,7 @@ async loadSupplierEquipment(supplierName: string) {
       category: '',
       brochure: null as File | null,
       brochure_url: '',
+      ownership_type: 'private'
     }];
 
     this.isEditMode = false;
@@ -645,6 +651,10 @@ private getEmptyEquipmentTemplate() {
     lifespan_months: 12,
     barcode: '',
     item_type: 'Expendable',
+    category: '',
+    brochure: null as File | null,
+    brochure_url: '',
+    ownership_type: 'private'
   };
 }
 
@@ -681,6 +691,7 @@ addEquipment() {
     category: '',
     brochure: null as File | null,
     brochure_url: '',
+    ownership_type: lastEquipment.ownership_type || 'private'
   });
 
   console.log("➕ Added new equipment with pre-filled values:", this.equipmentDataArray[this.equipmentDataArray.length - 1]);
@@ -719,6 +730,7 @@ addEquipment() {
       category: '',
       brochure: null as File | null,
       brochure_url: '',
+      ownership_type: selectedEquipment.ownership_type || 'private'
     };
 
     // ✅ Hide the dropdown after selection

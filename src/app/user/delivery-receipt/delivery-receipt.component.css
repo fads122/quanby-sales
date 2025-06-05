@@ -161,7 +161,7 @@ table.mat-table {
   color: white !important;
 }
 
-.status-delivering {
+.status-Delivering {
   background-color: #ffd700 !important;
   color: #000 !important;
 }
@@ -283,7 +283,7 @@ mat-chip-listbox {
   color: #2e7d32;
 }
 
-.status-badge.delivering {
+.status-badge.Delivering {
   background-color: #fff8e1;
   color: #f57c00;
 }

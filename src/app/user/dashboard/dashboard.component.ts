@@ -26,6 +26,8 @@ import { CalendarModule } from 'primeng/calendar';
 import { AccordionModule } from 'primeng/accordion';
 import { PaginatorModule } from 'primeng/paginator';
 import { ToastModule } from 'primeng/toast';
+import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType } from 'docx';
+
 
 interface TimeframeOption {
   label: string;
@@ -118,6 +120,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   borrowedHistory: number[] = [];
   projectsHistory: number[] = [];
 
+
+  rankedSuppliers: any[] = [];
+  topSupplierName: string = '';
+  rankingFilter: string = 'overall';
+  lastUpdated: Date = new Date();
+
+  paginatedSuppliers: any[] = []; // Suppliers to display on current page
+  itemsPerPage: number = 5;
+
+
   constructor(private supabaseService: SupabaseService, private cdr: ChangeDetectorRef, private router: Router) {}
 
   async ngOnInit() {
@@ -159,6 +171,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
       this.computeLowStock();
       this.updatePagination();
+
+      this.loadSupplierRanking();
 
       // Load historical data
       await this.loadHistoricalData();
@@ -1097,5 +1111,221 @@ updateChart() {
       }
     });
   }
+
+
+  async loadSupplierRanking() {
+  try {
+    // Fetch all suppliers and their products
+    const { data: suppliers, error: supError } = await this.supabaseService
+      .from('suppliers')
+      .select('*');
+    
+    if (supError) throw supError;
+
+    const { data: equipments, error: eqError } = await this.supabaseService
+      .from('equipments')
+      .select('id, supplier, supplier_cost, quantity, status');
+    
+    if (eqError) throw eqError;
+
+    // Calculate scores for each supplier
+    const ranked = suppliers.map(supplier => {
+      const supplierProducts = equipments.filter(e => e.supplier === supplier.supplier_name);
+      
+      // Price score (lower average is better)
+      const avgPrice = supplierProducts.reduce((sum, p) => sum + (p.supplier_cost || 0), 0) / 
+                      (supplierProducts.length || 1);
+      const priceScore = 10 - (avgPrice / 1000); // Adjust divisor based on your price range
+      
+      // Inventory score
+      const totalStock = supplierProducts.reduce((sum, p) => sum + (p.quantity || 0), 0);
+      const inventoryScore = Math.min(10, totalStock / 50); // Adjust divisor based on your stock levels
+      
+      // Reliability score (placeholder - you might need to track this separately)
+      const reliabilityScore = 7 + Math.random() * 3; // Random for now
+      
+      // Overall score
+      const overallScore = (priceScore * 0.4) + (inventoryScore * 0.3) + (reliabilityScore * 0.3);
+      
+      return {
+        ...supplier,
+        price_score: Math.min(10, Math.max(0, priceScore)),
+        inventory_score: Math.min(10, Math.max(0, inventoryScore)),
+        reliability_score: Math.min(10, Math.max(0, reliabilityScore)),
+        overall_score: Math.min(10, Math.max(0, overallScore))
+      };
+    });
+
+    // Sort by overall score
+    this.rankedSuppliers = ranked.sort((a, b) => b.overall_score - a.overall_score);
+    this.topSupplierName = this.rankedSuppliers[0]?.supplier_name || 'N/A';
+    this.lastUpdated = new Date();
+  } catch (error) {
+    console.error('Error loading supplier ranking:', error);
+  }
+}
+
+updateSupplierRanking() {
+  switch(this.rankingFilter) {
+    case 'price':
+      this.rankedSuppliers.sort((a, b) => b.price_score - a.price_score);
+      break;
+    case 'inventory':
+      this.rankedSuppliers.sort((a, b) => b.inventory_score - a.inventory_score);
+      break;
+    case 'reliability':
+      this.rankedSuppliers.sort((a, b) => b.reliability_score - a.reliability_score);
+      break;
+    default:
+      this.rankedSuppliers.sort((a, b) => b.overall_score - a.overall_score);
+  }
+}
+
+viewSupplierDetails(supplierId: number) {
+  this.router.navigate(['/supplier-profile', supplierId]);
+}
+
+scrollToRanking() {
+  const element = document.getElementById('supplier-ranking');
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+
+async exportRankingData() {
+  try {
+    // Create document content
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          new Paragraph({
+            text: "Supplier Ranking Report",
+            heading: "Heading1",
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+          }),
+          new Paragraph({
+            text: `Generated on ${new Date().toLocaleDateString()}`,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 },
+          }),
+          this.createRankingTable(),
+          new Paragraph({
+            text: "End of Report",
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 400 },
+          }),
+        ],
+      }],
+    });
+
+    // Generate the DOCX file
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `supplier_ranking_${new Date().toISOString().slice(0,10)}.docx`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Show success notification
+    alert('Supplier ranking exported successfully as Word document');
+  } catch (error) {
+    console.error('Error exporting ranking data:', error);
+    alert('Failed to export supplier ranking');
+  }
+}
+
+private createRankingTable(): Table {
+  // Table header
+  const headerRow = new TableRow({
+    children: [
+      this.createHeaderCell("Rank"),
+      this.createHeaderCell("Supplier"),
+      this.createHeaderCell("Avg Price"),
+      this.createHeaderCell("Inventory"),
+      this.createHeaderCell("Reliability"),
+      this.createHeaderCell("Overall"),
+      this.createHeaderCell("Contact"),
+      this.createHeaderCell("Phone"),
+      this.createHeaderCell("Email"),
+    ],
+    tableHeader: true,
+  });
+
+  // Table rows with data
+  const dataRows = this.rankedSuppliers.map((supplier, index) => {
+    return new TableRow({
+      children: [
+        this.createDataCell((index + 1).toString()),
+        this.createDataCell(supplier.supplier_name),
+        this.createDataCell(supplier.price_score.toFixed(2)),
+        this.createDataCell(supplier.inventory_score.toFixed(2)),
+        this.createDataCell(supplier.reliability_score.toFixed(2)),
+        this.createDataCell(supplier.overall_score.toFixed(2), true),
+        this.createDataCell(supplier.contact_person || 'N/A'),
+        this.createDataCell(supplier.phone || 'N/A'),
+        this.createDataCell(supplier.email || 'N/A'),
+      ],
+    });
+  });
+
+  return new Table({
+    rows: [headerRow, ...dataRows],
+    width: {
+      size: 100,
+      type: WidthType.PERCENTAGE,
+    },
+    columnWidths: [5, 15, 10, 10, 10, 10, 15, 10, 15],
+  });
+}
+
+private createHeaderCell(text: string): TableCell {
+  return new TableCell({
+    children: [
+      new Paragraph({
+        children: [
+          new TextRun({
+            text,
+            bold: true,
+            color: "FFFFFF",
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+      }),
+    ],
+    shading: {
+      fill: "4472C4", // Blue color
+    },
+  });
+}
+
+private createDataCell(text: string, highlight: boolean = false): TableCell {
+  return new TableCell({
+    children: [
+      new Paragraph({
+        children: [
+          new TextRun({
+            text,
+            bold: highlight,
+            color: highlight ? "FF0000" : undefined,
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+      }),
+    ],
+    shading: highlight ? {
+      fill: "FFFF00", // Yellow highlight
+    } : undefined,
+  });
+}
+
 
 }
