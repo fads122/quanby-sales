@@ -10,6 +10,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import * as tf from '@tensorflow/tfjs';
+import * as use from '@tensorflow-models/universal-sentence-encoder';
 
 
 interface InhouseEquipment {
@@ -29,7 +31,11 @@ interface InhouseEquipment {
   return_slip: string | File;
   inactive_reason?: string;  // New field
   inactive_location?: string; // New field
-  ownership_type: 'government' | 'private'; 
+  ownership_type: 'government' | 'private';
+}
+
+interface CategoryContext {
+  [key: string]: string;
 }
 
 
@@ -39,8 +45,7 @@ interface InhouseEquipment {
   imports: [FormsModule, CommonModule, NgIf, MatDialogModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './add-equipment.component.html',
   styleUrls: ['./add-equipment.component.css'],
-  // In add-equipment.component.ts
-animations: [
+  animations: [
   trigger('dialogContainer', [
     transition(':enter', [
       style({ opacity: 0, transform: 'scale(0.9) translateY(20px)' }),
@@ -157,6 +162,9 @@ inhouseEquipmentArray: InhouseEquipment[] = [{
     brochure_url: '',
     ownership_type: 'private'
   }];
+
+  private model: any;
+  private isModelLoading = false;
 
   constructor(
     private supabaseService: SupabaseService,
@@ -322,38 +330,19 @@ async loadSupplierEquipment(supplierName: string) {
           }
         }
 
-        // Rest of your existing submit logic...
+        // Handle update or add equipment
         if (this.isEditMode && this.equipmentId) {
-          console.log(`🔄 Updating Equipment ID: ${this.equipmentId}`);
-
-          // Get existing cost history and handle update
-          let costHistory = await this.supabaseService.getCostHistory(this.equipmentId);
-          console.log("📊 Cost History Before Update:", costHistory);
-
-          const initialEntry = costHistory.length > 0 ? { ...costHistory[0] } : null;
-          console.log("🔹 Initial Cost Entry Found:", initialEntry);
-
-          const newEntry = {
-            supplier_cost: equipment.supplier_cost,
-            srp: equipment.srp,
-            date_updated: new Date().toISOString()
-          };
-
-          console.log("📥 New Cost Entry:", newEntry);
-          await this.supabaseService.addCostHistory(this.equipmentId, newEntry);
-
-          if (initialEntry) {
-            costHistory = [initialEntry, ...costHistory.slice(1), newEntry];
-            costHistory.sort((a, b) => new Date(a.date_updated).getTime() - new Date(b.date_updated).getTime());
-          }
-
-          console.log("📊 Cost History After Update:", costHistory);
-
-          // Update the equipment
-          const updateResult = await this.supabaseService.updateEquipment(this.equipmentId, equipment, this.router);
+          // Update existing equipment
+          const updateResult = await this.supabaseService.updateEquipment(
+            this.equipmentId,
+            equipment,
+            this.router
+          );
 
           if (updateResult) {
-            console.log(`✅ Equipment updated successfully: ${equipment.name}`);
+            // Update embedding for the equipment
+            await this.generateAndStoreEmbedding(this.equipmentId, equipment);
+
             // Close dialog and return updated data
             this.dialogRef.close({
               success: true,
@@ -371,7 +360,8 @@ async loadSupplierEquipment(supplierName: string) {
           // Adding new equipment
           const result = await this.supabaseService.addEquipment(equipment);
           if (result) {
-            console.log('✅ Equipment added successfully:', result);
+            // Generate and store embedding for new equipment
+            await this.generateAndStoreEmbedding(result.id, equipment);
 
             // Storing initial cost entry
             const initialCostEntry = {
@@ -423,7 +413,7 @@ async loadSupplierEquipment(supplierName: string) {
       alert('Failed to submit equipment. Please try again.');
     }
   }
-  
+
  async submitInhouseEquipment() {
   try {
     this.isSubmitting = true;
@@ -487,6 +477,11 @@ async loadSupplierEquipment(supplierName: string) {
         .select();
 
       if (error) throw error;
+
+      // Generate and store embedding for inhouse equipment
+      if (data && data[0]) {
+        await this.generateAndStoreEmbedding(data[0].id, equipmentData);
+      }
     }
 
     this.dialogRef.close({
@@ -848,6 +843,96 @@ async handleInhouseReturnSlip(event: Event, index: number) {
     } else {
       console.error('❌ Failed to upload return slip.');
     }
+  }
+}
+
+// Add this method to generate text for embedding
+private generateEmbeddingText(equipment: any): string {
+  // Generate dynamic context based on equipment type and properties
+  const generateDynamicContext = (equipment: any) => {
+    const category = equipment.category?.toLowerCase() || '';
+    const name = equipment.name?.toLowerCase() || '';
+    const description = equipment.description?.toLowerCase() || '';
+
+    // Extract key terms from category
+    const categoryTerms = category.split(/[/-\s]+/).filter(Boolean);
+
+    // Base context from equipment properties
+    let context = `
+      ${name} ${equipment.model || ''} ${equipment.brand || ''}
+      ${description} ${category} ${equipment.variety || ''}
+    `;
+
+    // Add common terms for the category
+    if (categoryTerms.length > 0) {
+      context += ` ${categoryTerms.join(' ')} equipment device hardware component`;
+    }
+
+    // Add technical terms from description
+    const technicalTerms = description.match(/\b\d+\s*[a-zA-Z]+\b/g) || []; // Match technical specs
+    if (technicalTerms.length > 0) {
+      context += ` ${technicalTerms.join(' ')}`;
+    }
+
+    return context;
+  };
+
+  const description = generateDynamicContext(equipment);
+  return description.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+// Add method to generate and store embedding
+private async generateAndStoreEmbedding(equipmentId: string, equipment: any) {
+  try {
+    console.log('Generating embedding for:', equipment);
+
+    if (!this.model) {
+      await this.loadModel();
+    }
+
+    const textToEmbed = this.generateEmbeddingText(equipment);
+    console.log('Text to embed:', textToEmbed);
+
+    const embedding = await this.model.embed([textToEmbed]);
+    const embeddingArray = await embedding.array();
+
+    console.log('Generated embedding vector');
+
+    const { error } = await this.supabaseService
+      .from('equipment_embeddings')
+      .insert({
+        id: equipmentId,
+        embedding: embeddingArray[0],
+        metadata: {
+          name: equipment.name,
+          model: equipment.model,
+          brand: equipment.brand,
+          category: equipment.category
+        }
+      });
+
+    if (error) throw error;
+    console.log('Embedding stored successfully');
+
+  } catch (error) {
+    console.error('Error generating/storing embedding:', error);
+    throw error;
+  }
+}
+
+// Add method to load TensorFlow model
+private async loadModel() {
+  if (this.model || this.isModelLoading) return;
+
+  this.isModelLoading = true;
+  try {
+    await tf.ready();
+    this.model = await use.load();
+    console.log('✅ TensorFlow model loaded');
+  } catch (error) {
+    console.error('❌ Failed to load TensorFlow model:', error);
+  } finally {
+    this.isModelLoading = false;
   }
 }
 }

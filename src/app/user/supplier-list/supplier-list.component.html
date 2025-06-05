@@ -1,4 +1,16 @@
 <app-sidebar></app-sidebar>
+
+<!-- Add this at the top of the file, right after the opening <app-sidebar> -->
+<div class="loading-overlay" *ngIf="isLoading">
+  <div class="loading-content">
+    <div class="logo-loader">
+      <div class="logo-glow"></div>
+      <img src="/images/quanby.png" alt="Quanby Logo">
+    </div>
+    <h3>Loading Suppliers...</h3>
+  </div>
+</div>
+
 <div class="supplier-management-container" style="color: #2F2F2F;">
   <!-- Header Section -->
   <div class="header">

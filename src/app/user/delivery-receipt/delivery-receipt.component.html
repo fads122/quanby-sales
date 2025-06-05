@@ -29,32 +29,54 @@
         </div>
 
         <div class="mat-elevation-z8">
-          <table mat-table [dataSource]="dataSource" matSort>
+          <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z0">
             <!-- Project Column -->
             <ng-container matColumnDef="project">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Project</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                <div class="header-cell-content">
+                  <mat-icon class="header-icon">work</mat-icon>
+                  Project
+                </div>
+              </th>
               <td mat-cell *matCellDef="let receipt">
-                <div class="project-name">{{receipt.project_name}}</div>
+                <div class="project-cell">
+                  <span class="project-name">{{receipt.project_name}}</span>
+                </div>
               </td>
             </ng-container>
 
             <!-- Client Column -->
             <ng-container matColumnDef="client">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Client</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                <div class="header-cell-content">
+                  <mat-icon class="header-icon">business</mat-icon>
+                  Client
+                </div>
+              </th>
               <td mat-cell *matCellDef="let receipt">{{receipt.client_name}}</td>
             </ng-container>
 
             <!-- Delivery Date Column -->
             <ng-container matColumnDef="delivery_date">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Delivery Date</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                <div class="header-cell-content">
+                  <mat-icon class="header-icon">event</mat-icon>
+                  Delivery Date
+                </div>
+              </th>
               <td mat-cell *matCellDef="let receipt">
-                {{receipt.delivery_date || 'Not delivered'}}
+                <span class="delivery-date">{{receipt.delivery_date || 'Not delivered'}}</span>
               </td>
             </ng-container>
 
             <!-- Status Column -->
             <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                <div class="header-cell-content">
+                  <mat-icon class="header-icon">flag</mat-icon>
+                  Status
+                </div>
+              </th>
               <td mat-cell *matCellDef="let receipt">
                 <mat-chip-listbox>
                   <mat-chip [ngClass]="{'status-Delivered': receipt.status === 'Delivered', 'status-Delivering': receipt.status === 'Delivering'}">
@@ -70,20 +92,25 @@
 
             <!-- Attachment Column -->
             <ng-container matColumnDef="attachment">
-              <th mat-header-cell *matHeaderCellDef>Attachment</th>
+              <th mat-header-cell *matHeaderCellDef>
+                <div class="header-cell-content">
+                  <mat-icon class="header-icon">attachment</mat-icon>
+                  Attachment
+                </div>
+              </th>
               <td mat-cell *matCellDef="let receipt">
-                <div *ngIf="receipt.attached_file" class="attachment-container">
-                  <button mat-icon-button (click)="openFileDialog(receipt.attached_file)" 
-                          [matTooltip]="'View ' + (isImage(receipt.attached_file) ? 'Image' : 'PDF')">
-                    <mat-icon *ngIf="isImage(receipt.attached_file)">image</mat-icon>
-                    <mat-icon *ngIf="isPdf(receipt.attached_file)">picture_as_pdf</mat-icon>
+                <div *ngIf="receipt.attached_file" class="attachment-cell">
+                  <button mat-icon-button class="action-button view"
+                          (click)="openFileDialog(receipt.attached_file)"
+                          [matTooltip]="isImage(receipt.attached_file) ? 'View Image' : 'View PDF'">
+                    <mat-icon>{{isImage(receipt.attached_file) ? 'image' : 'picture_as_pdf'}}</mat-icon>
                   </button>
                   <span class="file-name">{{receipt.attached_file.split('/').pop()}}</span>
                 </div>
-                <span *ngIf="!receipt.attached_file" class="no-attachment">
+                <div *ngIf="!receipt.attached_file" class="no-attachment">
                   <mat-icon>attach_file_off</mat-icon>
-                  No attachment
-                </span>
+                  <span>No attachment</span>
+                </div>
               </td>
             </ng-container>
 
@@ -91,12 +118,11 @@
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let receipt">
-                <div class="action-buttons">
-                  <button mat-icon-button color="primary" (click)="showReceiptDetails(receipt)" 
-                          matTooltip="View details">
-                    <mat-icon>visibility</mat-icon>
-                  </button>
-                </div>
+                <button mat-icon-button class="action-button view"
+                        (click)="showReceiptDetails(receipt)"
+                        matTooltip="View details">
+                  <mat-icon>visibility</mat-icon>
+                </button>
               </td>
             </ng-container>
 
@@ -114,7 +140,7 @@
             </tr>
           </table>
 
-          <mat-paginator 
+          <mat-paginator
             [length]="dataSource.data.length"
             [pageSize]="rows"
             [pageSizeOptions]="[5, 10, 25, 100]"
@@ -130,25 +156,23 @@
 <!-- Receipt Details Dialog -->
 <ng-template #receiptDetailsDialog>
   <div class="modern-dialog">
-    <div class="dialog-header">
-      <div class="status-badge" [ngClass]="selectedReceipt?.status?.toLowerCase()">
-        <mat-icon *ngIf="selectedReceipt?.status === 'Delivered'">task_alt</mat-icon>
-        <mat-icon *ngIf="selectedReceipt?.status === 'Delivering'">local_shipping</mat-icon>
-        {{selectedReceipt?.status}}
-      </div>
-      <button mat-icon-button mat-dialog-close class="close-btn">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
 
     <div class="dialog-title">
       <div class="title-content">
         <mat-icon>description</mat-icon>
         <div class="title-text">
           <h2>{{selectedReceipt?.project_name}}</h2>
-          <p>{{selectedReceipt?.client_name}}</p>
+          <div class="status-badge" [ngClass]="selectedReceipt?.status?.toLowerCase()">
+            <mat-icon *ngIf="selectedReceipt?.status === 'Delivered'">task_alt</mat-icon>
+            <mat-icon *ngIf="selectedReceipt?.status === 'Delivering'">local_shipping</mat-icon>
+            {{selectedReceipt?.status}}
+          </div>
         </div>
       </div>
+      <p>{{selectedReceipt?.client_name}}</p>
+      <!-- <button mat-icon-button mat-dialog-close class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button> -->
     </div>
 
     <mat-dialog-content>
@@ -206,7 +230,7 @@
         Save Changes
       </button>
     </mat-dialog-actions>
-  </div>
+    </div>
 </ng-template>
 
 <!-- File Preview Dialog -->

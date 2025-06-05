@@ -40,6 +40,7 @@ export class SupplierListComponent implements OnInit {
   itemsPerPage: number = 10;
   totalPages: number = 1;
   editingSupplier: any = null;
+  isLoading: boolean = true;
 
   @ViewChild('addSupplierDialog') addSupplierDialog!: TemplateRef<any>;
   @ViewChild('deleteDialog') deleteDialog!: TemplateRef<any>;
@@ -67,6 +68,8 @@ export class SupplierListComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+  try {
+    this.isLoading = true;
     await this.authService.restoreSession();
     const user = await this.authService.getUser();
     if (!user) {
@@ -74,17 +77,28 @@ export class SupplierListComponent implements OnInit {
       return;
     }
     await this.fetchSuppliers();
+  } finally {
+    // Add a minimum loading time of 1 second for better UX
+    setTimeout(() => {
+      this.isLoading = false;
+    }, 1000);
   }
+}
+
 
   async fetchSuppliers(): Promise<void> {
-    try {
-      this.suppliers = await this.supabaseService.getSuppliers();
-      this.filterSuppliers();
-    } catch (error) {
-      alert('Failed to load supplier list. Please try again.');
-    }
+  try {
+    this.isLoading = true;
+    this.suppliers = await this.supabaseService.getSuppliers();
+    this.filterSuppliers();
+  } catch (error) {
+    alert('Failed to load supplier list. Please try again.');
+  } finally {
+    setTimeout(() => {
+      this.isLoading = false;
+    }, 1000);
   }
-
+}
   filterSuppliers(): void {
     this.filteredSuppliers = this.suppliers.filter(supplier =>
       supplier.supplier_name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
