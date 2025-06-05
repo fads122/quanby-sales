@@ -22,6 +22,9 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { ReactiveFormsModule } from '@angular/forms'; // Add this
 
 
 interface RepairLog {
@@ -44,6 +47,9 @@ interface GroupedEquipment {
   selector: 'app-equipment-list',
   standalone: true,
   imports: [CommonModule, SidebarComponent, FormsModule, TableModule, MatTableModule,
+    MatSelectModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
     MatExpansionModule,
@@ -147,6 +153,16 @@ export class EquipmentListComponent implements OnInit {
   selectedTable: 'inhouse' | 'equipments' = 'equipments';
   tableSwitchState = 0;
   // Removed duplicate declaration to resolve type conflict
+
+  ownershipOptions = [
+  { label: 'All Ownership Types', value: null },
+  { label: 'Government', value: 'government' },
+  { label: 'Private', value: 'private' }
+];
+
+
+dropdownOpen = false;
+selectedOwnership: string | null = null;
 
   constructor(
     private supabaseService: SupabaseService,
@@ -536,6 +552,8 @@ onEquipmentTypeChange(selectedType: string) {
 
 async loadEquipment() {
   console.log("⚡ Executing loadEquipment() for table:", this.selectedTable);
+  console.log("Loaded equipment with ownership types:", 
+  this.equipmentList.map(e => ({name: e.name, ownership: e.ownership_type})));
 
   try {
     let equipmentData;
@@ -1115,37 +1133,86 @@ closeQRCodeModal() {
       }
     });
   }
+  // applyFilter() {
+  //   const query = this.searchQuery.toLowerCase().trim();
+
+  //   if (!query) {
+  //     // Filter based on selected table
+  //     this.filteredEquipmentList = Object.values(this.groupedEquipment).filter(group =>
+  //       this.selectedTable === 'inhouse'
+  //         ? group.items.some(item => item.product_type) // Operational items
+  //         : group.items.some(item => !item.product_type) // For-sale items
+  //     );
+  //     return;
+  //   }
+
+  //   // Filter based on selected table AND search query
+  //   const filteredItems = this.equipmentList.filter(equipment => {
+  //     const matchesSearch = (
+  //       (equipment.model?.toLowerCase().includes(query)) ||
+  //       (equipment.name?.toLowerCase().includes(query)) ||
+  //       (equipment.brand?.toLowerCase().includes(query)) ||
+  //       (equipment.serial_no?.toLowerCase().includes(query))
+  //     );
+
+  //     return matchesSearch &&
+  //       (this.selectedTable === 'inhouse'
+  //         ? equipment.product_type // Operational items
+  //         : !equipment.product_type // For-sale items
+  //       );
+  //   });
+
+  //   this.groupEquipment(filteredItems);
+  // }
+
   applyFilter() {
-    const query = this.searchQuery.toLowerCase().trim();
+  const query = this.searchQuery.toLowerCase().trim();
 
-    if (!query) {
-      // Filter based on selected table
-      this.filteredEquipmentList = Object.values(this.groupedEquipment).filter(group =>
-        this.selectedTable === 'inhouse'
-          ? group.items.some(item => item.product_type) // Operational items
-          : group.items.some(item => !item.product_type) // For-sale items
-      );
-      return;
-    }
+  // Get all equipment items based on selected table (inhouse/equipments)
+  let items = this.equipmentList.filter(equipment => 
+    this.selectedTable === 'inhouse' 
+      ? equipment.product_type // Operational items
+      : !equipment.product_type // For-sale items
+  );
 
-    // Filter based on selected table AND search query
-    const filteredItems = this.equipmentList.filter(equipment => {
-      const matchesSearch = (
-        (equipment.model?.toLowerCase().includes(query)) ||
-        (equipment.name?.toLowerCase().includes(query)) ||
-        (equipment.brand?.toLowerCase().includes(query)) ||
-        (equipment.serial_no?.toLowerCase().includes(query))
-      );
 
-      return matchesSearch &&
-        (this.selectedTable === 'inhouse'
-          ? equipment.product_type // Operational items
-          : !equipment.product_type // For-sale items
-        );
-    });
-
-    this.groupEquipment(filteredItems);
+  // Apply search query if present
+  if (query) {
+    items = items.filter(equipment => 
+      (equipment.model?.toLowerCase().includes(query)) ||
+      (equipment.name?.toLowerCase().includes(query)) ||
+      (equipment.brand?.toLowerCase().includes(query)) ||
+      (equipment.serial_no?.toLowerCase().includes(query))
+    );
   }
+
+  // Apply ownership filter if selected
+  if (this.selectedOwnership) {
+    items = items.filter(equipment => 
+      equipment.ownership_type === this.selectedOwnership
+    );
+  }
+
+  // Group the filtered items
+  this.groupEquipment(items);
+}
+
+
+toggleDropdown() {
+  this.dropdownOpen = !this.dropdownOpen;
+}
+
+selectOption(value: string | null) {
+  this.selectedOwnership = value;
+  this.dropdownOpen = false;
+  this.applyFilter();
+}
+
+getOwnershipLabel(value: string | null): string {
+  if (value === 'government') return 'Government';
+  if (value === 'private') return 'Private';
+  return 'Ownership';
+}
 
 }
 

@@ -72,6 +72,21 @@
       </a>
     </div>
 
+    <!-- Add this to your summary-cards div -->
+  <div class="summary-card">
+    <div class="card-header">
+      <div class="card-icon bg-green-50 text-green-600">
+        <i class="fas fa-trophy" style="color: #4d4d55;"></i>
+      </div>
+      <h3 class="card-value"> {{ topSupplierName }}</h3>  
+    </div>
+    <p class="card-label">Top Ranked Supplier</p>
+    <a (click)="scrollToRanking()" class="card-link">
+      View Ranking
+      <i class="fas fa-chevron-right"></i>
+    </a>
+  </div>
+
     <!-- Low Stock Card -->
     <!-- <div class="summary-card warning">
       <div class="card-header">
@@ -159,6 +174,113 @@
         <span class="stat-label">Current Avg. Price</span>
         <span class="stat-value">₱{{ currentAveragePrice | number }}</span>
       </div> -->
+    </div>
+  </div>
+</div>
+
+<!-- Supplier Ranking Section -->
+<div id="supplier-ranking" class="ranking-section modern-card">
+  <div class="section-header">
+  <h2>Supplier Performance Ranking</h2>
+  <div class="header-right">
+    <div class="ranking-controls">
+      <div class="select-wrapper">
+        <i class="fas fa-filter"></i>
+        <select [(ngModel)]="rankingFilter" (change)="updateSupplierRanking()" class="form-select">
+          <option value="overall">Overall Ranking</option>
+          <option value="price">Price Competitiveness</option>
+          <option value="inventory">Inventory Availability</option>
+          <option value="reliability">Reliability</option>
+        </select>
+      </div>
+      <button class="export-btn" (click)="exportRankingData()">
+        <i class="fas fa-download"></i> Export
+      </button>
+    </div>
+  </div>
+</div>
+
+  <div class="ranking-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Supplier</th>
+          <th>Avg. Price Score</th>
+          <th>Inventory Score</th>
+          <th>Reliability</th>
+          <th>Overall</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let supplier of rankedSuppliers; let i = index">
+          <td>
+            <span class="rank-badge" [ngClass]="{
+              'rank-1': i === 0,
+              'rank-2': i === 1,
+              'rank-3': i === 2
+            }">{{ i + 1 }}</span>
+          </td>
+          <td class="supplier-cell">
+            <div class="supplier-info">
+              <div class="supplier-avatar">{{ supplier.supplier_name | slice:0:1 }}</div>
+              <div>
+                <strong>{{ supplier.supplier_name }}</strong>
+                <small>{{ supplier.contact_person }}</small>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="score-bar">
+              <div class="bar-fill" [style.width.%]="supplier.price_score * 10"></div>
+              <span>{{ supplier.price_score | number:'1.0-1' }}/10</span>
+            </div>
+          </td>
+          <td>
+            <div class="score-bar">
+              <div class="bar-fill" [style.width.%]="supplier.inventory_score * 10"></div>
+              <span>{{ supplier.inventory_score | number:'1.0-1' }}/10</span>
+            </div>
+          </td>
+          <td>
+            <div class="score-bar">
+              <div class="bar-fill" [style.width.%]="supplier.reliability_score * 10"></div>
+              <span>{{ supplier.reliability_score | number:'1.0-1' }}/10</span>
+            </div>
+          </td>
+          <td>
+            <div class="overall-score">
+              {{ supplier.overall_score | number:'1.0-1' }}
+            </div>
+          </td>
+          <td>
+            <button class="btn-icon" (click)="viewSupplierDetails(supplier.id)">
+              <i class="fas fa-eye"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ranking-footer">
+    <div class="ranking-legend">
+      <div class="legend-item">
+        <span class="legend-color rank-1"></span>
+        <span>Top Performer</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color rank-2"></span>
+        <span>High Performer</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color rank-3"></span>
+        <span>Good Performer</span>
+      </div>
+    </div>
+    <div class="timeframe-selector">
+      <span>Data updated: {{ lastUpdated | date:'medium' }}</span>
     </div>
   </div>
 </div>

@@ -57,10 +57,10 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
               <td mat-cell *matCellDef="let receipt">
                 <mat-chip-listbox>
-                  <mat-chip [ngClass]="{'status-Delivered': receipt.status === 'Delivered', 'status-delivering': receipt.status === 'delivering'}">
+                  <mat-chip [ngClass]="{'status-Delivered': receipt.status === 'Delivered', 'status-Delivering': receipt.status === 'Delivering'}">
                     <div class="chip-content">
                       <mat-icon *ngIf="receipt.status === 'Delivered'" class="status-icon">check_circle</mat-icon>
-                      <mat-icon *ngIf="receipt.status === 'delivering'" class="status-icon">local_shipping</mat-icon>
+                      <mat-icon *ngIf="receipt.status === 'Delivering'" class="status-icon">local_shipping</mat-icon>
                       <span>{{receipt.status}}</span>
                     </div>
                   </mat-chip>

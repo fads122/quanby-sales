@@ -92,7 +92,6 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
 
 
   async ngOnInit() {
-    // await this.loadUserEmail();
     this.fetchBorrowRequests();
   }
 
@@ -100,23 +99,6 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
   }
-
-  // async loadUserEmail() {
-  //   const isLoggedIn = await this.authService.isLoggedIn();
-  //   if (!isLoggedIn) {
-  //     console.warn("⚠ No logged-in user detected.");
-  //     return;
-  //   }
-
-  //   const user = await this.authService.getUser();
-
-  //   if (user?.id) {
-  //     this.userEmail = user.id;
-  //     console.log("✅ Logged-in user ID:", this.userEmail);
-  //   } else {
-  //     console.warn("⚠ No user ID found.");
-  //   }
-  // }
 
   getFullRequest(id: string): any {
   return this.borrowRequests.find(request => request.id === id);
@@ -197,90 +179,6 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
     alert('Error loading borrow requests. Please try again.');
   }
 }
-// async fetchBorrowRequests(): Promise<void> {
-//   try {
-//     if (!this.userEmail) {
-//       console.warn("⚠ No user ID found. Skipping data fetch.");
-//       return;
-//     }
-
-//     console.log(`🔍 Fetching borrow requests for user ID: ${this.userEmail}`);
-
-//     // 1. Fetch basic request data (same as before)
-//     const { data: requests, error: requestsError } = await this.supabaseService
-//       .from('borrow_requests')
-//       .select(`id, user_id, borrow_date, return_date, borrower_name, 
-//               borrower_department, borrower_contact, borrower_email, purpose, status`)
-//       .eq('user_id', this.userEmail);
-
-//     if (requestsError) throw requestsError;
-//     if (!requests || requests.length === 0) {
-//       console.warn("⚠ No borrow requests found for user");
-//       return;
-//     }
-
-//     // 2. Process requests using the WORKING equipment query from your old code
-//     const processedRequests = await Promise.all(
-//       requests.map(async (request) => {
-//         const { data: equipmentData, error: equipmentError } = await this.supabaseService
-//           .from('borrow_request_equipment')
-//           .select(`
-//             inhouse_equipment_id, 
-//             quantity, 
-//             inhouse!borrow_request_equipment_inhouse_equipment_id_fkey (name, images)
-//           `)
-//           .eq('borrow_request_id', request.id);
-
-//         if (equipmentError) {
-//           console.error(`❌ Error fetching equipment for request ${request.id}:`, equipmentError);
-//           return { ...request, equipmentList: [] };
-//         }
-
-//         console.log(`🛠 Equipment data for request ${request.id}:`, equipmentData);
-
-//         // Process equipment data using the WORKING logic from old code
-//         const equipmentMap = new Map<string, any>();
-//         equipmentData.forEach((bre: any) => {
-//           const equipmentName = bre.inhouse?.name || "Unknown Equipment";
-//           const equipmentImage = bre.inhouse?.images?.[0] || "assets/no-image.png";
-
-//           if (equipmentMap.has(equipmentName)) {
-//             equipmentMap.get(equipmentName).quantity += bre.quantity;
-//           } else {
-//             equipmentMap.set(equipmentName, {
-//               name: equipmentName,
-//               quantity: bre.quantity || 0,
-//               image: equipmentImage
-//             });
-//           }
-//         });
-
-//         const equipmentList = Array.from(equipmentMap.values());
-//         console.log(`📊 Final equipment list for request ${request.id}:`, equipmentList);
-        
-//         return {
-//           ...request,
-//           equipmentList: equipmentList
-//         };
-//       })
-//     );
-
-//     // 3. Update both data sources
-//     this.borrowRequests = processedRequests;
-//     this.dataSource.data = this.borrowRequests;
-//     this.filteredBorrowRequests = [...this.borrowRequests]; // Maintain this for compatibility
-
-//     console.log('✅ Updated data with:', {
-//       borrowRequests: this.borrowRequests,
-//       dataSource: this.dataSource.data,
-//       sampleWithEquipment: this.borrowRequests.find(r => r.equipmentList?.length > 0)
-//     });
-
-//   } catch (error) {
-//     console.error('❌ Failed to load borrow requests:', error);
-//     alert('Error loading borrow requests. Please try again.');
-//   }
-// }
 
 
 filterBorrowRequests(): void {

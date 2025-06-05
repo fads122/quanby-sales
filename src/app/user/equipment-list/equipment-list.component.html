@@ -27,6 +27,7 @@
         </button>
       </div>
 
+
       <div class="search-bar">
         <i class="fas fa-search"></i>
         <input
@@ -36,6 +37,31 @@
           [placeholder]="selectedTable === 'inhouse' ? 'Search operational items...' : 'Search for sale items...'"
         />
       </div>
+
+      <div class="custom-select">
+  <div class="select-header" (click)="toggleDropdown()">
+    <span class="filter-icon">
+      <i class="fas fa-building"></i>
+    </span>
+    <span class="filter-label">{{ selectedOwnership ? getOwnershipLabel(selectedOwnership) : 'Ownership' }}</span>
+    <i class="fas fa-chevron-down dropdown-arrow"></i>
+  </div>
+  
+  <div class="select-dropdown" *ngIf="dropdownOpen">
+    <div class="dropdown-option" (click)="selectOption(null)">
+      <i class="fas fa-layer-group option-icon"></i>
+      <span>All Ownerships</span>
+    </div>
+    <div class="dropdown-option" (click)="selectOption('government')">
+      <i class="fas fa-landmark option-icon"></i>
+      <span>Government</span>
+    </div>
+    <div class="dropdown-option" (click)="selectOption('private')">
+      <i class="fas fa-briefcase option-icon"></i>
+      <span>Private</span>
+    </div>
+  </div>
+</div>
 
       <button class="add" (click)="openEquipmentModal()">
         <i class="fas fa-plus"></i> Add Equipment

@@ -115,19 +115,103 @@ body{
     background-color: #f9f9f9;
   }
 
- /* Action button styling */
+/* View Button Styling */
+.view-btn {
+  background-color: #f0f4ff;
+  color: #3f51b5;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-right: 8px;
+}
+
+.view-btn:hover {
+  background-color: #e0e8ff; /* Slightly darker on hover */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.view-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+.view-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Return Button Styling */
 .action-btn {
-  padding: 0 12px;
-  line-height: 28px;
+  background-color: #01024a;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 0 16px; /* Adjust padding */
   font-size: 12px;
-}
-
-/* Status labels */
-.returned-label {
-  color: #28a745;
   font-weight: 500;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 36px; /* Match view button height */
+  line-height: 36px; /* Perfect vertical centering */
+  display: flex;
+  align-items: center;
 }
 
+.action-btn:hover {
+  background-color: #000126; /* Darker shade */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Returned Label Styling */
+.returned-label {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 20px;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  height: 36px; /* Match button height */
+}
+
+/* Action Column Container */
+.mat-column-action {
+  white-space: nowrap;
+  width: 180px;
+}
+
+/* Container for action buttons */
+.action-container {
+  display: flex;
+  align-items: center; /* Vertical alignment */
+  height: 100%; /* Take full height of cell */
+}
+
+/* Tooltip Styling */
+.mat-tooltip {
+  font-size: 12px !important;
+  padding: 6px 10px !important;
+}
 /* No items styling */
 .no-items {
   text-align: center;
