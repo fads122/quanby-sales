@@ -157,7 +157,8 @@ export class EquipmentListComponent implements OnInit {
   ownershipOptions = [
   { label: 'All Ownership Types', value: null },
   { label: 'Government', value: 'government' },
-  { label: 'Private', value: 'private' }
+  { label: 'Private', value: 'private' },
+  { label: 'Unspecified', value: '' } // For empty/null values
 ];
 
 
@@ -237,23 +238,43 @@ getStatusSeverity(status: string): string {
   }
 }
 
-  openEquipmentModal() {
-    const dialogRef = this.dialog.open(AddEquipmentComponent, {
-      width: '800px',
-      data: {
-        isEditMode: false,
-        equipmentDataArray: [],
-        suppliers: []
-      }
-    });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result?.success) {
-        console.log("✅ Equipment added, refreshing list...");
-        this.loadEquipment(); // ✅ Refresh equipment list
-      }
-    });
-  }
+openEquipmentModal() {
+  const dialogRef = this.dialog.open(AddEquipmentComponent, {
+    width: '1000px',
+    maxWidth: '90vw',  // Add responsive max width
+    panelClass: 'equipment-dialog-container',  // Add custom panel class
+    data: {
+      isEditMode: false,
+      equipmentDataArray: [],
+      suppliers: []
+    }
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result?.success) {
+      console.log("✅ Equipment added, refreshing list...");
+      this.loadEquipment();
+    }
+  });
+}
+  // openEquipmentModal() {
+  //   const dialogRef = this.dialog.open(AddEquipmentComponent, {
+  //     width: '800px',
+  //     data: {
+  //       isEditMode: false,
+  //       equipmentDataArray: [],
+  //       suppliers: []
+  //     }
+  //   });
+
+  //   dialogRef.afterClosed().subscribe(result => {
+  //     if (result?.success) {
+  //       console.log("✅ Equipment added, refreshing list...");
+  //       this.loadEquipment(); // ✅ Refresh equipment list
+  //     }
+  //   });
+  // }
 
 
   ngOnDestroy() {
@@ -1133,50 +1154,49 @@ closeQRCodeModal() {
       }
     });
   }
-  // applyFilter() {
-  //   const query = this.searchQuery.toLowerCase().trim();
+ 
 
-  //   if (!query) {
-  //     // Filter based on selected table
-  //     this.filteredEquipmentList = Object.values(this.groupedEquipment).filter(group =>
-  //       this.selectedTable === 'inhouse'
-  //         ? group.items.some(item => item.product_type) // Operational items
-  //         : group.items.some(item => !item.product_type) // For-sale items
-  //     );
-  //     return;
-  //   }
+//   applyFilter() {
+//   const query = this.searchQuery.toLowerCase().trim();
 
-  //   // Filter based on selected table AND search query
-  //   const filteredItems = this.equipmentList.filter(equipment => {
-  //     const matchesSearch = (
-  //       (equipment.model?.toLowerCase().includes(query)) ||
-  //       (equipment.name?.toLowerCase().includes(query)) ||
-  //       (equipment.brand?.toLowerCase().includes(query)) ||
-  //       (equipment.serial_no?.toLowerCase().includes(query))
-  //     );
+//   // Get all equipment items based on selected table (inhouse/equipments)
+//   let items = this.equipmentList.filter(equipment => 
+//     this.selectedTable === 'inhouse' 
+//       ? equipment.product_type // Operational items
+//       : !equipment.product_type // For-sale items
+//   );
 
-  //     return matchesSearch &&
-  //       (this.selectedTable === 'inhouse'
-  //         ? equipment.product_type // Operational items
-  //         : !equipment.product_type // For-sale items
-  //       );
-  //   });
 
-  //   this.groupEquipment(filteredItems);
-  // }
+//   // Apply search query if present
+//   if (query) {
+//     items = items.filter(equipment => 
+//       (equipment.model?.toLowerCase().includes(query)) ||
+//       (equipment.name?.toLowerCase().includes(query)) ||
+//       (equipment.brand?.toLowerCase().includes(query)) ||
+//       (equipment.serial_no?.toLowerCase().includes(query))
+//     );
+//   }
 
-  applyFilter() {
+//   // Apply ownership filter if selected
+//   if (this.selectedOwnership) {
+//     items = items.filter(equipment => 
+//       equipment.ownership_type === this.selectedOwnership
+//     );
+//   }
+
+//   // Group the filtered items
+//   this.groupEquipment(items);
+// }
+
+applyFilter() {
+  console.log("Current ownership types in data:", 
+        this.equipmentList.map(e => e.ownership_type));
   const query = this.searchQuery.toLowerCase().trim();
+  
+  // Start with all equipment
+  let items = [...this.equipmentList];
 
-  // Get all equipment items based on selected table (inhouse/equipments)
-  let items = this.equipmentList.filter(equipment => 
-    this.selectedTable === 'inhouse' 
-      ? equipment.product_type // Operational items
-      : !equipment.product_type // For-sale items
-  );
-
-
-  // Apply search query if present
+  // Apply search filter if query exists
   if (query) {
     items = items.filter(equipment => 
       (equipment.model?.toLowerCase().includes(query)) ||
@@ -1186,11 +1206,19 @@ closeQRCodeModal() {
     );
   }
 
-  // Apply ownership filter if selected
-  if (this.selectedOwnership) {
-    items = items.filter(equipment => 
-      equipment.ownership_type === this.selectedOwnership
-    );
+  // Apply ownership filter
+  if (this.selectedOwnership !== null) {
+    if (this.selectedOwnership === '') {
+      // Show items with empty/null ownership
+      items = items.filter(equipment => 
+        !equipment.ownership_type || equipment.ownership_type.trim() === ''
+      );
+    } else {
+      // Show items with matching ownership (case insensitive)
+      items = items.filter(equipment => 
+        equipment.ownership_type?.toLowerCase() === this.selectedOwnership?.toLowerCase()
+      );
+    }
   }
 
   // Group the filtered items

@@ -429,7 +429,8 @@ export class SupabaseService {
         return_slip,
         deleted_at,
         delete_reason,
-        repair_logs
+        repair_logs,
+        ownership_type 
       `)
       .is('deleted_at', null) // 🔍 Only fetch active equipment
       .order('date_acquired', { ascending: false });
@@ -481,7 +482,8 @@ export class SupabaseService {
         return_slip: equipment.return_slip || null,
         repair_logs: equipment.repair_logs ? [...equipment.repair_logs] : [],
         deleted_at: equipment.deleted_at,
-        delete_reason: equipment.delete_reason || null
+        delete_reason: equipment.delete_reason || null,
+         ownership_type: equipment.ownership_type || null,
       };
     });
   }
