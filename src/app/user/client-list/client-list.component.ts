@@ -49,6 +49,8 @@ export class ClientListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   pageSize = 5;
   pageIndex = 0;
+  displayProjectDetails: boolean = false;
+  selectedClient: any = null;
 
   constructor(
     private clientService: ClientService,
@@ -87,36 +89,20 @@ export class ClientListComponent implements OnInit, AfterViewInit {
   }
 
   getProjectCountColor(count: number): string {
-    if (count === 0) return 'warn';
-    if (count < 3) return 'accent';
-    return 'primary';
+    if (count === 0) return 'danger';
+    if (count < 3) return 'warning';
+    if (count < 5) return 'info';
+    return 'success';
   }
 
-  showClientDetails(clientGroup: any): void {
-    const modalData = {
-      client: {
-        ...clientGroup,
-        projects: clientGroup.projects || []
-      }
-    };
+  showClientDetails(client: any): void {
+    this.selectedClient = client;
+    this.displayProjectDetails = true;
+  }
 
-    this.ref = this.dialogService.open(ProjectDetailsComponent, {
-      header: '',
-      width: '85%',
-      style: {
-        maxWidth: '900px',
-        maxHeight: '85vh',
-        borderRadius: '12px',
-        overflow: 'hidden'
-      },
-      modal: true,
-      dismissableMask: true,
-      closeOnEscape: true,
-      showHeader: false,
-      baseZIndex: 10000,
-      transitionOptions: '300ms cubic-bezier(0.4, 0, 0.2, 1)',
-      data: modalData
-    });
+  closeProjectDetails(): void {
+    this.displayProjectDetails = false;
+    this.selectedClient = null;
   }
 
   ngOnDestroy(): void {

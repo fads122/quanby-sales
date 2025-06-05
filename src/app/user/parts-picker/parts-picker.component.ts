@@ -15,6 +15,10 @@ import { InputNumberModule } from 'primeng/inputnumber'; // Add this import
 import { DialogModule } from 'primeng/dialog';
 import { HttpClient } from '@angular/common/http';
 
+interface ApiError {
+  message: string;
+  stack?: string;
+}
 
 @Component({
   selector: 'app-parts-picker',
@@ -52,7 +56,7 @@ export class PartsPickerComponent implements OnInit {
   searchMode: 'text' | 'semantic' = 'text';
   semanticSearchResults: any[] = [];
   isSemanticSearching = false;
-  isTesting = true;
+  isTesting = false; // Change this to false to use real semantic search
 
   first: number = 0;
 rows: number = 5; // Items per page
@@ -125,6 +129,8 @@ constructor(
 ) {}
 
 async ngOnInit() {
+  // Load the TensorFlow model when component initializes
+  await this.supabaseService.loadModel();
   await this.fetchEquipmentData();
   // Read category from query params if navigating from the sidebar dropdown
     this.route.queryParams.subscribe(params => {
@@ -203,22 +209,36 @@ async onSearch() {
 // In your PartsPickerComponent
 // Update in parts-picker.component.ts
 async runSemanticSearch() {
+  console.log('🔍 Starting semantic search...');
+  console.log('📝 Search query:', this.searchQuery);
+
   if (!this.searchQuery.trim()) {
+    console.log('❌ Empty search query - returning empty results');
     this.semanticSearchResults = [];
     return;
   }
 
   this.isSemanticSearching = true;
+  console.log('🔄 Search in progress...');
 
   try {
-    // Use this for testing with mock data
-    this.semanticSearchResults = await this.mockSemanticSearch(this.searchQuery);
+    // Remove the testing check and always use real search
+    console.log('🔎 Using semantic search with query:', this.searchQuery);
+    this.semanticSearchResults = await this.supabaseService.semanticSearch(
+      this.searchQuery,
+      0.2  // Lower threshold to catch more matches
+    );
 
-    // Use this for real implementation (comment out when testing)
-    // this.semanticSearchResults = await this.supabaseService.semanticSearch(this.searchQuery);
+    console.log('📊 Raw search results:', this.semanticSearchResults);
 
-    // Highlight compatible parts if any are selected
+    if (this.semanticSearchResults.length === 0) {
+      console.log('⚠️ No matches found for query:', this.searchQuery);
+    } else {
+      console.log('✅ Found matches:', this.semanticSearchResults.length);
+    }
+
     if (this.selectedProducts.length > 0) {
+      console.log('👉 Checking compatibility for matches...');
       const compatibleParts = await this.supabaseService.getCompatibleParts(
         this.selectedProducts[0].id,
         this.selectedProducts[0].name
@@ -228,19 +248,32 @@ async runSemanticSearch() {
         result.compatible = compatibleParts.some(p => p.id === result.id);
       });
     }
-  } catch (error) {
-    console.error('Search failed:', error);
+
+  } catch (error: unknown) {
+    console.error('❌ Semantic search failed:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack
+      });
+    }
     this.semanticSearchResults = [];
   } finally {
     this.isSemanticSearching = false;
+    console.log('🏁 Semantic search completed');
+    console.log('Final results:', this.semanticSearchResults);
   }
 }
 
 async getCompatibleParts(selectedPartId: string, category: string) {
   try {
     return await this.supabaseService.getCompatibleParts(selectedPartId, category);
-  } catch (error) {
-    console.error('Failed to fetch compatible parts:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Failed to fetch compatible parts:', error.message);
+    } else {
+      console.error('Unknown error fetching compatible parts:', error);
+    }
     return [];
   }
 }

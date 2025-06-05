@@ -94,7 +94,7 @@
             </tr>
           </table>
 
-          <mat-paginator 
+          <mat-paginator
             [pageSize]="pageSize"
             [pageSizeOptions]="[5, 10, 25, 100]"
             [showFirstLastButtons]="true"
@@ -106,4 +106,83 @@
       </div>
     </div>
   </div>
+
+  <!-- Add this at the bottom of your template -->
+  <p-dialog
+    [(visible)]="displayProjectDetails"
+    [modal]="true"
+    [style]="{width: '85%', maxWidth: '900px'}"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="project-dialog"
+    [showHeader]="false"
+    [dismissableMask]="true"
+    [closeOnEscape]="true"
+    [baseZIndex]="1000"
+    [blockScroll]="true"
+    [maskStyleClass]="'custom-overlay-mask'"
+    [transitionOptions]="'300ms cubic-bezier(0.4, 0, 0.2, 1)'">
+
+      <div class="project-details-container" *ngIf="selectedClient">
+          <!-- Header Section -->
+          <div class="header-section">
+              <div class="header-content">
+                  <div class="client-info">
+                      <h2>{{selectedClient.client_name}}</h2>
+                      <div class="meta-info">
+                          <span class="project-count">{{selectedClient.projects?.length || 0}} projects</span>
+                          <span class="separator">•</span>
+                          <span class="status" [ngClass]="getProjectCountColor(selectedClient.projects?.length)">
+                              Active Client
+                          </span>
+                      </div>
+                  </div>
+                  <button class="close-btn" (click)="closeProjectDetails()">
+                      <i class="pi pi-times"></i>
+                  </button>
+              </div>
+          </div>
+
+          <!-- Content Section -->
+          <div class="content-section">
+              <div class="details-grid">
+                  <!-- Contact Information -->
+                  <div class="detail-card">
+                      <h3><i class="pi pi-user"></i>Contact Information</h3>
+                      <div class="detail-content">
+                          <div class="detail-row">
+                              <span class="label">Email</span>
+                              <span class="value">{{selectedClient.client_email || 'N/A'}}</span>
+                          </div>
+                          <div class="detail-row">
+                              <span class="label">Phone</span>
+                              <span class="value">{{selectedClient.client_phone || 'N/A'}}</span>
+                          </div>
+                          <div class="detail-row">
+                              <span class="label">Address</span>
+                              <span class="value description">{{selectedClient.client_address || 'N/A'}}</span>
+                          </div>
+                      </div>
+                  </div>
+
+                  <!-- Projects Overview -->
+                  <div class="detail-card">
+                      <h3><i class="pi pi-folder"></i>Projects Overview</h3>
+                      <div class="detail-content">
+                          <div class="detail-row highlight">
+                              <span class="label">Total Projects</span>
+                              <span class="value amount">{{selectedClient.projects?.length || 0}}</span>
+                          </div>
+                          <div class="projects-list" *ngIf="selectedClient.projects?.length">
+                              <div class="detail-row" *ngFor="let project of selectedClient.projects">
+                                  <span class="project-name">{{project.name}}</span>
+                                  <span class="value amount">{{project.total | currency}}</span>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </p-dialog>
 </div>

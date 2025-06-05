@@ -89,7 +89,7 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2Y2d1YnJ0YW5kZml2bHFjbXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxNDk4NjYsImV4cCI6MjA1NDcyNTg2Nn0.yjd-SXfzJe6XmuNpI2HsZcI9EsS9AxBXI-qukzgcZig'
     );
     this.dataSource = new MatTableDataSource<DeliveryReceipt>([]);
-    
+
     // Set up custom filter predicate
     this.dataSource.filterPredicate = (data: DeliveryReceipt, filter: string) => {
       const searchStr = filter.toLowerCase();
@@ -136,7 +136,7 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
 
   filterReceipts(): void {
     this.dataSource.filter = this.searchQuery.trim().toLowerCase();
-    
+
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
@@ -246,4 +246,43 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
   getStatusColor(status: string): string {
     return status === 'Delivered' ? 'primary' : 'accent';
   }
+
+  getStatusClass(status: string): string {
+  switch (status.toLowerCase()) {
+    case 'delivered':
+      return 'status-delivered';
+    case 'pending':
+      return 'status-pending';
+    case 'processing':
+      return 'status-processing';
+    case 'cancelled':
+      return 'status-cancelled';
+    default:
+      return 'status-pending';
+  }
+}
+
+getStatusIcon(status: string): string {
+  switch (status.toLowerCase()) {
+    case 'delivered':
+      return 'check_circle';
+    case 'pending':
+      return 'pending';
+    case 'processing':
+      return 'autorenew';
+    case 'cancelled':
+      return 'cancel';
+    default:
+      return 'hourglass_empty';
+  }
+}
+
+getFileIcon(fileName: string): string {
+  if (this.isImage(fileName)) {
+    return 'image';
+  } else if (this.isPdf(fileName)) {
+    return 'picture_as_pdf';
+  }
+  return 'insert_drive_file';
+}
 }

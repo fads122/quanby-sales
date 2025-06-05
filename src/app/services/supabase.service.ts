@@ -24,35 +24,33 @@ interface EquipmentMovement {
 const SUPABASE_URL = 'https://xvcgubrtandfivlqcmww.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2Y2d1YnJ0YW5kZml2bHFjbXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxNDk4NjYsImV4cCI6MjA1NDcyNTg2Nn0.yjd-SXfzJe6XmuNpI2HsZcI9EsS9AxBXI-qukzgcZig'; // Replace with your Supabase Key
 
+interface VectorSearchParams {
+  query_embedding: number[];
+  similarity_threshold: number;
+  match_count: number;
+}
+
+interface VectorMatch {
+  id: string;
+  similarity: number;
+}
+
 interface Equipment {
   id: string;
   name: string;
-}
-
-interface Project {
-  name: string;
-  user_id: string;
-}
-
-interface ProjectEquipment {
-  equipment_id: string;
-  equipments: Equipment;
-  project_id: string;
-  projects: Project | Project[]; // ✅ Can be an object or an array
+  model: string;
+  brand: string;
+  supplier_cost: number;
+  srp: number;
   quantity: number;
+  description?: string;
+  image?: string;
+  category?: string;
 }
 
-interface Supplier {
-  id: number;
-  supplier_name: string;
+interface EquipmentWithSimilarity extends Equipment {
+  similarity: number;
 }
-
-interface TokenValidationResult {
-  valid: boolean;
-  supplier_id: number;
-  supplier_name: string;
-}
-
 
 @Injectable({
   providedIn: 'root',
@@ -430,7 +428,7 @@ export class SupabaseService {
         deleted_at,
         delete_reason,
         repair_logs,
-        ownership_type 
+        ownership_type
       `)
       .is('deleted_at', null) // 🔍 Only fetch active equipment
       .order('date_acquired', { ascending: false });
@@ -1479,7 +1477,7 @@ async getAvailableEquipment(): Promise<any[]> {
   })) || [];
 }
 
-  // supabase.service.ts
+// supabase.service.ts
 // supabase.service.ts
 async updateEquipmentStock(id: string, newStock: number): Promise<void> {
   // Remove invalid characters from UUID
@@ -2313,7 +2311,6 @@ async updateUserProfile(
   profileImage?: string | null
 ) {
   const updates: { [key: string]: any } = {};
-
   if (firstName !== undefined && firstName !== null) {
     updates['first_name'] = firstName;
   }
@@ -2666,94 +2663,77 @@ async getCompatibleParts(partId: string, category: string) {
   return data;
 }
 
- async semanticSearch(query: string, threshold = 0.7): Promise<any[]> {
+async semanticSearch(query: string, threshold = 0.3): Promise<any[]> {
+  try {
     if (!this.model) {
-      console.warn('TensorFlow model not loaded');
-      return [];
+      await this.loadModel();
     }
 
-    try {
-      // 1. Get all products from Supabase
-      const { data: products, error } = await this.supabase
-        .from('equipment')
-        .select('*');
+    console.log('🔍 Searching for:', query);
 
-      if (error) throw error;
-      if (!products?.length) return [];
+    // Convert search query to embedding
+    const queryEmbedding = await this.model.embed([query.toLowerCase()]);
+    const queryVector = await queryEmbedding.array();
 
-      // 2. Prepare text for embedding (combine relevant fields)
-      const productTexts = products.map(p =>
-        `${p.name} ${p.model} ${p.brand} ${p.supplier}`.toLowerCase()
-      );
+    // Search for similar vectors
+    const { data: matches, error } = await this.supabase.rpc(
+      'match_equipment_embeddings',
+      {
+        query_embedding: queryVector[0],
+        similarity_threshold: threshold,
+        match_count: 20
+      }
+    );
 
-      // 3. Generate embeddings
-      const queryEmbedding = await this.model.embed([query.toLowerCase()]);
-      const productEmbeddings = await this.model.embed(productTexts);
+    console.log('Vector matches:', matches);
 
-      // 4. Calculate similarities
-      const queryVector = await queryEmbedding.array();
-      const productVectors = await productEmbeddings.array();
+    if (error) throw error;
+    if (!matches || matches.length === 0) return [];
 
-      // 5. Find similar products
-      const results = products.map((product, index) => {
-        const similarity = this.cosineSimilarity(
-          queryVector[0],
-          productVectors[index]
-        );
-        return { ...product, similarity };
+    // Get equipment IDs from matches
+    interface SemanticMatch {
+      id: string;
+      similarity: number;
+    }
+
+    const equipmentIds: string[] = (matches as SemanticMatch[]).map((match: SemanticMatch) => match.id);
+
+    // Fetch from equipments table
+    const { data: equipment, error: equipmentError } = await this.supabase
+      .from('equipments')  // Changed from 'inhouse' to 'equipments'
+      .select('*')
+      .in('id', equipmentIds);
+
+    if (equipmentError) throw equipmentError;
+    if (!equipment) return [];
+
+    // Add similarity scores and sort
+    return equipment
+      .map(item => {
+        const match: SemanticMatch | undefined = (matches as SemanticMatch[]).find((m: SemanticMatch) => m.id === item.id);
+        return {
+          ...item,
+          similarity: match ? match.similarity : 0
+        };
       })
-      .filter(item => item.similarity >= threshold)
       .sort((a, b) => b.similarity - a.similarity);
 
-      return results;
-    } catch (error) {
-      console.error('Semantic search failed:', error);
-      return [];
-    }
+  } catch (error) {
+    console.error('Search failed:', error);
+    return [];
   }
-
-
-private async clientSideVectorSearch(query: string) {
-  // This requires the TensorFlow packages we installed earlier
-  const model = await use.load();
-  const queryEmbedding = await model.embed([query]);
-  const queryVector = (await queryEmbedding.array())[0];
-
-  // Get all products from Supabase
-  const { data: products, error } = await this.supabase
-    .from('equipment')
-    .select('*');
-
-  if (error) throw error;
-
-  // Calculate similarity for each product
-  return products.map((product: any) => {
-    // Use product description or concatenated fields for search
-    const productText = [product.name, product.model, product.brand, product.supplier].join(' ');
-    const similarity = this.cosineSimilarity(queryVector, productText);
-    return { ...product, similarity };
-  }).sort((a: any, b: any) => b.similarity - a.similarity);
 }
 
-private cosineSimilarity(a: number[], b: string) {
-  // You'll need to implement this based on your vector embedding approach
-  // This is a simplified version
-  const dotProduct = a.reduce((sum, val, i) => sum + val * b.charCodeAt(i % b.length), 0);
-  const magnitudeA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
-  const magnitudeB = Math.sqrt([...b].reduce((sum, char) => sum + char.charCodeAt(0) * char.charCodeAt(0), 0));
-  return magnitudeA * magnitudeB > 0 ? dotProduct / (magnitudeA * magnitudeB) : 0;
-}
-
-async loadModel() {
+  async loadModel() {
     if (this.model || this.isModelLoading) return;
 
     this.isModelLoading = true;
     try {
       await tf.ready();
       this.model = await use.load();
-      console.log('TensorFlow model loaded');
+      console.log('✅ TensorFlow model loaded successfully');
     } catch (error) {
-      console.error('Failed to load TensorFlow model:', error);
+      console.error('❌ Failed to load TensorFlow model:', error);
     } finally {
       this.isModelLoading = false;
     }
