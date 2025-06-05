@@ -38,7 +38,7 @@
         />
       </div>
 
-      <div class="custom-select">
+      <div class="custom-select" *ngIf="selectedTable === 'equipments'">
   <div class="select-header" (click)="toggleDropdown()">
     <span class="filter-icon">
       <i class="fas fa-building"></i>
