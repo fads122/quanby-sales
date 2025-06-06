@@ -1,4 +1,3 @@
-
 <h2 mat-dialog-title class="dialog-header">
   {{ isEditMode ? 'Edit Equipment' : 'Add Equipment' }}
   <button mat-icon-button class="close-button" (click)="onClose()" aria-label="Close dialog">
@@ -37,7 +36,7 @@
       <div class="equipment-box" *ngFor="let equipment of equipmentDataArray; let i = index">
         <form (ngSubmit)="onSubmit(); $event.preventDefault()">
           <h3>Product #{{i + 1}}</h3>
-          
+
           <!-- Basic Information -->
           <div class="section-group">
             <h3>Basic Information</h3>
@@ -60,7 +59,13 @@
             </div>
             <div class="form-group full-width">
               <label>Product Specifications/Description</label>
-              <textarea [(ngModel)]="equipment.description" name="description{{i}}" rows="3" placeholder="Enter Description"></textarea>
+              <div class="description-container">
+                <textarea [(ngModel)]="equipment.description" name="description{{i}}" rows="3" placeholder="Enter Description"></textarea>
+                <button type="button" class="generate-btn" (click)="generateDescription(i)" [disabled]="!equipment.brand || !equipment.model || !equipment.category">
+                  <mat-icon>auto_awesome</mat-icon>
+                  Generate Description
+                </button>
+              </div>
             </div>
             <div class="form-group">
               <label>Upload Brochure</label>
@@ -347,6 +352,14 @@
           <span *ngIf="isSubmitting">Saving...</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Add this near the end of your template -->
+  <div *ngIf="isLoading" class="loader-overlay">
+    <div class="loader-content">
+      <mat-spinner class="loader-spinner" diameter="50"></mat-spinner>
+      <div class="loader-message">{{ loadingMessage }}</div>
     </div>
   </div>
 </mat-dialog-content>

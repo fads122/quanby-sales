@@ -20,6 +20,26 @@ interface ApiError {
   stack?: string;
 }
 
+interface SemanticSearchConfig {
+  threshold: number;
+  maxResults: number;
+  sortByRelevance: boolean;
+}
+
+interface SemanticSearchResult {
+  id: string;
+  name: string;
+  model: string;
+  brand: string;
+  supplier: string;
+  supplier_cost: number;
+  price: number;
+  image: string;
+  quantity: number;
+  similarity: number;
+  description: string;
+}
+
 @Component({
   selector: 'app-parts-picker',
   standalone: true,
@@ -557,7 +577,12 @@ async mockSemanticSearch(query: string): Promise<any[]> {
 onPageChange(event: any) {
   this.first = event.first;
   this.rows = event.rows;
-  this.currentPage = event.page + 1; // Primeng uses 0-based index
+  this.currentPage = event.page + 1;
+
+  // Update total records based on search mode
+  this.totalRecords = this.searchMode === 'semantic'
+    ? this.semanticSearchResults.length
+    : this.filteredProducts().length;
 }
 
 

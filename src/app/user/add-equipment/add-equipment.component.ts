@@ -38,6 +38,10 @@ interface CategoryContext {
   [key: string]: string;
 }
 
+interface CategorySpecs {
+  [key: string]: string[];
+}
+
 
 @Component({
   selector: 'app-add-equipment',
@@ -73,6 +77,10 @@ export class AddEquipmentComponent implements OnInit {
   newRepairLogVisible = false;
   newRepairLog = { date: '', description: '' };
   isSubmitting = false;
+
+  // Add these properties
+  isLoading = false;
+  loadingMessage = 'Adding equipment...';
 
   pcPartsDataArray = [{
     category: '',
@@ -165,6 +173,167 @@ inhouseEquipmentArray: InhouseEquipment[] = [{
 
   private model: any;
   private isModelLoading = false;
+
+  // Add these category descriptions
+private categoryDescriptions: { [key: string]: string } = {
+  'CPU': 'high-performance central processing unit designed for optimal computing power and multitasking capabilities',
+  'CPU Cooler': 'efficient thermal solution for maintaining optimal processor temperatures with advanced cooling technology',
+  'Motherboard': 'advanced system board providing essential connectivity and expansion options with modern interface support',
+  'Memory': 'high-speed RAM module for smooth multitasking and enhanced system performance with reliable data handling',
+  'Storage': 'reliable data storage solution with optimized read/write speeds and secure data management',
+  'Video Card': 'powerful graphics processing unit for superior visual performance and gaming capabilities',
+  'Case': 'durable computer chassis with excellent airflow and component compatibility for optimal system cooling',
+  'Power Supply': 'stable and efficient power delivery unit with protection features and reliable voltage regulation',
+  'Operating System': 'comprehensive software platform providing user interface and system management capabilities',
+  'Monitor': 'high-quality display panel with crisp image reproduction and eye-care technology',
+  'Expansion Cards / Networking - Sound Cards': 'advanced audio processing card for superior sound quality and audio management',
+  'Expansion Cards / Networking - Wired Network Adapters': 'reliable ethernet connectivity solution for stable network performance',
+  'Expansion Cards / Networking - Wireless Network Adapters': 'high-speed wireless connectivity solution with broad compatibility',
+  'Peripherals - Headphones': 'comfortable audio device with precise sound reproduction and noise isolation',
+  'Peripherals - Keyboards': 'responsive input device with ergonomic design and customizable features',
+  'Peripherals - Mice': 'precise pointing device with ergonomic comfort and adjustable sensitivity',
+  'Peripherals - Speakers': 'clear audio output device with balanced sound reproduction and rich bass response',
+  'Peripherals - Webcams': 'high-definition video capture device with clear communications and low-light performance',
+  'Accessories / Other': 'essential computing accessories designed for enhanced functionality and user experience'
+};
+
+private featuresByCategory: { [key: string]: string[] } = {
+  'CPU': [
+    'multiple processing cores for parallel computing',
+    'advanced cache system for quick data access',
+    'integrated graphics capabilities',
+    'power-efficient design',
+    'overclocking support',
+    'compatible with latest motherboard sockets'
+  ],
+  'CPU Cooler': [
+    'efficient heat dissipation design',
+    'quiet operation technology',
+    'customizable RGB lighting',
+    'compact form factor',
+    'easy installation mechanism',
+    'compatible with multiple CPU sockets'
+  ],
+  'Motherboard': [
+    'multiple PCIe expansion slots',
+    'advanced BIOS features',
+    'robust power delivery system',
+    'high-speed RAM support',
+    'integrated audio solution',
+    'multiple storage connectors'
+  ],
+  'Memory': [
+    'high-frequency operation',
+    'low latency timings',
+    'XMP profile support',
+    'heat spreader design',
+    'stable performance',
+    'compatibility with latest platforms'
+  ],
+  'Storage': [
+    'high data transfer speeds',
+    'large storage capacity',
+    'reliable data protection',
+    'advanced caching system',
+    'durable construction',
+    'power loss protection'
+  ],
+  'Video Card': [
+    'powerful graphics processor',
+    'high-speed memory interface',
+    'advanced cooling system',
+    'multiple display support',
+    'ray tracing capabilities',
+    'efficient power consumption'
+  ],
+  'Monitor': [
+    'high refresh rate display',
+    'wide color gamut support',
+    'adaptive sync technology',
+    'ergonomic stand design',
+    'multiple input ports',
+    'built-in speakers'
+  ],
+  'Peripherals - Mice': [
+    'ergonomic design for comfortable extended use',
+    'precise optical/laser sensor tracking',
+    'adjustable DPI settings',
+    'programmable macro buttons',
+    'durable switches rated for millions of clicks',
+    'customizable RGB lighting'
+  ],
+  'Peripherals - Keyboards': [
+    'mechanical/membrane key switches',
+    'anti-ghosting capability',
+    'customizable backlighting',
+    'multimedia control keys',
+    'built-in wrist rest',
+    'spill-resistant design'
+  ],
+  'Peripherals - Headphones': [
+    'high-fidelity audio drivers',
+    'comfortable ear cushions',
+    'noise isolation technology',
+    'detachable microphone',
+    'inline volume controls',
+    'durable construction'
+  ],
+  'Peripherals - Speakers': [
+    'clear audio reproduction',
+    'powerful bass response',
+    'multiple input options',
+    'built-in amplifier',
+    'compact design',
+    'wireless connectivity'
+  ],
+  'Peripherals - Webcams': [
+    'HD/4K video capture',
+    'auto-focus capability',
+    'low-light performance',
+    'built-in microphone',
+    'wide-angle lens',
+    'privacy shutter'
+  ]
+};
+
+private categorySearchTerms: { [key: string]: string[] } = {
+  'CPU': [
+    'processor', 'gaming cpu', 'desktop cpu', 'workstation processor',
+    'intel', 'amd', 'ryzen', 'core i7', 'core i9', 'threadripper',
+    'multi core', 'processing power', 'computer processor'
+  ],
+  'Memory': [
+    'ram', 'ddr4', 'ddr5', 'gaming memory', 'desktop ram',
+    'high performance ram', 'rgb ram', 'memory upgrade',
+    'corsair', 'gskill', 'crucial', 'kingston'
+  ],
+  'Storage': [
+    'ssd', 'hdd', 'nvme', 'm.2', 'hard drive', 'solid state drive',
+    'external drive', 'samsung', 'western digital', 'seagate',
+    'storage upgrade', 'fast storage'
+  ],
+  'Video Card': [
+    'gpu', 'graphics card', 'gaming gpu', 'nvidia', 'amd',
+    'rtx', 'radeon', 'geforce', '4k gaming', 'ray tracing',
+    'mining gpu', 'video editing gpu'
+  ],
+  'Monitor': [
+    'gaming monitor', 'display', 'screen', '4k monitor', 'ultrawide',
+    'curved monitor', 'high refresh rate', '144hz', '240hz',
+    'asus', 'lg', 'samsung', 'dell'
+  ],
+  'Peripherals - Mice': [
+    'gaming mouse', 'wireless mouse', 'ergonomic mouse', 'bluetooth mouse',
+    'logitech', 'razer', 'corsair', 'dpi adjustable', 'rgb mouse',
+    'mouse for gaming', 'office mouse'
+  ],
+  'Peripherals - Keyboards': [
+    'mechanical keyboard', 'gaming keyboard', 'wireless keyboard',
+    'rgb keyboard', 'cherry mx', 'tkl keyboard', 'full size keyboard',
+    'razer', 'corsair', 'logitech', 'ducky'
+  ]
+};
+
 
   constructor(
     private supabaseService: SupabaseService,
@@ -302,8 +471,12 @@ async loadSupplierEquipment(supplierName: string) {
     }
   }
 
+  // Modify the onSubmit method
   async onSubmit() {
     try {
+      this.isLoading = true;
+      this.loadingMessage = 'Processing equipment submission...';
+
       for (const equipment of this.equipmentDataArray) {
         // Ensure category is set
         if (!equipment.category) {
@@ -316,6 +489,7 @@ async loadSupplierEquipment(supplierName: string) {
         }
 
         // Handle image uploads
+        this.loadingMessage = 'Uploading images...';
         const imageInput = document.getElementById(`productImage${this.equipmentDataArray.indexOf(equipment)}`) as HTMLInputElement;
         if (imageInput && imageInput.files) {
           const imageUrls = await this.uploadImages(imageInput.files, 'equipment-images');
@@ -324,6 +498,7 @@ async loadSupplierEquipment(supplierName: string) {
 
         // Handle brochure upload if exists
         if (equipment.brochure) {
+          this.loadingMessage = 'Uploading brochure...';
           const brochureUrl = await this.supabaseService.uploadFile(equipment.brochure, 'equipment-brochures');
           if (brochureUrl) {
             equipment.brochure_url = brochureUrl;
@@ -332,7 +507,7 @@ async loadSupplierEquipment(supplierName: string) {
 
         // Handle update or add equipment
         if (this.isEditMode && this.equipmentId) {
-          // Update existing equipment
+          this.loadingMessage = 'Updating equipment...';
           const updateResult = await this.supabaseService.updateEquipment(
             this.equipmentId,
             equipment,
@@ -340,10 +515,9 @@ async loadSupplierEquipment(supplierName: string) {
           );
 
           if (updateResult) {
-            // Update embedding for the equipment
+            this.loadingMessage = 'Generating equipment data...';
             await this.generateAndStoreEmbedding(this.equipmentId, equipment);
 
-            // Close dialog and return updated data
             this.dialogRef.close({
               success: true,
               equipment: updateResult,
@@ -357,26 +531,23 @@ async loadSupplierEquipment(supplierName: string) {
             throw new Error('Failed to update equipment');
           }
         } else {
-          // Adding new equipment
+          this.loadingMessage = 'Adding new equipment...';
           const result = await this.supabaseService.addEquipment(equipment);
           if (result) {
-            // Generate and store embedding for new equipment
+            this.loadingMessage = 'Generating equipment data...';
             await this.generateAndStoreEmbedding(result.id, equipment);
 
-            // Storing initial cost entry
+            this.loadingMessage = 'Storing cost history...';
             const initialCostEntry = {
               supplier_cost: equipment.supplier_cost,
               srp: equipment.srp,
               date_updated: equipment.date_acquired
             };
 
-            console.log("📌 Storing Initial Cost Entry:", initialCostEntry);
             await this.supabaseService.addCostHistory(result.id, initialCostEntry);
 
-            // Handling expiry notifications if applicable
             if (equipment.item_type === 'Semi-Expendable') {
-              console.log(`🔔 Checking for existing notifications before scheduling for ${equipment.name}...`);
-
+              this.loadingMessage = 'Scheduling notifications...';
               const expiryDate = new Date(equipment.date_acquired);
               expiryDate.setMonth(expiryDate.getMonth() + equipment.lifespan_months);
               const notificationStart = new Date(expiryDate);
@@ -385,14 +556,10 @@ async loadSupplierEquipment(supplierName: string) {
               const alreadyScheduled = await this.supabaseService.checkExistingNotification(equipment.name, notificationStart);
 
               if (!alreadyScheduled) {
-                console.log("✅ Scheduling notifications...");
                 await this.scheduleExpiryNotifications(equipment);
-              } else {
-                console.log("⏳ Notification already scheduled for the final month. Skipping...");
               }
             }
 
-            // Close dialog and return new equipment data
             this.dialogRef.close({
               success: true,
               equipment: result,
@@ -411,93 +578,100 @@ async loadSupplierEquipment(supplierName: string) {
       console.error('❌ Error during submission:', error);
       this.dialogRef.close({ success: false, error: error });
       alert('Failed to submit equipment. Please try again.');
+    } finally {
+      this.isLoading = false;
     }
   }
 
- async submitInhouseEquipment() {
-  try {
-    this.isSubmitting = true;
+  // Similarly update submitInhouseEquipment method
+  async submitInhouseEquipment() {
+    try {
+      this.isLoading = true;
+      this.loadingMessage = 'Processing in-house equipment submission...';
+      this.isSubmitting = true;
 
-    for (const equipment of this.inhouseEquipmentArray) {
-      if (!equipment.name || !equipment.serial_number) {
-        alert('Please provide both Name and Serial Number for all equipment.');
-        return;
+      for (const equipment of this.inhouseEquipmentArray) {
+        if (!equipment.name || !equipment.serial_number) {
+          alert('Please provide both Name and Serial Number for all equipment.');
+          return;
+        }
+
+        if (equipment.condition === 'Inactive' && (!equipment.inactive_reason || !equipment.inactive_location)) {
+          alert('Please provide both reason and location for inactive equipment.');
+          return;
+        }
+
+        const uuid = self.crypto.randomUUID();
+
+        this.loadingMessage = 'Generating QR code and barcode...';
+        await this.generateQRCode(equipment);
+        await this.generateBarcode(equipment);
+
+        this.loadingMessage = 'Uploading images...';
+        const imageInput = document.getElementById(`inhouseImageInput${this.inhouseEquipmentArray.indexOf(equipment)}`) as HTMLInputElement;
+        let imageUrls: string[] = [];
+        if (imageInput && imageInput.files) {
+          imageUrls = await this.uploadImages(imageInput.files, 'equipment-images');
+        }
+
+        let returnSlipUrl = '';
+        if (equipment.return_slip instanceof File) {
+          this.loadingMessage = 'Uploading return slip...';
+          returnSlipUrl = await this.supabaseService.uploadFile(equipment.return_slip, 'equipment-images');
+        } else if (typeof equipment.return_slip === 'string') {
+          returnSlipUrl = equipment.return_slip;
+        }
+
+        const equipmentData = {
+          id: uuid,
+          name: equipment.name,
+          brand: equipment.brand,
+          model: equipment.model,
+          quantity: equipment.quantity,
+          serial_number: equipment.serial_number,
+          qr_code: equipment.qr_code,
+          barcode: equipment.barcode,
+          images: imageUrls,
+          date_acquired: equipment.date_acquired,
+          product_type: equipment.product_type,
+          status: equipment.condition === 'Inactive' ? 'inactive' : 'available',
+          condition: equipment.condition,
+          damaged: equipment.damaged,
+          repair_logs: equipment.repair_logs,
+          return_slip: returnSlipUrl,
+          inactive_reason: equipment.condition === 'Inactive' ? equipment.inactive_reason : null,
+          inactive_location: equipment.condition === 'Inactive' ? equipment.inactive_location : null
+        };
+
+        this.loadingMessage = 'Saving equipment data...';
+        const { data, error } = await this.supabaseService
+          .from('inhouse')
+          .insert([equipmentData])
+          .select();
+
+        if (error) throw error;
+
+        if (data && data[0]) {
+          this.loadingMessage = 'Generating equipment data...';
+          await this.generateAndStoreEmbedding(data[0].id, equipmentData);
+        }
       }
 
-      // Validate inactive fields if condition is Inactive
-      if (equipment.condition === 'Inactive' && (!equipment.inactive_reason || !equipment.inactive_location)) {
-        alert('Please provide both reason and location for inactive equipment.');
-        return;
-      }
-
-      // Generate UUID for each equipment
-      const uuid = self.crypto.randomUUID();
-
-      await this.generateQRCode(equipment);
-      await this.generateBarcode(equipment);
-
-      const imageInput = document.getElementById(`inhouseImageInput${this.inhouseEquipmentArray.indexOf(equipment)}`) as HTMLInputElement;
-      let imageUrls: string[] = [];
-      if (imageInput && imageInput.files) {
-        imageUrls = await this.uploadImages(imageInput.files, 'equipment-images');
-      }
-
-      // Handle return slip upload if exists
-      let returnSlipUrl = '';
-      if (equipment.return_slip instanceof File) {
-        returnSlipUrl = await this.supabaseService.uploadFile(equipment.return_slip, 'equipment-images');
-      } else if (typeof equipment.return_slip === 'string') {
-        returnSlipUrl = equipment.return_slip;
-      }
-
-      const equipmentData = {
-        id: uuid,
-        name: equipment.name,
-        brand: equipment.brand,
-        model: equipment.model,
-        quantity: equipment.quantity,
-        serial_number: equipment.serial_number,
-        qr_code: equipment.qr_code,
-        barcode: equipment.barcode,
-        images: imageUrls,
-        date_acquired: equipment.date_acquired,
-        product_type: equipment.product_type,
-        status: equipment.condition === 'Inactive' ? 'inactive' : 'available',
-        condition: equipment.condition,
-        damaged: equipment.damaged,
-        repair_logs: equipment.repair_logs,
-        return_slip: returnSlipUrl,
-        inactive_reason: equipment.condition === 'Inactive' ? equipment.inactive_reason : null,
-        inactive_location: equipment.condition === 'Inactive' ? equipment.inactive_location : null
-      };
-
-      const { data, error } = await this.supabaseService
-        .from('inhouse')
-        .insert([equipmentData])
-        .select();
-
-      if (error) throw error;
-
-      // Generate and store embedding for inhouse equipment
-      if (data && data[0]) {
-        await this.generateAndStoreEmbedding(data[0].id, equipmentData);
-      }
+      this.dialogRef.close({
+        success: true,
+        isInhouse: true,
+        action: 'add'
+      });
+      this.showSuccessAnimation('In-house equipment added successfully!');
+    } catch (error) {
+      console.error('Error submitting equipment:', error);
+      this.dialogRef.close({ success: false, error: error });
+      alert('Failed to submit equipment. Please try again.');
+    } finally {
+      this.isLoading = false;
+      this.isSubmitting = false;
     }
-
-    this.dialogRef.close({
-      success: true,
-      isInhouse: true,
-      action: 'add'
-    });
-    this.showSuccessAnimation('In-house equipment added successfully!');
-  } catch (error) {
-    console.error('Error submitting equipment:', error);
-    this.dialogRef.close({ success: false, error: error });
-    alert('Failed to submit equipment. Please try again.');
-  } finally {
-    this.isSubmitting = false;
   }
-}
 
   showSuccessAnimation(message: string) {
     const animDiv = document.createElement('div');
@@ -848,38 +1022,98 @@ async handleInhouseReturnSlip(event: Event, index: number) {
 
 // Add this method to generate text for embedding
 private generateEmbeddingText(equipment: any): string {
-  // Generate dynamic context based on equipment type and properties
-  const generateDynamicContext = (equipment: any) => {
+  // Generate comprehensive embedding text
+  const generateContext = (equipment: any) => {
     const category = equipment.category?.toLowerCase() || '';
-    const name = equipment.name?.toLowerCase() || '';
+    const brand = equipment.brand?.toLowerCase() || '';
+    const model = equipment.model?.toLowerCase() || '';
     const description = equipment.description?.toLowerCase() || '';
 
-    // Extract key terms from category
-    const categoryTerms = category.split(/[/-\s]+/).filter(Boolean);
+    // Get category-specific content
+    const categoryDesc = this.categoryDescriptions[equipment.category] || '';
+    const features = this.featuresByCategory[equipment.category] || [];
+    const searchTerms = this.categorySearchTerms[equipment.category] || [];
 
-    // Base context from equipment properties
-    let context = `
-      ${name} ${equipment.model || ''} ${equipment.brand || ''}
-      ${description} ${category} ${equipment.variety || ''}
+    // Technical specifications extraction
+    const specs = this.extractTechnicalSpecs(equipment);
+
+    // Common industry terms
+    const commonTerms = [
+      'computer hardware',
+      'pc components',
+      'tech equipment',
+      'computing device',
+      equipment.category?.toLowerCase()
+    ].join(' ');
+
+    // Combine all relevant information
+    const context = `
+      ${brand} ${model} ${category}
+      ${description}
+      ${categoryDesc}
+      ${features.join(' ')}
+      ${searchTerms.join(' ')}
+      ${specs}
+      ${commonTerms}
+      ${equipment.condition || ''}
+      ${equipment.variety || ''}
     `;
-
-    // Add common terms for the category
-    if (categoryTerms.length > 0) {
-      context += ` ${categoryTerms.join(' ')} equipment device hardware component`;
-    }
-
-    // Add technical terms from description
-    const technicalTerms = description.match(/\b\d+\s*[a-zA-Z]+\b/g) || []; // Match technical specs
-    if (technicalTerms.length > 0) {
-      context += ` ${technicalTerms.join(' ')}`;
-    }
 
     return context;
   };
 
-  const description = generateDynamicContext(equipment);
-  return description.toLowerCase().trim().replace(/\s+/g, ' ');
+  // Clean and normalize the text
+  const embeddingText = generateContext(equipment)
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return embeddingText;
 }
+
+private extractTechnicalSpecs(equipment: any): string {
+  const specs: string[] = [];
+
+  // Extract numbers and units
+  const numberPattern = /\d+(\.\d+)?\s*(gb|tb|mhz|ghz|mm|rpm|w|v)/gi;
+  const matches = equipment.description?.match(numberPattern) || [];
+
+  if (matches.length) {
+    specs.push(...matches);
+  }
+
+  // Add common category-specific measurements
+  if (equipment.category) {
+    const categorySpecs: CategorySpecs = {
+      'CPU': ['cores', 'threads', 'cache', 'socket'],
+      'Memory': ['dimm', 'timing', 'latency', 'dual channel'],
+      'Storage': ['capacity', 'read speed', 'write speed', 'cache'],
+      'Video Card': ['vram', 'cuda cores', 'memory clock', 'core clock'],
+      'Monitor': ['refresh rate', 'resolution', 'panel type', 'response time'],
+      'Power Supply': ['wattage', 'efficiency', '80 plus', 'modular'],
+      'CPU Cooler': ['fan size', 'noise level', 'heat pipes', 'tdp'],
+      'Motherboard': ['socket type', 'form factor', 'chipset', 'memory slots'],
+      'Case': ['form factor', 'dimensions', 'fan mounts', 'clearance'],
+      'Operating System': ['version', 'architecture', 'edition', 'license'],
+      'Peripherals - Mice': ['dpi', 'buttons', 'sensor type', 'polling rate'],
+      'Peripherals - Keyboards': ['switch type', 'layout', 'key rollover', 'backlight'],
+      'Peripherals - Headphones': ['driver size', 'impedance', 'frequency response', 'connectivity'],
+      'Peripherals - Speakers': ['power output', 'frequency range', 'channels', 'connectivity'],
+      'Peripherals - Webcams': ['resolution', 'frame rate', 'focus type', 'mic type'],
+      'Expansion Cards / Networking - Sound Cards': ['channels', 'bit depth', 'sample rate', 'interface'],
+      'Expansion Cards / Networking - Wired Network Adapters': ['speed', 'ports', 'interface', 'standards'],
+      'Expansion Cards / Networking - Wireless Network Adapters': ['wifi standard', 'frequency bands', 'antenna', 'bluetooth'],
+      'Accessories / Other': ['compatibility', 'connection type', 'power requirements', 'features']
+    };
+
+    const categorySpecList = categorySpecs[equipment.category] || [];
+    specs.push(...categorySpecList);
+  }
+
+  return specs.join(' ');
+}
+
 
 // Add method to generate and store embedding
 private async generateAndStoreEmbedding(equipmentId: string, equipment: any) {
@@ -934,5 +1168,32 @@ private async loadModel() {
   } finally {
     this.isModelLoading = false;
   }
+}
+
+async generateDescription(index: number): Promise<void> {
+  const equipment = this.equipmentDataArray[index];
+
+  if (!equipment.brand || !equipment.model || !equipment.category) {
+    return;
+  }
+
+  const baseDescription = this.categoryDescriptions[equipment.category] || 'high-quality device';
+  const features = this.featuresByCategory[equipment.category] || [];
+
+  // Select 3 random features
+  const selectedFeatures = features
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 3);
+
+  const description = `The ${equipment.brand} ${equipment.model} is a ${baseDescription}. ` +
+    `This ${equipment.category.toLowerCase()} features ${selectedFeatures.join(', ')}. ` +
+    `Manufactured by ${equipment.brand}, this ${equipment.category.toLowerCase()} ` +
+    `offers reliable performance and quality construction for professional use.`;
+
+  // Update the description
+  equipment.description = description;
+
+  // Force change detection
+  this.cdRef.detectChanges();
 }
 }
