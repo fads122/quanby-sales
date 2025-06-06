@@ -1,5 +1,11 @@
 body {
+  margin-left: 230px;
+  padding: 20px 24px;
+  background-color: #f8f9fa;
+}
 
+/* Main container styles */
+body {
     margin-left: 230px; /* Match the sidebar width + spacing */
     padding: 24px;
     transition: margin-left 0.3s ease;
@@ -156,158 +162,138 @@ td:nth-child(7) {
 
 /* Search Bar Styling */
 .search-bar {
-    margin-bottom: 16px;
+    max-width: 1200px;
+  width: 95%;
+  margin: 0 auto;
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
-.search-input {
-    width: 100%;
-    max-width: 400px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
+.search-container {
+  flex: 1;
+  max-width: 400px;
 }
 
-  .full-width {
-    width: 100%;
-    margin-bottom: 16px;
-  }
-  .actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-  .dialog-form {
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
+.search-container .mat-mdc-form-field {
+  width: 100%;
+}
 
-  .name-row {
-    display: flex;
-    gap: 12px;
-  }
+/* Paginator customization */
+.mat-mdc-paginator {
+  background: transparent;
+  border-top: 1px solid #e5e7eb;
+}
 
-  .half-width {
-    flex: 1;
-  }
+.mat-mdc-paginator-container {
+  min-height: 48px;
+}
 
-  .full-width {
-    width: 100%;
-    margin-bottom: 12px;
-    border-radius: 0%;
-  }
+/* Remove excess padding */
+td.mat-mdc-cell:first-of-type,
+th.mat-mdc-header-cell:first-of-type {
+  padding-left: 16px !important;
+}
 
-  .actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-  }
+td.mat-mdc-cell:last-of-type,
+th.mat-mdc-header-cell:last-of-type {
+  padding-right: 16px !important;
+}
 
-  .mat-form-field {
-    font-size: 12px;
-  }
+/* Empty state styling */
+.no-data-message {
+  padding: 40px 0;
+  text-align: center;
+  color: #6b7280;
+}
 
-  .mat-dialog-title {
-    font-weight: bold;
-    font-size: 14px;
-    margin-bottom: 12px;
-    color: #1e40af;
-  }
+.no-data-message mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+  color: #9ca3af;
+}
 
-  .mat-dialog-content {
-    padding: 12px;
-    border-radius: 0%;
-  }
+/* Table container styles */
+.mat-elevation-z8 {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  margin: 20px auto;
+  max-width: 1200px;
+  width: 95%;
+}
 
-  .add{
-    margin-left: 20px;
-    border-radius: 3px;
-    padding: 7px;
-    color: white;
-    background-color: #1e3a8a;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    float: right;
-  }
+/* Table styles */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
 
-  .add:hover{
-    background-color: #01024a;
-    transition: all 0.3s ease;
-  }
-  button.mat-button {
-    font-size: 12px;
-  }
+/* Column width adjustments */
+.mat-column-uid {
+  width: 80px;
+  white-space: nowrap;
+}
 
-  button.mat-raised-button {
-    background-color: #1e40af;
-    color: white;
-    font-size: 12px;
-  }
+.mat-column-name {
+  width: 200px;
+}
 
-  button.mat-raised-button:hover {
-    background-color: #1e3a8a;
-  }
+.mat-column-email {
+  width: auto;
+}
 
-  .snackbar-success {
-    background-color: #4caf50;
-    color: white;
-  }
+.mat-column-actions {
+  width: 120px !important; /* Increased width to accommodate buttons */
+  text-align: center;
+}
 
-  .snackbar-error {
-    background-color: #f44336;
-    color: white;
-  }
+/* Header styles */
+.mat-mdc-header-cell {
+  background-color: #ffffff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 16px !important;
+  border-bottom: 2px solid #e5e7eb;
+}
 
-  .snackbar-warning {
-    background-color: #ff9800;
-    color: white;
-  }
+/* Cell styles */
+.mat-mdc-cell {
+  font-size: 13px;
+  color: #4b5563;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #e5e7eb;
+}
 
+/* Row hover effect */
+.mat-mdc-row:hover {
+  background-color: #f9fafb;
+}
 
-  td{
-    font-size: 12px;
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px; /* Increased gap between buttons */
+  justify-content: center;
+  align-items: center;
+  padding: 0 4px;
+}
 
-  }
+.action-buttons button {
+  min-width: 36px;
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  padding: 0;
+}
 
-  th{
-    font-size: 14px;
-    font-weight: 600 !important;
-  }
-
-  .but{
-    font-size: 11px;
-  }
-
-  ::ng-deep .p-paginator {
-    font-size: 11px;
-    padding: 2px;
-  }
-
-  ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page {
-    width: 16x;
-    height: 16x;
-    font-size: 11px;
-    line-height: 16px;
-  }
-
-  ::ng-deep .p-dropdown {
-    height: 36px !important;
-    font-size: 12px !important;
-  }
-
-  ::ng-deep .p-dropdown .p-dropdown-label {
-    padding: 10px !important;
-    font-size: 12px !important;
-  }
-
-  ::ng-deep .p-dropdown .p-dropdown-trigger {
-    width: 24px !important;
-    height: 24px !important;
-  }
-
-
-  ::ng-deep .p-paginator-current {
-    font-size: 11px;
-  }
+.action-buttons .mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+}

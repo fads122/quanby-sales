@@ -222,14 +222,28 @@ async runSemanticSearch() {
   console.log('🔄 Search in progress...');
 
   try {
-    // Remove the testing check and always use real search
     console.log('🔎 Using semantic search with query:', this.searchQuery);
-    this.semanticSearchResults = await this.supabaseService.semanticSearch(
+    const results = await this.supabaseService.semanticSearch(
       this.searchQuery,
-      0.2  // Lower threshold to catch more matches
+      0.2
     );
 
-    console.log('📊 Raw search results:', this.semanticSearchResults);
+    // Map the results to match product card format
+    this.semanticSearchResults = results.map(item => ({
+      id: item.id,
+      name: item.name || item.model || 'No Name',
+      model: item.model || 'No Model',
+      brand: item.brand || 'No Brand',
+      supplier: item.supplier || 'No Supplier',
+      supplier_cost: item.supplier_cost || 0,
+      price: item.srp || 0,
+      image: item.product_images?.[0] || '/assets/no-image.png',
+      quantity: 1,
+      similarity: item.similarity || 0,
+      description: item.description || ''
+    }));
+
+    console.log('📊 Formatted search results:', this.semanticSearchResults);
 
     if (this.semanticSearchResults.length === 0) {
       console.log('⚠️ No matches found for query:', this.searchQuery);

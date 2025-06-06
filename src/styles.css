@@ -45,3 +45,8 @@ body {
   display: flex;
   min-height: 100vh;
 }
+
+.error-snackbar {
+  background: #f44336;
+  color: white;
+}

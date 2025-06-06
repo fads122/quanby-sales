@@ -36,67 +36,81 @@
   <!-- Supplier Table Card -->
   <div class="card">
     <div class="table-responsive">
-      <table class="supplier-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Supplier Name</th>
-            <th>Contact Person</th>
-            <th>Contact</th>
-            <th>Email</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let supplier of paginatedSuppliers; let i = index">
-            <td>{{ i + 1 + ((currentPage - 1) * itemsPerPage) }}</td>
-            <td class="supplier-name">{{ supplier.supplier_name }}</td>
-            <td>{{ supplier.contact_person }}</td>
-            <td>{{ supplier.phone }}</td>
-            <td class="email-cell">{{ supplier.email }}</td>
-            <!-- <td>
-              <span class="status-badge" [class.active]="supplier.status === 'active'">
-                {{ supplier.status | titlecase }}
-              </span>
-            </td> -->
-            <td class="action-buttons">
-              <!-- Replace the view button with a RouterLink -->
-              <a [routerLink]="['/supplier-profile', supplier.id]" class="btn-action btn-view" title="View">
-                <span class="action-icon">visibility</span>
-              </a>
-              <!-- <button class="btn-action btn-edit" (click)="editSupplier(supplier)" title="Edit">
-                <span class="action-icon">edit</span>
-              </button> -->
-              <button class="btn-action btn-delete" (click)="confirmDelete(supplier.id)" title="Delete">
-                <span class="action-icon">delete</span>
-              </button>
+      <!-- Replace the existing table section with this -->
+      <div class="table-container mat-elevation-z8">
+        <table mat-table [dataSource]="dataSource" matSort class="full-width-table">
+          <!-- Number Column -->
+          <ng-container matColumnDef="number">
+            <th mat-header-cell *matHeaderCellDef> # </th>
+            <td mat-cell *matCellDef="let i = index"> {{ i + 1 + (paginator.pageIndex * paginator.pageSize) }} </td>
+          </ng-container>
+
+          <!-- Supplier Name Column -->
+          <ng-container matColumnDef="supplier_name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Supplier Name </th>
+            <td mat-cell *matCellDef="let supplier"> {{supplier.supplier_name}} </td>
+          </ng-container>
+
+          <!-- Contact Person Column -->
+          <ng-container matColumnDef="contact_person">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Contact Person </th>
+            <td mat-cell *matCellDef="let supplier"> {{supplier.contact_person}} </td>
+          </ng-container>
+
+          <!-- Phone Column -->
+          <ng-container matColumnDef="phone">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Contact </th>
+            <td mat-cell *matCellDef="let supplier"> {{supplier.phone}} </td>
+          </ng-container>
+
+          <!-- Email Column -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
+            <td mat-cell *matCellDef="let supplier"> {{supplier.email}} </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef> Actions </th>
+            <td mat-cell *matCellDef="let supplier">
+              <div class="action-buttons">
+                <button mat-icon-button class="view-btn" [routerLink]="['/supplier-profile', supplier.id]">
+                  <span class="material-icons">visibility</span>
+                </button>
+                <button mat-icon-button class="edit-btn" (click)="editSupplier(supplier)">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button mat-icon-button class="delete-btn" (click)="confirmDelete(supplier.id)">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
             </td>
-          </tr>
-          <tr *ngIf="filteredSuppliers.length === 0">
-            <td colspan="7" class="empty-message">
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+          <!-- Row shown when there is no matching data -->
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" colspan="6">
               <div class="empty-state">
-                <i class="material-icons empty-icon">inbox</i>
+                <mat-icon class="empty-icon">inbox</mat-icon>
                 <p class="empty-text">No suppliers found</p>
-                <button class="btn btn-primary" (click)="openAddSupplierDialog()">
-                  <i class="material-icons btn-icon">add</i>
+                <button mat-raised-button color="primary" (click)="openAddSupplierDialog()">
+                  <mat-icon>add</mat-icon>
                   Add New Supplier
                 </button>
               </div>
             </td>
           </tr>
-        </tbody>
-      </table>
-    </div>
+        </table>
 
-    <!-- Pagination -->
-    <div class="pagination" *ngIf="filteredSuppliers.length > itemsPerPage">
-      <button class="btn-pagination" (click)="previousPage()" [disabled]="currentPage === 1">
-        <i class="material-icons">chevron_left</i>
-      </button>
-      <span class="page-info">Page {{currentPage}} of {{totalPages}}</span>
-      <button class="btn-pagination" (click)="nextPage()" [disabled]="currentPage === totalPages">
-        <i class="material-icons">chevron_right</i>
-      </button>
+        <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"
+                       [pageSize]="10"
+                       showFirstLastButtons
+                       aria-label="Select page">
+        </mat-paginator>
+      </div>
     </div>
   </div>
 </div>

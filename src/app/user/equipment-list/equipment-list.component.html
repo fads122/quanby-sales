@@ -46,7 +46,7 @@
     <span class="filter-label">{{ selectedOwnership ? getOwnershipLabel(selectedOwnership) : 'Ownership' }}</span>
     <i class="fas fa-chevron-down dropdown-arrow"></i>
   </div>
-  
+
   <div class="select-dropdown" *ngIf="dropdownOpen">
     <div class="dropdown-option" (click)="selectOption(null)">
       <i class="fas fa-layer-group option-icon"></i>
@@ -154,29 +154,34 @@
                           <div class="action-buttons">
                             <!-- QR Code and Barcode buttons for operational equipment -->
                             <button *ngIf="selectedTable === 'inhouse' && item.qr_code"
-                                    pButton type="button" icon="pi pi-qrcode"
+                                    mat-icon-button
                                     (click)="openQRCodeModal(item.qr_code)"
-                                    class="p-button-sm p-button-rounded p-button-text action-btn qr-btn"
-                                    pTooltip="View QR Code" tooltipPosition="top"></button>
-
-                            <button *ngIf="item.barcode"
-                                    pButton type="button"
-                                    icon="pi pi-barcode"
-                                    (click)="openBarcodeModal(item.barcode)"
-                                    class="p-button-sm p-button-rounded p-button-text action-btn barcode-btn"
-                                    pTooltip="View Barcode"
-                                    tooltipPosition="top">
+                                    class="action-btn qr-btn"
+                                    matTooltip="View QR Code">
+                              <mat-icon>qr_code_2</mat-icon>
                             </button>
 
-                            <button pButton type="button" icon="pi pi-eye"
-                                  (click)="viewEquipmentDetails(item.id)"
-                                  class="p-button-sm p-button-rounded p-button-text action-btn view-btn"
-                                  pTooltip="View Details" tooltipPosition="top"></button>
+                            <button *ngIf="item.barcode"
+                                    mat-icon-button
+                                    (click)="openBarcodeModal(item.barcode)"
+                                    class="action-btn barcode-btn"
+                                    matTooltip="View Barcode">
+                              <i class="fas fa-barcode"></i>
+                            </button>
 
-                            <button pButton type="button" icon="pi pi-pencil"
+                            <button mat-icon-button
+                                    (click)="viewEquipmentDetails(item.id)"
+                                    class="action-btn view-btn"
+                                    matTooltip="View Details">
+                              <mat-icon>visibility</mat-icon>
+                            </button>
+
+                            <button mat-icon-button
                                     (click)="editEquipment(item)"
-                                    class="p-button-sm p-button-rounded p-button-text action-btn edit-btn"
-                                    pTooltip="Edit" tooltipPosition="top"></button>
+                                    class="action-btn edit-btn"
+                                    matTooltip="Edit">
+                              <mat-icon>edit</mat-icon>
+                            </button>
                           </div>
                         </td>
                       </tr>
