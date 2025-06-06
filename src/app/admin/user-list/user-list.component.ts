@@ -1,14 +1,23 @@
 import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TableModule } from 'primeng/table';
-import { SidebarComponent } from '../../nav/sidebar/sidebar.component';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog'; // Add MatDialog here
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'; // Add MatSnackBar here
+import { SidebarComponent } from '../../nav/sidebar/sidebar.component';
+
 import { SupabaseClient, createClient } from '@supabase/supabase-js';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
 
 interface User {
   uid: string;
@@ -22,22 +31,23 @@ interface User {
   styleUrls: ['./user-list.component.css'],
   standalone: true,
   imports: [
-    TableModule,
     CommonModule,
-    SidebarComponent,
     FormsModule,
     ReactiveFormsModule,
-    MatDialogModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatIconModule,
     MatButtonModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    MatTooltipModule,
     MatSnackBarModule,
+    SidebarComponent
   ],
 })
 export class UserListComponent implements OnInit {
-goToPage(_t48: any) {
-throw new Error('Method not implemented.');
-}
   private supabase: SupabaseClient;
   user: User[] = [];
   searchQuery: string = '';
@@ -47,10 +57,16 @@ throw new Error('Method not implemented.');
   currentPage: number = 1;
   pageSize: number = 5; // Number of users per page
   supplierForm!: FormGroup;
+  displayedColumns: string[] = ['uid', 'name', 'email', 'actions'];
+  dataSource!: MatTableDataSource<User>;
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+
 
   @ViewChild('addUserDialog') addUserDialog!: TemplateRef<any>;
   @ViewChild('addSupplierDialog') addSupplierDialog!: TemplateRef<any>;
-totalPages: any;
+  totalPages: any;
 
   constructor(
     private fb: FormBuilder,
@@ -172,8 +188,8 @@ totalPages: any;
   async loadUsers() {
     const { data, error } = await this.supabase
       .from('users')
-      .select('id, first_name, last_name, email, usertype') // Include the user_type column
-      .eq('usertype', 'user'); // Filter only users with user_type = 'user'
+      .select('id, first_name, last_name, email, usertype')
+      .eq('usertype', 'user');
 
     if (error) {
       this.snackBar.open(`Error loading users: ${error.message}`, 'Close', {
@@ -181,11 +197,14 @@ totalPages: any;
         panelClass: ['snackbar-error'],
       });
     } else {
-      this.user = data.map(user => ({
+      const users = data.map(user => ({
         uid: user.id,
         name: `${user.first_name} ${user.last_name}`,
         email: user.email,
       }));
+      this.dataSource = new MatTableDataSource(users);
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
     }
   }
 
@@ -338,4 +357,20 @@ async generateSupplierToken(userId: string) {
   const token = `supplier-token-${userId}-${new Date().getTime()}`;
   return token;
 }
+
+ ngAfterViewInit() {
+    if (this.dataSource) {
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    }
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+  }
 }

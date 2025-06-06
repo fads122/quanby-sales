@@ -988,12 +988,12 @@
     align-items: flex-start;
     gap: 10px;
   }
-  
+
   .header-right {
     align-items: flex-start;
     width: 100%;
   }
-  
+
   .ranking-controls {
     width: 100%;
     justify-content: space-between;

@@ -25,7 +25,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ReactiveFormsModule } from '@angular/forms'; // Add this
-
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 interface RepairLog {
   repair_details?: string;
@@ -55,7 +55,8 @@ interface GroupedEquipment {
     MatExpansionModule,
     MatInputModule,
     MatDialogModule,
-    MatSnackBarModule], // ✅ No need to import ZXingScannerModule
+    MatSnackBarModule,
+    MatTooltipModule], // ✅ No need to import ZXingScannerModule
   templateUrl: './equipment-list.component.html',
   styleUrls: ['./equipment-list.component.css'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -101,7 +102,7 @@ interface GroupedEquipment {
         style({ opacity: 0, transform: 'translateY(20px)' }),
         animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
       ])
-    ]),
+   ]),
 
     // Fade animation for content
     trigger('fadeInOut', [
@@ -573,7 +574,7 @@ onEquipmentTypeChange(selectedType: string) {
 
 async loadEquipment() {
   console.log("⚡ Executing loadEquipment() for table:", this.selectedTable);
-  console.log("Loaded equipment with ownership types:", 
+  console.log("Loaded equipment with ownership types:",
   this.equipmentList.map(e => ({name: e.name, ownership: e.ownership_type})));
 
   try {
@@ -1154,14 +1155,14 @@ closeQRCodeModal() {
       }
     });
   }
- 
+
 
 //   applyFilter() {
 //   const query = this.searchQuery.toLowerCase().trim();
 
 //   // Get all equipment items based on selected table (inhouse/equipments)
-//   let items = this.equipmentList.filter(equipment => 
-//     this.selectedTable === 'inhouse' 
+//   let items = this.equipmentList.filter(equipment =>
+//     this.selectedTable === 'inhouse'
 //       ? equipment.product_type // Operational items
 //       : !equipment.product_type // For-sale items
 //   );
@@ -1169,7 +1170,7 @@ closeQRCodeModal() {
 
 //   // Apply search query if present
 //   if (query) {
-//     items = items.filter(equipment => 
+//     items = items.filter(equipment =>
 //       (equipment.model?.toLowerCase().includes(query)) ||
 //       (equipment.name?.toLowerCase().includes(query)) ||
 //       (equipment.brand?.toLowerCase().includes(query)) ||
@@ -1179,7 +1180,7 @@ closeQRCodeModal() {
 
 //   // Apply ownership filter if selected
 //   if (this.selectedOwnership) {
-//     items = items.filter(equipment => 
+//     items = items.filter(equipment =>
 //       equipment.ownership_type === this.selectedOwnership
 //     );
 //   }
@@ -1189,16 +1190,16 @@ closeQRCodeModal() {
 // }
 
 applyFilter() {
-  console.log("Current ownership types in data:", 
+  console.log("Current ownership types in data:",
         this.equipmentList.map(e => e.ownership_type));
   const query = this.searchQuery.toLowerCase().trim();
-  
+
   // Start with all equipment
   let items = [...this.equipmentList];
 
   // Apply search filter if query exists
   if (query) {
-    items = items.filter(equipment => 
+    items = items.filter(equipment =>
       (equipment.model?.toLowerCase().includes(query)) ||
       (equipment.name?.toLowerCase().includes(query)) ||
       (equipment.brand?.toLowerCase().includes(query)) ||
@@ -1210,12 +1211,12 @@ applyFilter() {
   if (this.selectedOwnership !== null) {
     if (this.selectedOwnership === '') {
       // Show items with empty/null ownership
-      items = items.filter(equipment => 
+      items = items.filter(equipment =>
         !equipment.ownership_type || equipment.ownership_type.trim() === ''
       );
     } else {
       // Show items with matching ownership (case insensitive)
-      items = items.filter(equipment => 
+      items = items.filter(equipment =>
         equipment.ownership_type?.toLowerCase() === this.selectedOwnership?.toLowerCase()
       );
     }

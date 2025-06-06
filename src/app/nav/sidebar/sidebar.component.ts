@@ -1,12 +1,21 @@
 import { Component, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';  // Add Router here
+import { RouterModule, Router } from '@angular/router';
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
 import { SupabaseService } from '../../services/supabase.service';
-import { ConfirmationService } from 'primeng/api';
-import { MessageService } from 'primeng/api';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ToastModule } from 'primeng/toast';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ApplicationConfig } from '@angular/core';
+import { provideAnimations } from '@angular/platform-browser/animations';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideAnimations()
+    // ...other providers
+  ]
+};
 
 @Component({
   selector: 'app-sidebar',
@@ -14,12 +23,11 @@ import { ToastModule } from 'primeng/toast';
   imports: [
     CommonModule,
     RouterModule,
-    ConfirmDialogModule,
-    ToastModule
+    MatDialogModule,
+    MatSnackBarModule
   ],
   templateUrl: './sidebar.component.html',
-  styleUrls: ['./sidebar.component.css'],
-  providers: [ConfirmationService, MessageService],
+  styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent {
   isCollapsed = false;
@@ -50,11 +58,11 @@ export class SidebarComponent {
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
-     private authService: SupabaseAuthService,
-     private supabaseService: SupabaseService,
-     private confirmationService: ConfirmationService,
-    private messageService: MessageService,
-    private router: Router  // Add this line
+    private authService: SupabaseAuthService,
+    private supabaseService: SupabaseService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
+    private router: Router
   ) {
     if (isPlatformBrowser(this.platformId)) {
       this.checkScreenSize();
@@ -89,28 +97,24 @@ export class SidebarComponent {
   }
 
   confirmLogout(): void {
-    this.confirmationService.confirm({
-      header: 'Confirm Logout',
-      icon: 'pi pi-info-circle',
-      message: 'Are you sure you want to logout?',
-      acceptLabel: 'Yes',
-      acceptButtonStyleClass: 'p-button-danger', // Make the Yes button red
-      rejectVisible: false, // Hide No button
-      accept: () => {
-        // Store logout message BEFORE delay
-        localStorage.setItem('logoutMessage', 'Successfully logged out.');
+    const dialogRef = this.dialog.open(DialogOverview, {
+      width: '300px',
+      disableClose: true,
+      data: {
+        title: 'Confirm Logout',
+        message: 'Are you sure you want to logout?'
+      }
+    });
 
-        this.messageService.add({
-          severity: 'info',
-          summary: 'Logging Out',
-          detail: 'You are being logged out...',
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.snackBar.open('Logging out...', '', {
+          duration: 2000,
         });
-
-        // Delay logout by 2 seconds to show the toast
         setTimeout(() => {
           this.logout();
         }, 2000);
-      },
+      }
     });
   }
 
@@ -125,14 +129,45 @@ export class SidebarComponent {
 
       await this.router.navigate(['/login']);
       console.log('Navigation completed');
+
+      this.snackBar.open('Successfully logged out', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom'
+      });
     } catch (error) {
       console.error('Logout failed:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Logout failed. Please try again.',
+      this.snackBar.open('Logout failed. Please try again.', 'Close', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
       });
     }
+  }
+}
+
+@Component({
+  selector: 'dialog-overview',
+  template: `
+    <h1 mat-dialog-title>{{ data.title }}</h1>
+    <div mat-dialog-content>
+      <p>{{ data.message }}</p>
+    </div>
+    <div mat-dialog-actions align="end">
+      <button mat-button (click)="onNoClick()">Cancel</button>
+      <button mat-button color="primary" (click)="dialogRef.close(true)">Yes</button>
+    </div>
+  `,
+  standalone: true,
+  imports: [MatDialogModule]
+})
+class DialogOverview {
+  constructor(
+    public dialogRef: MatDialogRef<DialogOverview>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {}
+
+  onNoClick(): void {
+    this.dialogRef.close(false);
   }
 }
 

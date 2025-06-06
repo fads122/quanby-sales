@@ -31,40 +31,41 @@
   <button (click)="searchQuery = 'electric'; runSemanticSearch()">Test Electric</button>
 </div>
 
-<div *ngIf="searchMode === 'semantic'">
-  <div *ngIf="isSemanticSearching" class="search-loading">
-    <i class="pi pi-spinner pi-spin"></i> Finding matching parts...
-  </div>
+<!-- Replace your semantic search results section -->
+<div *ngIf="searchMode === 'semantic'" class="parts-grid">
+  <div *ngFor="let product of semanticSearchResults" class="part-card">
+    <!-- Card Header -->
+    <div class="card-header">
+      <div class="match-badge">
+        {{(product.similarity * 100).toFixed(0)}}% match
+      </div>
+      <div class="product-image-container">
+        <img [src]="product.image" [alt]="product.name" class="product-image">
+      </div>
+      <h3>{{product.name}}</h3>
+    </div>
 
-  <div *ngIf="semanticSearchResults.length > 0" class="semantic-results">
-    <h3>Semantic Search Results</h3>
-    <div class="result-grid">
-      <div *ngFor="let result of semanticSearchResults" class="result-card">
-        <div class="card-header">
-          <img [src]="result.image || '/assets/no-image.png'" alt="{{ result.name }}" />
-          <div class="similarity-badge">
-            {{ (result.similarity * 100).toFixed(0) }}% match
-          </div>
-        </div>
-        <div class="card-body">
-          <h4>{{ result.name }}</h4>
-          <p class="model">{{ result.model }}</p>
-          <p class="brand">{{ result.brand }}</p>
-          <p class="price">{{ result.supplier_cost | currency: 'PHP' }}</p>
-        </div>
-        <div class="card-actions">
-          <button (click)="toggleProductSelection(result)"
-                  [ngClass]="{ 'selected': isSelected(result) }">
-            {{ isSelected(result) ? '✓ Selected' : '+ Add' }}
-          </button>
-        </div>
+    <!-- Card Body -->
+    <div class="card-body">
+      <div class="product-info">
+        <div class="product-model">{{product.model}}</div>
+        <div class="product-brand">{{product.brand}}</div>
+        <div class="product-price">₱{{product.price | number:'1.2-2'}}</div>
+      </div>
+
+      <!-- Card Actions -->
+      <div class="card-actions">
+        <input type="number"
+               class="quantity-input"
+               [(ngModel)]="product.quantity"
+               min="1">
+        <button class="add-button"
+                [class.selected]="isSelected(product)"
+                (click)="toggleProductSelection(product)">
+          {{ isSelected(product) ? '- Remove' : '+ Add' }}
+        </button>
       </div>
     </div>
-  </div>
-
-  <div *ngIf="!isSemanticSearching && semanticSearchResults.length === 0 && searchQuery"
-       class="no-results">
-    No matching parts found for "{{ searchQuery }}"
   </div>
 </div>
 

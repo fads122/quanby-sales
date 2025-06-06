@@ -193,16 +193,54 @@
 .action-buttons {
   display: flex;
   gap: 8px;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50% !important;
-  transition: all 0.2s ease;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.action-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Button specific colors */
+.qr-btn mat-icon {
+  color: #10b981;
+}
+
+.barcode-btn mat-icon {
+  color: #6366f1;
+}
+
+.view-btn mat-icon {
+  color: #3b82f6;
+}
+
+.edit-btn mat-icon {
+  color: #f59e0b;
+}
+
+/* Hover effects */
+.action-btn:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.actions-cell {
+  padding: 8px !important;
+  text-align: center !important;
 }
 
 /* Restore Button */
@@ -1526,4 +1564,9 @@ tr.expanded-row {
 /* Rotate arrow when open */
 .dropdown-open .dropdown-arrow {
   transform: rotate(180deg);
+}
+
+.barcode-btn i {
+    font-size: 20px;
+    color: #6366f1;
 }
