@@ -1,4 +1,4 @@
-import { Component, HostListener, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, HostListener, Inject, PLATFORM_ID, Output, EventEmitter } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
@@ -92,8 +92,11 @@ export class SidebarComponent {
     }
   }
 
+  @Output() collapsedChange = new EventEmitter<boolean>();
+
   toggleSidebar() {
     this.isCollapsed = !this.isCollapsed;
+    this.collapsedChange.emit(this.isCollapsed);
   }
 
   confirmLogout(): void {

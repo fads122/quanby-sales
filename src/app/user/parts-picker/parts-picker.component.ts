@@ -77,6 +77,7 @@ export class PartsPickerComponent implements OnInit {
   semanticSearchResults: any[] = [];
   isSemanticSearching = false;
   isTesting = false; // Change this to false to use real semantic search
+  isLoading: boolean = true;
 
   first: number = 0;
 rows: number = 5; // Items per page
@@ -149,45 +150,65 @@ constructor(
 ) {}
 
 async ngOnInit() {
-  // Load the TensorFlow model when component initializes
-  await this.supabaseService.loadModel();
-  await this.fetchEquipmentData();
-  // Read category from query params if navigating from the sidebar dropdown
+  try {
+    this.isLoading = true; // Start loading
+    // Load the TensorFlow model when component initializes
+    await this.supabaseService.loadModel();
+    await this.fetchEquipmentData();
+    // Read category from query params if navigating from the sidebar dropdown
     this.route.queryParams.subscribe(params => {
       if (params['category']) {
         this.selectedCategory = params['category'];
       }
     });
+  } catch (error) {
+    console.error('Error initializing parts picker:', error);
+  } finally {
+    // Add a slight delay to ensure smooth animation
+    setTimeout(() => {
+      this.isLoading = false; // End loading
+    }, 1000);
   }
+}
 
   async fetchEquipmentData() {
-    console.log('⏳ Fetching equipment data...');
-    const result = await this.supabaseService.getEquipmentList();
-    console.log('🔍 Result from getEquipmentList():', result);
+    try {
+      this.isLoading = true; // Show loader while fetching data
+      console.log('⏳ Fetching equipment data...');
+      const result = await this.supabaseService.getEquipmentList();
+      console.log('🔍 Result from getEquipmentList():', result);
 
-    if (result && result.length > 0) {
-      this.products = result.map(equipment => {
-        // Ensure model is never empty
-        const displayModel = equipment.model || 'No Model';
+      if (result && result.length > 0) {
+        this.products = result.map(equipment => {
+          // Ensure model is never empty
+          const displayModel = equipment.model || 'No Model';
 
-        const product = {
-          id: equipment.id,
-          name: equipment.name || displayModel, // Use model if name is empty
-          model: displayModel, // Always show model
-          brand: equipment.brand || 'No Brand',
-          supplier: equipment.supplier || 'No Supplier',
-          supplier_cost: equipment.supplier_cost || 0,
-          price: equipment.srp || 0,
-          image: equipment.product_images?.[0] || '/assets/no-image.png',
-          quantity: 1
-        };
-        return product;
-      });
+          const product = {
+            id: equipment.id,
+            name: equipment.name || displayModel, // Use model if name is empty
+            model: displayModel, // Always show model
+            brand: equipment.brand || 'No Brand',
+            supplier: equipment.supplier || 'No Supplier',
+            supplier_cost: equipment.supplier_cost || 0,
+            price: equipment.srp || 0,
+            image: equipment.product_images?.[0] || '/assets/no-image.png',
+            quantity: 1
+          };
+          return product;
+        });
 
-      this.updateCategories();
-    } else {
-      console.warn('⚠️ No equipment data received or empty array');
-      this.products = [];
+        this.updateCategories();
+      } else {
+        console.warn('⚠️ No equipment data received or empty array');
+        this.products = [];
+      }
+    } catch (error) {
+      console.error('Error fetching equipment data:', error);
+    } finally {
+      // Add a slight delay for smooth animation
+      setTimeout(() => {
+        this.isLoading = false; // Hide loader
+      }, 1000);
     }
   }
 

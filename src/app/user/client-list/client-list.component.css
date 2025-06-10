@@ -2,14 +2,34 @@
   display: flex;
   min-height: 100vh;
   background-color: #f8f9fa;
-  margin-top: 50px;
+  margin-top: 50px; /* Space for breadcrumbs */
 }
 
 .main-content {
   flex: 1;
-  margin-left: 250px;
+  margin-left: 240px; /* Match sidebar width */
   padding: 2rem;
-  transition: margin-left 0.3s;
+  transition: all 0.3s ease;
+  position: relative;
+  padding-top: 60px; /* Space for breadcrumbs */
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 72px; /* Match collapsed sidebar width */
+}
+
+/* Add these breadcrumb styles */
+:host ::ng-deep app-breadcrumb {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 240px; /* Match sidebar width */
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+:host ::ng-deep .sidebar-collapsed app-breadcrumb {
+  left: 72px; /* Match collapsed sidebar width */
 }
 
 .content-container {
@@ -331,18 +351,17 @@ mat-chip {
 
 /* Responsive styles */
 @media (max-width: 768px) {
-  .main-content {
+  .main-content,
+  .main-content.sidebar-collapsed {
     margin-left: 0;
     padding: 1rem;
+    padding-top: 60px;
   }
 
-  .mat-header-cell,
-  .mat-cell {
-    padding: 0.75rem;
-  }
-
-  .card .card-header {
-    padding: 1rem;
+  :host ::ng-deep app-breadcrumb,
+  :host ::ng-deep .sidebar-collapsed app-breadcrumb {
+    left: 0;
+    width: 100%;
   }
 }
 

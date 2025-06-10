@@ -102,7 +102,7 @@ interface GroupedEquipment {
         style({ opacity: 0, transform: 'translateY(20px)' }),
         animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
       ])
-   ]),
+  ]),
 
     // Fade animation for content
     trigger('fadeInOut', [
@@ -118,6 +118,7 @@ interface GroupedEquipment {
 })
 
 export class EquipmentListComponent implements OnInit {
+  isCollapsed: boolean = false;
   equipmentList: any[] = [];
   groupedEquipment: { [key: string]: GroupedEquipment } = {};
   filteredEquipmentList: any[] = [];
@@ -167,7 +168,7 @@ dropdownOpen = false;
 selectedOwnership: string | null = null;
 
   constructor(
-    private supabaseService: SupabaseService,
+     private supabaseService: SupabaseService,
     private router: Router,
     private cdRef: ChangeDetectorRef,
     public dialog: MatDialog,
@@ -205,6 +206,14 @@ openImagePreview(imageUrl: string) {
   window.open(imageUrl, '_blank');
 }
 
+onBarcodeError(event: any) {
+  console.error('Error loading barcode image:', event);
+  this.snackBar.open('Error loading barcode image', 'Close', {
+    duration: 3000,
+    panelClass: ['error-snackbar']
+  });
+}
+
 getEquipmentIcon(equipmentGroup: any): string {
   // Example logic: return different icons based on equipment group name or type
   if (!equipmentGroup || !equipmentGroup.name) {
@@ -239,6 +248,10 @@ getStatusSeverity(status: string): string {
   }
 }
 
+  onSidebarCollapsed(collapsed: boolean): void {
+    this.isCollapsed = collapsed;
+    this.cdRef.detectChanges();
+  }
 
 openEquipmentModal() {
   const dialogRef = this.dialog.open(AddEquipmentComponent, {
@@ -485,18 +498,29 @@ async openTrashModal() {
       this.loadEquipment(); // 🔄 Reload equipment list
     }
 
-    openBarcodeModal(barcodeUrl: string | null) {
-      console.log("🔍 Opening barcode modal with URL:", barcodeUrl); // Add debug log
+    openBarcodeModal(barcodeData: string) {
+  console.log('Raw barcode data:', barcodeData);
 
-      if (!barcodeUrl) {
-        console.warn("⚠ No Barcode available.");
-        return;
-      }
+  if (!barcodeData) {
+    console.warn('No barcode data provided');
+    this.snackBar.open('No barcode data available', 'Close', {
+      duration: 3000,
+      panelClass: ['warning-snackbar']
+    });
+    return;
+  }
 
-      this.selectedBarcode = barcodeUrl;
-      this.isBarcodeModalOpen = true;
-      this.cdRef.detectChanges(); // Force update
-    }
+  // If the data is already a complete data URL, use it as is
+  if (barcodeData.startsWith('data:image/')) {
+    this.selectedBarcode = barcodeData;
+  } else {
+    // If it's just the base64 string, add the proper prefix
+    this.selectedBarcode = `data:image/png;base64,${barcodeData.replace(/^data:image\/png;base64,/, '')}`;
+  }
+
+  this.isBarcodeModalOpen = true;
+  console.log('Processed barcode data:', this.selectedBarcode);
+}
 
   closeBarcodeModal() {
     this.isBarcodeModalOpen = false;

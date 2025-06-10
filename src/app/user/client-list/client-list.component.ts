@@ -51,6 +51,7 @@ export class ClientListComponent implements OnInit, AfterViewInit {
   pageIndex = 0;
   displayProjectDetails: boolean = false;
   selectedClient: any = null;
+  isCollapsed = false;
 
   constructor(
     private clientService: ClientService,
@@ -109,5 +110,10 @@ export class ClientListComponent implements OnInit, AfterViewInit {
     if (this.ref) {
       this.ref.close();
     }
+  }
+
+  // Add method to handle sidebar collapse
+  onSidebarCollapsed(collapsed: boolean) {
+    this.isCollapsed = collapsed;
   }
 }

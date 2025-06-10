@@ -8,8 +8,9 @@
   </div>
 </div>
 
-<app-sidebar></app-sidebar>
-<div class="dashboard-container">
+<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
+<div class="dashboard-container" [class.sidebar-collapsed]="isCollapsed">
   <!-- Summary Cards -->
   <div class="summary-cards">
     <!-- Total Suppliers Card -->
@@ -78,7 +79,7 @@
       <div class="card-icon bg-green-50 text-green-600">
         <i class="fas fa-trophy" style="color: #4d4d55;"></i>
       </div>
-      <h3 class="card-value"> {{ topSupplierName }}</h3>  
+      <h3 class="card-value"> {{ topSupplierName }}</h3>
     </div>
     <p class="card-label">Top Ranked Supplier</p>
     <a (click)="scrollToRanking()" class="card-link">

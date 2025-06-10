@@ -1,5 +1,6 @@
 import { Component, OnInit, Inject, ChangeDetectorRef } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import QRCode from 'qrcode';
 import JsBarcode from 'jsbarcode';
 import { SupabaseService } from '../../services/supabase.service';
@@ -12,26 +13,29 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import * as tf from '@tensorflow/tfjs';
 import * as use from '@tensorflow-models/universal-sentence-encoder';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+
 
 
 interface InhouseEquipment {
+  id?: string;
   name: string;
-  brand: string;
-  model: string;
   quantity: number;
-  serial_number: string;
+  images: string[];
+  serial_number: string;  // Match the database column name
   qr_code: string;
   barcode: string;
-  images: string[];
   date_acquired: string;
   product_type: string;
+  brand: string;
+  model: string;
   condition: string;
   damaged: boolean;
   repair_logs: any[];
   return_slip: string | File;
-  inactive_reason?: string;  // New field
-  inactive_location?: string; // New field
-  ownership_type: 'government' | 'private';
+  inactive_reason?: string;
+  inactive_location?: string;
+  status?: string;
 }
 
 interface CategoryContext {
@@ -46,7 +50,7 @@ interface CategorySpecs {
 @Component({
   selector: 'app-add-equipment',
   standalone: true,
-  imports: [FormsModule, CommonModule, NgIf, MatDialogModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [FormsModule, CommonModule, NgIf, MatDialogModule, MatIconModule, MatProgressSpinnerModule,  MatSnackBarModule],
   templateUrl: './add-equipment.component.html',
   styleUrls: ['./add-equipment.component.css'],
   animations: [
@@ -121,7 +125,7 @@ inhouseEquipmentArray: InhouseEquipment[] = [{
   damaged: false,
   repair_logs: [],
   return_slip: '',
-  ownership_type: 'private'
+  // ownership_type: 'private'
 }];
 
   productCategories = [
@@ -340,7 +344,8 @@ private categorySearchTerms: { [key: string]: string[] } = {
     private router: Router,
     private cdRef: ChangeDetectorRef,
     public dialogRef: MatDialogRef<AddEquipmentComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any // Inject dialog data
+    @Inject(MAT_DIALOG_DATA) public data: any, // Inject dialog data
+    private snackBar: MatSnackBar
   ) {}
 
   async ngOnInit() {
@@ -401,25 +406,23 @@ removeInhouseEquipment(index: number) {
 }
 
 addInhouseEquipment() {
-  this.inhouseEquipmentArray.push({
-      name: '',
-      brand: '',
-      model: '',
-      quantity: 1,
-      serial_number: '',
-      qr_code: '',
-      barcode: '',
-      images: [],
-      date_acquired: new Date().toISOString().split('T')[0],
-      product_type: 'operational_equipment',
-      condition: '',
-      damaged: false,
-      repair_logs: [],
-      return_slip: '',
-      inactive_reason: '', // Initialize new field
-      inactive_location: '', // Initialize new field
-      ownership_type: 'private' // Add required property with default value
-    });
+  const newEquipment: InhouseEquipment = {
+    name: '',
+    quantity: 1,
+    images: [],
+    serial_number: '',  // Match the interface property
+    qr_code: '',
+    barcode: '',
+    date_acquired: new Date().toISOString().split('T')[0],
+    product_type: '',
+    brand: '',
+    model: '',
+    condition: '',
+    damaged: false,
+    repair_logs: [],
+    return_slip: ''
+  };
+  this.inhouseEquipmentArray.push(newEquipment);
 }
 
   onSupplierChange(event: any, index: number) {
@@ -603,9 +606,15 @@ async loadSupplierEquipment(supplierName: string) {
 
         const uuid = self.crypto.randomUUID();
 
+        // Generate QR code and barcode
         this.loadingMessage = 'Generating QR code and barcode...';
         await this.generateQRCode(equipment);
-        await this.generateBarcode(equipment);
+        await this.generateInhouseBarcode(equipment); // Generate barcode
+
+        // Verify barcode was generated
+        if (!equipment.barcode) {
+          console.warn('Failed to generate barcode for equipment:', equipment.name);
+        }
 
         this.loadingMessage = 'Uploading images...';
         const imageInput = document.getElementById(`inhouseImageInput${this.inhouseEquipmentArray.indexOf(equipment)}`) as HTMLInputElement;
@@ -630,7 +639,7 @@ async loadSupplierEquipment(supplierName: string) {
           quantity: equipment.quantity,
           serial_number: equipment.serial_number,
           qr_code: equipment.qr_code,
-          barcode: equipment.barcode,
+          barcode: equipment.barcode, // Make sure this is included
           images: imageUrls,
           date_acquired: equipment.date_acquired,
           product_type: equipment.product_type,
@@ -650,11 +659,7 @@ async loadSupplierEquipment(supplierName: string) {
           .select();
 
         if (error) throw error;
-
-        if (data && data[0]) {
-          this.loadingMessage = 'Generating equipment data...';
-          await this.generateAndStoreEmbedding(data[0].id, equipmentData);
-        }
+        console.log('✅ Equipment saved with barcode:', equipmentData.barcode);
       }
 
       this.dialogRef.close({
@@ -733,15 +738,36 @@ async loadSupplierEquipment(supplierName: string) {
     }
   }
 
-  async generateBarcode(equipment: any) {
-    const data = equipment.serial_no; // Use Serial No. as barcode data
-    try {
+  async generateBarcode(equipment: InhouseEquipment): Promise<string> {
+    return new Promise((resolve) => {
+      if (!equipment.serial_number) {
+        console.warn('No serial number provided for barcode generation');
+        resolve('');
+        return;
+      }
+
       const canvas = document.createElement('canvas');
-      JsBarcode(canvas, data, { format: 'CODE128' });
-      equipment.barcode = canvas.toDataURL(); // Store barcode as base64 image
-    } catch (error) {
-      console.error('Error generating barcode:', error);
-    }
+
+      try {
+        JsBarcode(canvas, equipment.serial_number, {
+          format: "CODE128",
+          width: 2,
+          height: 100,
+          displayValue: true,
+          fontSize: 20,
+          margin: 10,
+          background: "#ffffff"
+        });
+
+        const barcodeData = canvas.toDataURL('image/png');
+        equipment.barcode = barcodeData; // Update the equipment object
+        console.log('Generated barcode for serial:', equipment.serial_number);
+        resolve(barcodeData);
+      } catch (error) {
+        console.error('Error generating barcode:', error);
+        resolve('');
+      }
+    });
   }
 
   async uploadImages(files: FileList, bucketName: "equipment-images" | "profile-pictures" | "equipment-brochures"): Promise<string[]> {
@@ -1195,5 +1221,29 @@ async generateDescription(index: number): Promise<void> {
 
   // Force change detection
   this.cdRef.detectChanges();
+}
+
+async generateInhouseBarcode(equipment: InhouseEquipment) {
+  if (!equipment.serial_number) {
+    console.warn('No serial number provided');
+    return;
+  }
+
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'barcode-' + Date.now(); // Add unique ID
+
+    // Use simpler configuration
+    JsBarcode(canvas, equipment.serial_number);
+
+    // Store the generated barcode
+    equipment.barcode = canvas.toDataURL('image/png');
+
+    console.log('✅ Barcode generated successfully for:', equipment.serial_number);
+    this.cdRef.detectChanges();
+
+  } catch (error) {
+    console.error('❌ Error generating barcode:', error);
+  }
 }
 }

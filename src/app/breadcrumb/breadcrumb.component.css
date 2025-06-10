@@ -1,13 +1,18 @@
 .breadcrumb-nav {
   padding: 12px 24px;
   background-color: #FFFAFA;
-  /* border-bottom: 1px solid #e0e0e0; */
-  /* Add these positioning properties */
-  margin-left: 240px; /* Adjust this value to match your sidebar width */
-  width: calc(100% - 250px); /* Adjust to match sidebar width */
+  margin-left: 240px; /* Default expanded state */
+  width: calc(100% - 240px); /* Default expanded state */
   position: fixed;
   top: 0;
-  z-index: 10; /* Ensure it appears above other content */
+  z-index: 10;
+  transition: margin-left 0.3s ease, width 0.3s ease; /* Add smooth transition */
+}
+
+/* Add collapsed state */
+.breadcrumb-nav.sidebar-collapsed {
+  margin-left: 72px; /* Collapsed width */
+  width: calc(100% - 72px);
 }
 
 .breadcrumb-list {
@@ -70,5 +75,14 @@
       height: 16px;
       width: 16px;
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .breadcrumb-nav,
+  .breadcrumb-nav.sidebar-collapsed {
+    margin-left: 0;
+    width: 100%;
+    padding: 8px 12px;
   }
 }

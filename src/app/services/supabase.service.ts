@@ -1217,16 +1217,38 @@ async getUniqueSuppliersFromCostHistory(equipmentId: string) {
   }
 
   async getInHouseEquipment(): Promise<any[]> {
-    const { data, error } = await this.supabase
-      .from('inhouse')
-      .select('*')
-      .order('name', { ascending: true });
+    try {
+      const { data, error } = await this.supabase
+        .from('inhouse')
+        .select(`
+          id,
+          name,
+          quantity,
+          images,
+          serial_number,
+          qr_code,
+          barcode,
+          date_acquired,
+          product_type,
+          brand,
+          model,
+          status
+        `)
+        .order('name', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching in-house equipment:', error);
+      if (error) {
+        console.error('Error fetching in-house equipment:', error);
+        return [];
+      }
+
+      // Log the fetched data to verify barcode is present
+      console.log('Fetched in-house equipment with barcodes:', data);
+
+      return data || [];
+    } catch (error) {
+      console.error('Unexpected error fetching in-house equipment:', error);
       return [];
     }
-    return data || [];
   }
 
   async getRepairLogs(equipmentId: string): Promise<any[]> {
@@ -2129,6 +2151,7 @@ async markSingleNotificationAsRead(notificationId: string): Promise<void> {
     if (error) throw error;
 
     console.log(`✅ Notification ${notificationId} marked as read.`);
+
   } catch (error) {
     console.error('❌ Error marking notification as read:', error);
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild  } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
@@ -9,7 +9,7 @@ import { DeliveryReceiptComponent } from '../delivery-receipt/delivery-receipt.c
 import { animate, style, transition, trigger, state, keyframes } from '@angular/animations';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-
+import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 
 interface ProjectMaterial {
   equipment_id: string;
@@ -81,7 +81,13 @@ interface PostgrestError {
 @Component({
   selector: 'app-project-materials',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent, ToastModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    SidebarComponent,
+    ToastModule,
+    // BreadcrumbComponent  // Removed because it's not used in the template
+  ],
   templateUrl: './project-materials.component.html',
   styleUrls: ['./project-materials.component.css'],
   providers: [MessageService],
@@ -153,13 +159,24 @@ toastMessage = '';
   rejectedItems: Set<string> = new Set();
   animationState = 'normal';
   isAnimating = false;
+  isSidebarCollapsed: boolean = false
+  isCollapsed = false;
 
   constructor(
     private authService: SupabaseAuthService,
     private supabaseService: SupabaseService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private cdr: ChangeDetectorRef // Add this
   ) {
     this.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+
+
+
+  // Add this method
+  onSidebarCollapsed(collapsed: boolean) {
+    this.isCollapsed = collapsed;
+    this.cdr.detectChanges();
   }
 
   async ngOnInit() {
@@ -1484,7 +1501,7 @@ async saveEditedProject() {
   //                   // New equipment -> Deduct full quantity
   //                   quantityToDeduct = material.quantity;
   //               } else if (material.quantity > oldMaterial.quantity) {
-  //                   // Increased quantity -> Deduct only the difference
+  //                   // Increased quantity -> Deduct the difference
   //                   quantityToDeduct = material.quantity - oldMaterial.quantity;
   //               }
 
@@ -1803,7 +1820,7 @@ for (const material of materials || []) {
 //               model: item.model || 'N/A',
 //               brand: item.brand || 'N/A',
 //               quantity: 1, // Default quantity
-//               srp: item.srp ?? 0
+//               srp: item.srp || 0
 //           }));
 //           console.log(`✅ All items added to editProject.materials`);
 //       } else {
@@ -1819,7 +1836,7 @@ for (const material of materials || []) {
 //               model: item.model || 'N/A',
 //               brand: item.brand || 'N/A',
 //               quantity: 1, // Default quantity
-//               srp: item.srp ?? 0
+//               srp: item.srp || 0
 //           }));
 //           console.log(`✅ All items added to selectedEquipments`);
 //       } else {
@@ -2078,7 +2095,7 @@ closeEquipmentDetailsModal() {
 //                 model: item.model || 'N/A',
 //                 brand: item.brand || 'N/A',
 //                 quantity: 1, // Default quantity
-//                 srp: item.srp ?? 0
+//                 srp: item.srp || 0
 //             });
 //             console.log(`✅ Added item to editProject.materials: ${item.name} (SRP: ${item.srp})`);
 //         }
@@ -2098,7 +2115,7 @@ closeEquipmentDetailsModal() {
 //                 model: item.model || 'N/A',
 //                 brand: item.brand || 'N/A',
 //                 quantity: 1, // Default quantity
-//                 srp: item.srp ?? 0
+//                 srp: item.srp || 0
 //             });
 //             console.log(`✅ Added item to selectedEquipments: ${item.name} (SRP: ${item.srp})`);
 //         }
@@ -2175,7 +2192,6 @@ toggleEquipmentItem(item: Equipment) {
 isEquipmentSelected(equipmentId: string): boolean {
   return this.selectedEquipments.some(eq => eq.equipment_id === equipmentId);
 }
-
 
 // addToSelectedEquipments(item: Equipment) {
 //   const exists = this.selectedEquipments.some(eq => eq.equipment_id === item.id);
@@ -2437,7 +2453,4 @@ approveEquipment(equipment: any) {
     }
     console.log(`✅ Approved equipment: ${equipment.name}`);
 }
-
-
-
 }

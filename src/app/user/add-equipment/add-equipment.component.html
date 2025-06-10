@@ -243,7 +243,12 @@
           <div class="form-row">
             <div class="form-group">
               <label>Serial Number*</label>
-              <input type="text" [(ngModel)]="equipment.serial_number" name="serial_number{{i}}" required />
+              <input
+                type="text"
+                [(ngModel)]="equipment.serial_number"
+                name="serial_number{{i}}"
+                (blur)="generateInhouseBarcode(equipment)"
+                required />
             </div>
             <div class="form-group">
               <label>Date Acquired</label>
@@ -328,6 +333,14 @@
               <label>Barcode</label>
               <input type="text" [(ngModel)]="equipment.barcode" name="barcode{{i}}" readonly placeholder="Auto-Generated" />
               <img *ngIf="equipment.barcode" [src]="equipment.barcode" alt="Barcode" class="img-thumbnail mt-2" />
+            </div>
+          </div>
+
+          <!-- Add this in your template where you want to show the barcode -->
+          <div class="form-group">
+            <label>Barcode Preview</label>
+            <div class="barcode-preview" *ngIf="equipment.barcode">
+              <img [src]="equipment.barcode" alt="Equipment barcode" />
             </div>
           </div>
 

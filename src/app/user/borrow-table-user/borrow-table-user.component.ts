@@ -64,6 +64,8 @@ interface BorrowRequest {
   styleUrl: './borrow-table-user.component.css'
 })
 export class BorrowTableUserComponent implements OnInit, AfterViewInit {
+  // Add isLoading property
+  isLoading: boolean = true;
 
 displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_date', 'return_date', 'action'];
   dataSource = new MatTableDataSource<BorrowRequest>([]);
@@ -92,7 +94,15 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
 
 
   async ngOnInit() {
-    this.fetchBorrowRequests();
+    try {
+      this.isLoading = true; // Show loader
+      await this.fetchBorrowRequests();
+    } finally {
+      // Add a slight delay to ensure smooth animation
+      setTimeout(() => {
+        this.isLoading = false; // Hide loader
+      }, 1000);
+    }
   }
 
   ngAfterViewInit() {
@@ -112,12 +122,13 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
 
   async fetchBorrowRequests(): Promise<void> {
   try {
+    this.isLoading = true; // Show loader while fetching
     console.log(`🔍 Fetching ALL borrow requests`);
 
     // 1. Fetch basic request data (REMOVED the user_id filter)
     const { data: requests, error: requestsError } = await this.supabaseService
       .from('borrow_requests')
-      .select(`id, user_id, borrow_date, return_date, borrower_name, 
+      .select(`id, user_id, borrow_date, return_date, borrower_name,
               borrower_department, borrower_contact, borrower_email, purpose, status`)
       .order('borrow_date', { ascending: false }); // Optional: sort by most recent
 
@@ -133,8 +144,8 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
         const { data: equipmentData, error: equipmentError } = await this.supabaseService
           .from('borrow_request_equipment')
           .select(`
-            inhouse_equipment_id, 
-            quantity, 
+            inhouse_equipment_id,
+            quantity,
             inhouse!borrow_request_equipment_inhouse_equipment_id_fkey (name, images)
           `)
           .eq('borrow_request_id', request.id);
@@ -177,13 +188,18 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
   } catch (error) {
     console.error('❌ Failed to load borrow requests:', error);
     alert('Error loading borrow requests. Please try again.');
+  } finally {
+    // Add a slight delay for smooth animation
+    setTimeout(() => {
+      this.isLoading = false; // Hide loader
+    }, 1000);
   }
 }
 
 
 filterBorrowRequests(): void {
   const term = this.searchTerm.toLowerCase().trim();
-  
+
   if (!term) {
     this.dataSource.data = this.borrowRequests; // Reset to all data
   } else {
