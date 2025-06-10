@@ -27,6 +27,7 @@ import { AccordionModule } from 'primeng/accordion';
 import { PaginatorModule } from 'primeng/paginator';
 import { ToastModule } from 'primeng/toast';
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType } from 'docx';
+import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 
 
 interface TimeframeOption {
@@ -41,6 +42,7 @@ interface TimeframeOption {
     CommonModule,
     NgFor,
     SidebarComponent,
+    BreadcrumbComponent, // Add this line
     MatCardModule,
     MatSelectModule,
     MatIconModule,
@@ -67,6 +69,7 @@ interface TimeframeOption {
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
+  isCollapsed = false;
 
   userEmail: string | null = null;
   selectedEquipmentId: string | null = null;
@@ -105,9 +108,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   currentPrice: number | null = null;
   lowestPriceDate: string | null = null;
   highestPriceDate: string | null = null;
-  
+
   isLoading: boolean = true;
-  
+
   // Add new properties for sparkline data
   supplierSparkline: Chart | null = null;
   equipmentSparkline: Chart | null = null;
@@ -176,7 +179,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
       // Load historical data
       await this.loadHistoricalData();
-      
+
       // Initialize sparkline charts
       this.initializeSparklines();
 
@@ -759,13 +762,13 @@ updateChart() {
     });
 
     // Prepare datasets for each selected supplier
-    const supplierDatasets = this.selectedSuppliers.length > 0 
+    const supplierDatasets = this.selectedSuppliers.length > 0
       ? this.selectedSuppliers.map((supplierId, index) => {
           const supplier = this.selectedEquipmentSuppliers.find(s => s.id === supplierId);
-          const supplierData = this.costHistory.filter(entry => 
+          const supplierData = this.costHistory.filter(entry =>
             supplier && entry.supplier === supplier.name
           );
-          
+
           // Create data points for this supplier
           const dataPoints = allDates.map(date => {
             const entry = supplierData.find(d => d.date_updated === date);
@@ -853,10 +856,10 @@ updateChart() {
 
     // Format dates
     const labels = allDates.map(date => {
-      return new Date(date).toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
+      return new Date(date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
       });
     });
 
@@ -977,8 +980,8 @@ updateChart() {
     });
 
     // Update the filtered cost history for display
-    this.filteredCostHistory = this.costHistory.filter(entry => 
-      this.selectedSuppliers.length === 0 || 
+    this.filteredCostHistory = this.costHistory.filter(entry =>
+      this.selectedSuppliers.length === 0 ||
       this.selectedSuppliers.includes(
         this.selectedEquipmentSuppliers.find(s => s.name === entry.supplier)?.id || ''
       )
@@ -1119,34 +1122,34 @@ updateChart() {
     const { data: suppliers, error: supError } = await this.supabaseService
       .from('suppliers')
       .select('*');
-    
+
     if (supError) throw supError;
 
     const { data: equipments, error: eqError } = await this.supabaseService
       .from('equipments')
       .select('id, supplier, supplier_cost, quantity, status');
-    
+
     if (eqError) throw eqError;
 
     // Calculate scores for each supplier
     const ranked = suppliers.map(supplier => {
       const supplierProducts = equipments.filter(e => e.supplier === supplier.supplier_name);
-      
+
       // Price score (lower average is better)
-      const avgPrice = supplierProducts.reduce((sum, p) => sum + (p.supplier_cost || 0), 0) / 
+      const avgPrice = supplierProducts.reduce((sum, p) => sum + (p.supplier_cost || 0), 0) /
                       (supplierProducts.length || 1);
       const priceScore = 10 - (avgPrice / 1000); // Adjust divisor based on your price range
-      
+
       // Inventory score
       const totalStock = supplierProducts.reduce((sum, p) => sum + (p.quantity || 0), 0);
       const inventoryScore = Math.min(10, totalStock / 50); // Adjust divisor based on your stock levels
-      
+
       // Reliability score (placeholder - you might need to track this separately)
       const reliabilityScore = 7 + Math.random() * 3; // Random for now
-      
+
       // Overall score
       const overallScore = (priceScore * 0.4) + (inventoryScore * 0.3) + (reliabilityScore * 0.3);
-      
+
       return {
         ...supplier,
         price_score: Math.min(10, Math.max(0, priceScore)),
@@ -1224,17 +1227,17 @@ async exportRankingData() {
     // Generate the DOCX file
     const blob = await Packer.toBlob(doc);
     const url = URL.createObjectURL(blob);
-    
+
     // Create download link
     const link = document.createElement('a');
     link.setAttribute('href', url);
     link.setAttribute('download', `supplier_ranking_${new Date().toISOString().slice(0,10)}.docx`);
     link.style.visibility = 'hidden';
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Show success notification
     alert('Supplier ranking exported successfully as Word document');
   } catch (error) {
@@ -1327,5 +1330,9 @@ private createDataCell(text: string, highlight: boolean = false): TableCell {
   });
 }
 
+onSidebarCollapsed(collapsed: boolean) {
+    this.isCollapsed = collapsed;
+    this.cdr.detectChanges();
+  }
 
 }

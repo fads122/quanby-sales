@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -16,6 +16,7 @@ import { SupabaseSupplierService } from '../../services/supabase_supplier.servic
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
 import { Router, RouterLink } from '@angular/router';
 import { MatDividerModule } from '@angular/material/divider';
+import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-supplier-list',
@@ -25,6 +26,7 @@ import { MatDividerModule } from '@angular/material/divider';
   imports: [
     CommonModule,
     SidebarComponent,
+    BreadcrumbComponent,
     FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -51,6 +53,7 @@ export class SupplierListComponent implements OnInit {
   totalPages: number = 1;
   editingSupplier: any = null;
   isLoading: boolean = true;
+  isCollapsed = false;
 
   displayedColumns: string[] = ['number', 'supplier_name', 'contact_person', 'phone', 'email', 'actions'];
   dataSource!: MatTableDataSource<any>;
@@ -63,10 +66,10 @@ export class SupplierListComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    // private dialog: MatDialog,
     private supabaseService: SupabaseSupplierService,
     private authService: SupabaseAuthService,
-    private router: Router
+    private router: Router,
+    private cdRef: ChangeDetectorRef
   ) {
     this.supplierForm = this.fb.group({
       supplier_name: ['', Validators.required],
@@ -157,11 +160,12 @@ export class SupplierListComponent implements OnInit {
   }
 
   async deleteSupplier(): Promise<void> {
-    if (this.supplierToDelete === null) return;
+    if (this.supplierToDelete === null) {  // Fixed missing parenthesis
+      return;
+    }
 
     try {
       await this.supabaseService.deleteSupplier(this.supplierToDelete);
-      // this.dialog.closeAll();
       await this.fetchSuppliers();
     } catch (error) {
       alert('Failed to delete supplier. Please try again.');
@@ -216,5 +220,11 @@ export class SupplierListComponent implements OnInit {
   get paginatedSuppliers(): any[] {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredSuppliers.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  // Add this method to handle sidebar collapse
+  onSidebarCollapsed(collapsed: boolean): void {
+    this.isCollapsed = collapsed;
+    this.cdRef.detectChanges();
   }
 }

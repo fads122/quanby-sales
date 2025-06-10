@@ -1,8 +1,8 @@
-<app-sidebar></app-sidebar>
-<p-toast position="top-right"></p-toast>
-<body>
-<div class="container">
-  <div class="main-content">
+<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+
+<div class="content-wrapper" [class.sidebar-collapsed]="isCollapsed">
+  <div class="project-materials-container">
+    <!-- Your existing content here -->
     <div class="button-row">
   <h4>My Projects</h4>
   <div class="action-buttons">
@@ -251,7 +251,7 @@
       <tbody>
         <tr *ngFor="let selected of selectedEquipments">
           <!-- Columns that should have strikethrough when rejected -->
-          <!-- <td [class.rejected-text]="selected.status === 'rejected'">{{ selected.name }}</td> -->
+          <!-- <td [class.rejected]="{{ selected.status === 'rejected' }}">{{ selected.name }}</td> -->
           <td [class.rejected-text]="selected.status === 'rejected'">{{ selected.brand }}</td>
           <td [class.rejected-text]="selected.status === 'rejected'">{{ selected.model }}</td>
           <td [class.rejected-text]="selected.status === 'rejected'">{{ selected.supplier }}</td>
@@ -711,5 +711,3 @@
     <h3>Loading Projects...</h3>
   </div>
 </div>
-
-</body>

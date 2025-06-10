@@ -10,12 +10,17 @@
 }
 
 .dashboard-container {
-  margin-left: 240px; /* Adjusted sidebar width */
+  margin-left: 240px; /* Default expanded state */
   padding: 1.5rem;
   transition: margin-left 0.3s ease;
   max-width: 100%;
   box-sizing: border-box;
   margin-top: 50px; /* Space for fixed header */
+}
+
+/* Add styles for collapsed state */
+.dashboard-container.sidebar-collapsed {
+  margin-left: 72px; /* Collapsed width */
 }
 
 /* Summary Cards - Compact Design */
@@ -687,6 +692,13 @@
 }
 
 @media (max-width: 768px) {
+  .dashboard-container,
+  .dashboard-container.sidebar-collapsed {
+    margin-left: 0;
+    padding: 1rem;
+    padding-top: 70px;
+  }
+
   .section-header, .activities-footer {
     flex-direction: column;
     align-items: flex-start;

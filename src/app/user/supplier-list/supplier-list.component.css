@@ -25,10 +25,17 @@
 
 /* Main Layout - Adjusted for sidebar */
 .supplier-management-container {
-  margin-left: 240px;
+  margin-left: 240px; /* Default expanded state */
   padding: 32px;
+  transition: margin-left 0.3s ease;
   background-color: #FFFAFA;
   min-height: calc(100vh - 64px);
+  margin-top: 64px; /* Space for breadcrumb */
+}
+
+/* Add collapsed state */
+.supplier-management-container.sidebar-collapsed {
+  margin-left: 72px; /* Collapsed width */
 }
 
 /* Header Styles */
@@ -546,6 +553,14 @@
   .dialog-container {
     min-width: 90vw;
     max-width: 90vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .supplier-management-container,
+  .supplier-management-container.sidebar-collapsed {
+    margin-left: 0;
+    padding: 24px 16px;
   }
 }
 

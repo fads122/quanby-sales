@@ -1,4 +1,6 @@
-<nav aria-label="Breadcrumb" class="breadcrumb-nav"
+<nav aria-label="Breadcrumb"
+     class="breadcrumb-nav"
+     [class.sidebar-collapsed]="isCollapsed"
      *ngIf="(breadcrumbService.breadcrumbs$ | async)?.length ?? 0 > 0">
   <ol class="breadcrumb-list">
     <!-- Home icon -->

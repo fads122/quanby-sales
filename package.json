@@ -28,7 +28,7 @@
     "bootstrap": "^5.3.6",
     "chart.js": "^4.4.9",
     "docx": "^9.5.0",
-    "jsbarcode": "^3.11.6",
+    "jsbarcode": "^3.12.0",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "openai": "^5.1.0",

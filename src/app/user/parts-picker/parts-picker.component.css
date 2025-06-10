@@ -1,3 +1,22 @@
+/* Add Intel Font Import at the top */
+@import url('https://fonts.googleapis.com/css2?family=Intel:wght@300;400;500;600;700&display=swap');
+
+@font-face {
+  font-family: 'Intel Clear';
+  src: url('/assets/fonts/IntelClear-Regular.woff2') format('woff2'),
+       url('/assets/fonts/IntelClear-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Intel Clear';
+  src: url('/assets/fonts/IntelClear-Bold.woff2') format('woff2'),
+       url('/assets/fonts/IntelClear-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+}
+
 /* General Styles */
 .equipment-container {
   margin-left: 230px;
@@ -6,7 +25,7 @@
   padding-top: 80px;
   padding-left: 20px;
   padding-right: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Intel', sans-serif;  /* Changed font family */
   color: #333;
   background-color: #FFFAFA;
   min-height: 100vh;
@@ -433,6 +452,7 @@
   font-size: 20px;
   text-align: center;
   color: #242770;
+  font-weight: 600;
 }
 
 .modal-close-button {
@@ -456,6 +476,7 @@
   padding: 12px 0;
   border-bottom: 1px solid #f1f5f9;
   font-size: 14px;
+  font-family: 'Intel', sans-serif;
 }
 
 .modal-item:last-child {

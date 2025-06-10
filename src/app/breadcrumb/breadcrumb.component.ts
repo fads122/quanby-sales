@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
@@ -22,5 +22,13 @@ import { AsyncPipe } from '@angular/common';
   styleUrls: ['./breadcrumb.component.css']
 })
 export class BreadcrumbComponent {
-  constructor(public breadcrumbService: BreadcrumbService) {}
+  isCollapsed = false;
+
+  constructor(
+    public breadcrumbService: BreadcrumbService
+  ) {}
+
+  @Input() set sidebarCollapsed(value: boolean) {
+    this.isCollapsed = value;
+  }
 }

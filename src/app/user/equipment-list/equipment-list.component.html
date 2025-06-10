@@ -1,5 +1,6 @@
-<app-sidebar></app-sidebar>
-<body class="body-equip-list">
+<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
+<body class="body-equip-list" [class.sidebar-collapsed]="isCollapsed">
   <!-- Loading Overlay -->
   <div *ngIf="isLoading" class="loading-overlay">
     <div class="loading-content">
@@ -227,12 +228,19 @@
     <div class="modal-overlay" *ngIf="isBarcodeModalOpen" (click)="closeBarcodeModal()">
       <div class="modal-content barcode-modal" (click)="$event.stopPropagation()">
         <h2 class="modal-title">Barcode</h2>
-        <img *ngIf="selectedBarcode" [src]="selectedBarcode" alt="Barcode" class="barcode-image">
-        <p *ngIf="!selectedBarcode">No Barcode available</p>
-        <div class="modal-actions">
-          <button class="close-btn" (click)="closeBarcodeModal()">Close</button>
-          <button class="print-btn" *ngIf="selectedBarcode" (click)="printBarcode()">Print</button>
-        </div>
+        <div class="barcode-container">
+      <img *ngIf="selectedBarcode"
+           [src]="selectedBarcode"
+           alt="Barcode"
+           class="barcode-image"
+           (error)="onBarcodeError($event)"
+           style="max-width: 300px; width: 100%; background: white; padding: 15px;">
+      <p *ngIf="!selectedBarcode">No Barcode available</p>
+    </div>
+    <div class="modal-actions">
+      <button class="close-btn" (click)="closeBarcodeModal()">Close</button>
+      <button class="print-btn" *ngIf="selectedBarcode" (click)="printBarcode()">Print</button>
+    </div>
       </div>
     </div>
 
