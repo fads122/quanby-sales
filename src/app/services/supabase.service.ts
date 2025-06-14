@@ -3,6 +3,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Router } from '@angular/router';
 import * as tf from '@tensorflow/tfjs';
 import * as use from '@tensorflow-models/universal-sentence-encoder';
+import { environment } from '../../environments/environment';
 
 interface UserProfileUpdates {
   first_name?: string;
@@ -21,8 +22,8 @@ interface EquipmentMovement {
   employee_id: string;
   status: string;
 }
-const SUPABASE_URL = 'https://xvcgubrtandfivlqcmww.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2Y2d1YnJ0YW5kZml2bHFjbXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxNDk4NjYsImV4cCI6MjA1NDcyNTg2Nn0.yjd-SXfzJe6XmuNpI2HsZcI9EsS9AxBXI-qukzgcZig'; // Replace with your Supabase Key
+const SUPABASE_URL = environment.SUPABASE_URL;
+const SUPABASE_KEY = environment.SUPABASE_KEY;
 
 interface VectorSearchParams {
   query_embedding: number[];
@@ -2334,6 +2335,7 @@ async updateUserProfile(
   profileImage?: string | null
 ) {
   const updates: { [key: string]: any } = {};
+
   if (firstName !== undefined && firstName !== null) {
     updates['first_name'] = firstName;
   }
@@ -2760,5 +2762,182 @@ async semanticSearch(query: string, threshold = 0.3): Promise<any[]> {
     } finally {
       this.isModelLoading = false;
     }
+  }
+
+  // Add this method to your SupabaseService class
+  async createUserSupplierRelationships(supplierId: number, userIds: string[]): Promise<boolean> {
+    try {
+      console.log(`🔄 Creating user-supplier relationships for supplier ${supplierId} with users:`, userIds);
+
+      // Create relationship records
+      const relationships = userIds.map(userId => ({
+        supplier_id: supplierId,
+        user_id: userId,
+        created_at: new Date().toISOString()
+      }));
+
+      const { data, error } = await this.supabase
+        .from('user_supplier_relationships')
+        .insert(relationships)
+        .select();
+
+      if (error) {
+        console.error('❌ Error creating user-supplier relationships:', error);
+        throw error;
+      }
+
+      console.log(`✅ Successfully created ${relationships.length} user-supplier relationships`);
+      return true;
+
+    } catch (error) {
+      console.error('❌ Failed to create user-supplier relationships:', error);
+      throw error;
+    }
+  }
+
+  async getUserSupplierRelationships(supplierId?: number, userId?: string): Promise<any[]> {
+    try {
+      let query = this.supabase
+        .from('user_supplier_relationships')
+        .select(`
+          id,
+          supplier_id,
+          user_id,
+          created_at,
+          suppliers!inner(supplier_name, contact_person),
+          users!inner(first_name, last_name, email, usertype)
+        `);
+
+      if (supplierId) {
+        query = query.eq('supplier_id', supplierId);
+      }
+
+      if (userId) {
+        query = query.eq('user_id', userId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('❌ Error fetching user-supplier relationships:', error);
+        throw error;
+      }
+
+      return data || [];
+
+    } catch (error) {
+      console.error('❌ Failed to fetch user-supplier relationships:', error);
+      return [];
+    }
+  }
+
+  // Add these methods to your SupabaseService class
+  async getAllUsers() {
+    const { data, error } = await this.supabase
+      .from('users')
+      .select('id, first_name, last_name, email, usertype')
+      .order('first_name', { ascending: true });
+
+    return { data, error };
+  }
+
+  async getUsers() {
+    const { data, error } = await this.supabase
+      .from('users')
+      .select('id, first_name, last_name, email, usertype')
+      .eq('usertype', 'user');
+
+    return { data, error };
+  }
+
+  async updateUser(userId: string, firstName: string, lastName: string, email: string) {
+    const { error } = await this.supabase
+      .from('users')
+      .update({ first_name: firstName, last_name: lastName, email })
+      .eq('id', userId);
+
+    return { error };
+  }
+
+  async signUp(email: string, password: string) {
+    return await this.supabase.auth.signUp({ email, password });
+  }
+
+  async insertProfile(userId: string, firstName: string, lastName: string, email: string) {
+    const { error } = await this.supabase
+      .from('users')
+      .insert([{ id: userId, first_name: firstName, last_name: lastName, email }]);
+
+    return { error };
+  }
+
+  async deleteUser(userId: string) {
+    const { error } = await this.supabase
+      .from('users')
+      .delete()
+      .eq('id', userId);
+
+    return { error };
+  }
+
+  async insertSupplier(
+    supplierName: string,
+    contactPerson: string,
+    phone: string,
+    email: string,
+    address: string,
+    groupChatLink: string,
+    facebook: string,
+    viber: string,
+    telegram: string,
+    instagram: string,
+    userId?: string
+  ) {
+    const { data, error } = await this.supabase
+      .from('suppliers')
+      .insert([{
+        supplier_name: supplierName,
+        contact_person: contactPerson,
+        phone,
+        email,
+        address,
+        group_chat_link: groupChatLink,
+        facebook,
+        viber,
+        telegram,
+        instagram,
+        user_id: userId
+      }])
+      .select('id')
+      .single();
+
+    return { data, error };
+  }
+
+  async insertSupplierUser(userId: string, firstName: string, lastName: string, email: string, usertype: string) {
+    const { error } = await this.supabase
+      .from('users')
+      .insert([{
+        id: userId,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        usertype
+      }]);
+
+    return { error };
+  }
+
+  async insertSupplierToken(supplierId: number, token: string, expiresAt: string) {
+    const { error } = await this.supabase
+      .from('supplier_access_tokens')
+      .insert([{
+        supplier_id: supplierId,
+        token,
+        expires_at: expiresAt,
+        is_used: false
+      }]);
+
+    return { error };
   }
 }

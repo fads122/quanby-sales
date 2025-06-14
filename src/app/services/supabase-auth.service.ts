@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient, AuthError } from '@supabase/supabase-js';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
-const SUPABASE_URL = 'https://xvcgubrtandfivlqcmww.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2Y2d1YnJ0YW5kZml2bHFjbXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxNDk4NjYsImV4cCI6MjA1NDcyNTg2Nn0.yjd-SXfzJe6XmuNpI2HsZcI9EsS9AxBXI-qukzgcZig'; // Replace with your Supabase Key
+const SUPABASE_URL = environment.SUPABASE_URL;
+const SUPABASE_KEY = environment.SUPABASE_KEY;
 
 @Injectable({
   providedIn: 'root',

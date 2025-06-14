@@ -22,7 +22,7 @@ interface InhouseEquipment {
   name: string;
   quantity: number;
   images: string[];
-  serial_number: string;  // Match the database column name
+  serial_number: string;
   qr_code: string;
   barcode: string;
   date_acquired: string;
@@ -36,6 +36,12 @@ interface InhouseEquipment {
   inactive_reason?: string;
   inactive_location?: string;
   status?: string;
+  // Add new properties
+  property_number?: string;
+  size?: string;
+  color?: string;
+  software_name?: string;
+  subscription_expiry?: string;
 }
 
 interface CategoryContext {
@@ -405,12 +411,12 @@ removeInhouseEquipment(index: number) {
   this.inhouseEquipmentArray.splice(index, 1);
 }
 
-addInhouseEquipment() {
+async addInhouseEquipment() {
   const newEquipment: InhouseEquipment = {
     name: '',
     quantity: 1,
     images: [],
-    serial_number: '',  // Match the interface property
+    serial_number: '',
     qr_code: '',
     barcode: '',
     date_acquired: new Date().toISOString().split('T')[0],
@@ -422,7 +428,11 @@ addInhouseEquipment() {
     repair_logs: [],
     return_slip: ''
   };
+
+  // Generate property number immediately
+  await this.generatePropertyNumber(newEquipment);
   this.inhouseEquipmentArray.push(newEquipment);
+  this.cdRef.detectChanges();
 }
 
   onSupplierChange(event: any, index: number) {
@@ -599,23 +609,17 @@ async loadSupplierEquipment(supplierName: string) {
           return;
         }
 
-        if (equipment.condition === 'Inactive' && (!equipment.inactive_reason || !equipment.inactive_location)) {
-          alert('Please provide both reason and location for inactive equipment.');
-          return;
-        }
+        // Generate property number before saving
+        await this.generatePropertyNumber(equipment);
 
         const uuid = self.crypto.randomUUID();
 
         // Generate QR code and barcode
         this.loadingMessage = 'Generating QR code and barcode...';
         await this.generateQRCode(equipment);
-        await this.generateInhouseBarcode(equipment); // Generate barcode
+        await this.generateInhouseBarcode(equipment);
 
-        // Verify barcode was generated
-        if (!equipment.barcode) {
-          console.warn('Failed to generate barcode for equipment:', equipment.name);
-        }
-
+        // Upload images
         this.loadingMessage = 'Uploading images...';
         const imageInput = document.getElementById(`inhouseImageInput${this.inhouseEquipmentArray.indexOf(equipment)}`) as HTMLInputElement;
         let imageUrls: string[] = [];
@@ -623,6 +627,7 @@ async loadSupplierEquipment(supplierName: string) {
           imageUrls = await this.uploadImages(imageInput.files, 'equipment-images');
         }
 
+        // Handle return slip
         let returnSlipUrl = '';
         if (equipment.return_slip instanceof File) {
           this.loadingMessage = 'Uploading return slip...';
@@ -639,7 +644,7 @@ async loadSupplierEquipment(supplierName: string) {
           quantity: equipment.quantity,
           serial_number: equipment.serial_number,
           qr_code: equipment.qr_code,
-          barcode: equipment.barcode, // Make sure this is included
+          barcode: equipment.barcode,
           images: imageUrls,
           date_acquired: equipment.date_acquired,
           product_type: equipment.product_type,
@@ -649,7 +654,13 @@ async loadSupplierEquipment(supplierName: string) {
           repair_logs: equipment.repair_logs,
           return_slip: returnSlipUrl,
           inactive_reason: equipment.condition === 'Inactive' ? equipment.inactive_reason : null,
-          inactive_location: equipment.condition === 'Inactive' ? equipment.inactive_location : null
+          inactive_location: equipment.condition === 'Inactive' ? equipment.inactive_location : null,
+          // Add Property Details
+          property_number: equipment.property_number,
+          size: equipment.size || null,
+          color: equipment.color || null,
+          software_name: equipment.software_name || null,
+          subscription_expiry: equipment.subscription_expiry || null
         };
 
         this.loadingMessage = 'Saving equipment data...';
@@ -659,7 +670,7 @@ async loadSupplierEquipment(supplierName: string) {
           .select();
 
         if (error) throw error;
-        console.log('✅ Equipment saved with barcode:', equipmentData.barcode);
+        console.log('✅ Equipment saved with property details:', equipmentData);
       }
 
       this.dialogRef.close({
@@ -1244,6 +1255,36 @@ async generateInhouseBarcode(equipment: InhouseEquipment) {
 
   } catch (error) {
     console.error('❌ Error generating barcode:', error);
+  }
+}
+
+async generatePropertyNumber(equipment: InhouseEquipment) {
+  try {
+    const year = new Date().getFullYear();
+    const month = (new Date().getMonth() + 1).toString().padStart(2, '0');
+
+    // Get the last property number from database
+    const { data: lastEquipment, error } = await this.supabaseService
+      .from('inhouse')
+      .select('property_number')
+      .order('property_number', { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+
+    let sequence = 1;
+    if (lastEquipment && lastEquipment[0]?.property_number) {
+      const lastSequence = parseInt(lastEquipment[0].property_number.split('-')[2]);
+      sequence = lastSequence + 1;
+    }
+
+    // Format: YYYY-MM-SEQUENCE
+    equipment.property_number = `${year}-${month}-${sequence.toString().padStart(3, '0')}`;
+    console.log('✅ Generated property number:', equipment.property_number);
+    this.cdRef.detectChanges();
+
+  } catch (error) {
+    console.error('❌ Error generating property number:', error);
   }
 }
 }

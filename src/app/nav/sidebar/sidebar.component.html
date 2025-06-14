@@ -30,10 +30,20 @@
 
   <div class="sidebar-footer" *ngIf="!isCollapsed">
     <div class="user-profile">
-      <div class="avatar">JD</div>
+      <div class="avatar" *ngIf="currentUser">{{ userInitials }}</div>
+      <div class="avatar loading" *ngIf="!currentUser">
+        <i class="pi pi-spin pi-spinner"></i>
+      </div>
       <div class="user-info">
-        <div class="name">John Doe</div>
-        <div class="email">john.doequanby.com</div>
+        <div class="name" *ngIf="currentUser?.first_name && currentUser?.last_name">
+          {{ currentUser.first_name }} {{ currentUser.last_name }}
+        </div>
+        <div class="name" *ngIf="currentUser && (!currentUser?.first_name || !currentUser?.last_name)">
+          {{ currentUser?.email?.split('@')[0] || 'User' }}
+        </div>
+        <div class="name loading" *ngIf="!currentUser">Loading...</div>
+        <div class="email" *ngIf="currentUser">{{ currentUser?.email || 'No email' }}</div>
+        <div class="email loading" *ngIf="!currentUser">Loading...</div>
       </div>
       <button class="logout-btn" (click)="confirmLogout()">
         <i class="pi pi-sign-out"></i>

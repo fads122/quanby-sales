@@ -1,13 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { SupabaseService } from '../../services/supabase.service';
-import { NgIf, NgFor, NgClass } from '@angular/common';
+import { NgIf, NgFor, NgClass, NgTemplateOutlet, CommonModule } from '@angular/common';
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
 import { SidebarComponent } from "../../nav/sidebar/sidebar.component";
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-
-
-
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginator } from '@angular/material/paginator';
@@ -15,14 +12,9 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { ViewChild, AfterViewInit } from '@angular/core';
+import { DatePipe, TitleCasePipe } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatCardModule } from '@angular/material/card';
-import { NgTemplateOutlet } from '@angular/common';
-
-
-
-import { DialogModule } from 'primeng/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 interface InhouseEquipment {
@@ -59,39 +51,61 @@ interface BorrowRequest {
 @Component({
   selector: 'app-borrow-table-user',
   standalone: true,
-  imports: [NgIf, NgFor,NgClass, SidebarComponent, NgTemplateOutlet, MatPaginatorModule, MatCardModule, MatTooltipModule, MatDialogModule, FormsModule, MatIconModule ,MatTableModule, MatTableModule, DialogModule, ],
+  imports: [
+    CommonModule,
+    NgIf,
+    NgFor,
+    NgClass,
+    NgTemplateOutlet,
+    FormsModule,
+    MatTableModule,
+    MatIconModule,
+    MatPaginatorModule,
+    MatDialogModule,
+    DatePipe,
+    TitleCasePipe,
+    MatTooltipModule,
+    SidebarComponent
+  ],
   templateUrl: './borrow-table-user.component.html',
-  styleUrl: './borrow-table-user.component.css'
+  styleUrls: ['./borrow-table-user.component.css']
 })
 export class BorrowTableUserComponent implements OnInit, AfterViewInit {
-  // Add isLoading property
   isLoading: boolean = true;
+  selectedBorrower: any = null;
 
 displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_date', 'return_date', 'status', 'action'];
   dataSource = new MatTableDataSource<BorrowRequest>([]);
-
-@ViewChild(MatPaginator) paginator!: MatPaginator;
-@ViewChild(MatSort) sort!: MatSort;
-
-
-  // borrowRequests: any[] = [];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
   userEmail: string | null = null;
   filteredBorrowRequests: any[] = [];
   searchTerm: string = "";
-  selectedBorrower: any | null = null;
+  selectedRequest: any | null = null;
   showDetailsModal: boolean = false;
-  equipmentList: any[] = [];
   borrowedItems: any[] = [];
-      borrowRequests: BorrowRequest[] = [];
-
+  borrowRequests: BorrowRequest[] = [];
+  equipmentList: any[] = []; // Add this line
+  
 
   constructor(
     private router: Router,
     private supabaseService: SupabaseService,
     private authService: SupabaseAuthService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private dialog: MatDialog
   ) {}
 
+  onSidebarCollapsedChange(isCollapsed: boolean) {
+    const container = document.querySelector('.borrow-table-container');
+    if (container) {
+      if (isCollapsed) {
+        container.classList.add('collapsed');
+      } else {
+        container.classList.remove('collapsed');
+      }
+    }
+  }
 
   async ngOnInit() {
     try {
@@ -118,7 +132,6 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
       console.log('Button clicked'); // Check if this appears in console
     this.router.navigate(['/borrow-form']);
   }
-
 
   async fetchBorrowRequests(): Promise<void> {
   try {
@@ -196,8 +209,7 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
   }
 }
 
-
-filterBorrowRequests(): void {
+  filterBorrowRequests(): void {
   const term = this.searchTerm.toLowerCase().trim();
 
   if (!term) {
@@ -212,8 +224,6 @@ filterBorrowRequests(): void {
   }
 }
 
-
-
   sortRequests() {
     this.filteredBorrowRequests.sort((a, b) => new Date(b.borrow_date).getTime() - new Date(a.borrow_date).getTime());
   }
@@ -223,9 +233,77 @@ filterBorrowRequests(): void {
     this.sortRequests(); // Sort after adding
   }
 
+  openDetails(request: any) {
+    this.selectedRequest = request;
+    this.showDetailsModal = true;
+  }
 
+  openEditDialog(request: any) {
+    // Implement edit dialog logic
+    console.log('Edit dialog opened for:', request);
+  }
 
-async markAsReturned(requestId: string): Promise<void> {
+  openDeleteDialog(request: any) {
+    // Implement delete dialog logic
+    console.log('Delete dialog opened for:', request);
+  }
+
+  closeDetailsModal() {
+    this.showDetailsModal = false;
+    this.selectedRequest = null;
+  }
+
+  getImagePath(image: string | null | undefined): string {
+    console.log("🖼 Image Path Received:", image);
+
+    if (image) {
+      // ✅ Ensure the image path is correctly formatted
+      return image.startsWith("http") ? image : `assets/${image}`;
+    }
+
+    console.warn("⚠️ No Image Found, Using Default");
+    return 'assets/no-image.png'; // ✅ Fallback image
+  }
+
+  sanitizeUrl(url: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  isPdf(fileUrl: string): boolean {
+    return fileUrl?.toLowerCase().endsWith('.pdf');
+  }
+
+  openDetailsModal(request: any) {
+    console.log("🟢 Opening details for:", request);
+     console.log("Equipment List:", request.equipmentList);
+
+    if (!request) {
+      console.error("❌ No request data provided.");
+      return;
+    }
+
+    // ✅ Ensure equipmentList exists and has data
+    if (!request.equipmentList || request.equipmentList.length === 0) {
+      console.warn("⚠ No equipment data found for this borrower.");
+      request.equipmentList = []; // Set an empty array to avoid errors
+    }
+
+    // ✅ Ensure split() is not called on undefined values
+    const safeEquipmentNames = request.equipment_names ? request.equipment_names.split(', ') : [];
+    const safeQuantities = request.quantities ? request.quantities.split(', ') : [];
+
+    // ✅ Assign selected borrower details
+    this.selectedBorrower = {
+      ...request,
+      equipmentList: request.equipmentList, // ✅ Use preprocessed equipment list
+      equipmentNamesArray: safeEquipmentNames,
+      quantitiesArray: safeQuantities
+    };
+
+    this.showDetailsModal = true; // ✅ Show the modal
+  }
+
+  async markAsReturned(requestId: string): Promise<void> {
   try {
     console.log(`🔍 Processing return for request ID: ${requestId}`);
 
@@ -343,66 +421,7 @@ async markAsReturned(requestId: string): Promise<void> {
   }
 }
 
-
-  // ✅ Fetch latest equipment data after returning
   async refreshEquipmentList() {
     this.equipmentList = await this.supabaseService.getAvailableEquipment();
-  }
-
-
-
-
-  openDetailsModal(request: any) {
-    console.log("🟢 Opening details for:", request);
-     console.log("Equipment List:", request.equipmentList);
-
-    if (!request) {
-      console.error("❌ No request data provided.");
-      return;
-    }
-
-    // ✅ Ensure equipmentList exists and has data
-    if (!request.equipmentList || request.equipmentList.length === 0) {
-      console.warn("⚠ No equipment data found for this borrower.");
-      request.equipmentList = []; // Set an empty array to avoid errors
-    }
-
-    // ✅ Ensure `split()` is not called on undefined values
-    const safeEquipmentNames = request.equipment_names ? request.equipment_names.split(', ') : [];
-    const safeQuantities = request.quantities ? request.quantities.split(', ') : [];
-
-    // ✅ Assign selected borrower details
-    this.selectedBorrower = {
-      ...request,
-      equipmentList: request.equipmentList, // ✅ Use preprocessed equipment list
-      equipmentNamesArray: safeEquipmentNames,
-      quantitiesArray: safeQuantities
-    };
-
-    this.showDetailsModal = true; // ✅ Show the modal
-  }
-  closeDetailsModal() {
-    this.showDetailsModal = false;
-    this.selectedBorrower = null;
-  }
-
-  getImagePath(image: string | null | undefined): string {
-    console.log("🖼 Image Path Received:", image);
-
-    if (image) {
-      // ✅ Ensure the image path is correctly formatted
-      return image.startsWith("http") ? image : `assets/${image}`;
-    }
-
-    console.warn("⚠️ No Image Found, Using Default");
-    return 'assets/no-image.png'; // ✅ Fallback image
-  }
-
-  sanitizeUrl(url: string): SafeResourceUrl {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
-  }
-
-  isPdf(fileUrl: string): boolean {
-    return fileUrl?.toLowerCase().endsWith('.pdf');
   }
 }

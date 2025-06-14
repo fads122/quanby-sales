@@ -14,6 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { SidebarComponent } from '../../nav/sidebar/sidebar.component';
 import { SupabaseSupplierService } from '../../services/supabase_supplier.service';
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
+import { SupabaseService } from '../../services/supabase.service';
 import { Router, RouterLink } from '@angular/router';
 import { MatDividerModule } from '@angular/material/divider';
 import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
@@ -45,6 +46,8 @@ import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 })
 export class SupplierListComponent implements OnInit {
   suppliers: any[] = [];
+  currentUserSuppliers: any[] = [];
+  allSuppliers: any[] = [];
   filteredSuppliers: any[] = [];
   searchQuery: string = '';
   supplierForm: FormGroup;
@@ -54,6 +57,8 @@ export class SupplierListComponent implements OnInit {
   editingSupplier: any = null;
   isLoading: boolean = true;
   isCollapsed = false;
+  currentUser: any = null;
+  activeTab: 'current' | 'all' = 'current'; // Track which tab is active
 
   displayedColumns: string[] = ['number', 'supplier_name', 'contact_person', 'phone', 'email', 'actions'];
   dataSource!: MatTableDataSource<any>;
@@ -68,6 +73,7 @@ export class SupplierListComponent implements OnInit {
     private fb: FormBuilder,
     private supabaseService: SupabaseSupplierService,
     private authService: SupabaseAuthService,
+    private mainSupabaseService: SupabaseService,
     private router: Router,
     private cdRef: ChangeDetectorRef
   ) {
@@ -89,12 +95,14 @@ export class SupplierListComponent implements OnInit {
   try {
     this.isLoading = true;
     await this.authService.restoreSession();
-    const user = await this.authService.getUser();
-    if (!user) {
+    this.currentUser = await this.authService.getUser();
+    if (!this.currentUser) {
       alert('Session expired. Please log in again.');
       return;
     }
-    await this.fetchSuppliers();
+    await this.fetchAllSuppliers();
+    await this.fetchCurrentUserSuppliers();
+    this.updateDataSource();
   } finally {
     // Add a minimum loading time of 1 second for better UX
     setTimeout(() => {
@@ -103,20 +111,91 @@ export class SupplierListComponent implements OnInit {
   }
 }
 
+  // Fetch suppliers assigned to the current user
+  async fetchCurrentUserSuppliers(): Promise<void> {
+    try {
+      const relationships = await this.mainSupabaseService.getUserSupplierRelationships(undefined, this.currentUser.id);
+      
+      // Extract supplier IDs from relationships
+      const supplierIds = relationships.map(rel => rel.supplier_id);
+      
+      if (supplierIds.length > 0) {
+        // Fetch supplier details for each ID
+        const { data, error } = await this.supabaseService.from('suppliers')
+          .select('id, supplier_name, contact_person, phone, email, address')
+          .in('id', supplierIds);
+        
+        if (error) {
+          console.error('Error fetching current user suppliers:', error);
+          this.currentUserSuppliers = [];
+        } else {
+          this.currentUserSuppliers = data || [];
+        }
+      } else {
+        this.currentUserSuppliers = [];
+      }
+    } catch (error) {
+      console.error('Error fetching current user suppliers:', error);
+      this.currentUserSuppliers = [];
+    }
+  }
+
+  // Fetch all suppliers
+  async fetchAllSuppliers(): Promise<void> {
+    try {
+      this.allSuppliers = await this.supabaseService.getSuppliers();
+    } catch (error) {
+      console.error('Error fetching all suppliers:', error);
+      this.allSuppliers = [];
+    }
+  }
+
+  // Update data source based on active tab
+  updateDataSource(): void {
+    if (this.activeTab === 'current') {
+      this.suppliers = this.currentUserSuppliers;
+    } else {
+      this.suppliers = this.allSuppliers;
+    }
+    
+    this.dataSource = new MatTableDataSource(this.suppliers);
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+
+    // Custom filter predicate
+    this.dataSource.filterPredicate = (data: any, filter: string) => {
+      const searchStr = (data.supplier_name + data.contact_person + data.phone + data.email).toLowerCase();
+      return searchStr.indexOf(filter.toLowerCase()) !== -1;
+    };
+  }
+
+  // Switch between current user suppliers and all suppliers
+  switchTab(tab: 'current' | 'all'): void {
+    this.activeTab = tab;
+    this.updateDataSource();
+    this.filterSuppliers(); // Reapply current filter
+  }
+
+  // Get the current tab label
+  getCurrentTabLabel(): string {
+    return this.activeTab === 'current' ? 'Current Supplier' : 'All Suppliers';
+  }
+
+  // Get the count for each tab
+  getCurrentSupplierCount(): number {
+    return this.currentUserSuppliers.length;
+  }
+
+  getAllSupplierCount(): number {
+    return this.allSuppliers.length;
+  }
 
   async fetchSuppliers(): Promise<void> {
     try {
       this.isLoading = true;
-      this.suppliers = await this.supabaseService.getSuppliers();
-      this.dataSource = new MatTableDataSource(this.suppliers);
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-
-      // Custom filter predicate
-      this.dataSource.filterPredicate = (data: any, filter: string) => {
-        const searchStr = (data.supplier_name + data.contact_person + data.phone + data.email).toLowerCase();
-        return searchStr.indexOf(filter.toLowerCase()) !== -1;
-      };
+      await this.fetchAllSuppliers();
+      await this.fetchCurrentUserSuppliers();
+      this.updateDataSource();
     } catch (error) {
       alert('Failed to load supplier list. Please try again.');
     } finally {
@@ -125,9 +204,6 @@ export class SupplierListComponent implements OnInit {
       }, 1000);
     }
   }
-
-  // Add ViewChild for paginator
-
 
   // Update ngAfterViewInit
   ngAfterViewInit() {

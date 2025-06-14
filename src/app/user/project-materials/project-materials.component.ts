@@ -86,6 +86,7 @@ interface PostgrestError {
     FormsModule,
     SidebarComponent,
     ToastModule,
+    // BreadcrumbComponent,
     // BreadcrumbComponent  // Removed because it's not used in the template
   ],
   templateUrl: './project-materials.component.html',

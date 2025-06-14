@@ -1,4 +1,4 @@
-import { Component, HostListener, Inject, PLATFORM_ID, Output, EventEmitter } from '@angular/core';
+import { Component, HostListener, Inject, PLATFORM_ID, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
@@ -9,6 +9,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApplicationConfig } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { Subject } from 'rxjs';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -29,10 +30,13 @@ export const appConfig: ApplicationConfig = {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
+  @Output() collapsedState = new EventEmitter<boolean>();
   isCollapsed = false;
   isMobile = false;
   isAdmin = false;
+  currentUser: any = null;
+  userInitials: string = '';
 
   commonMenuItems = [
     { path: '/dashboard', icon: 'pi pi-home', label: 'Home' },
@@ -70,6 +74,60 @@ export class SidebarComponent {
     }
   }
 
+  async ngOnInit() {
+    await this.loadCurrentUser();
+    // Subscribe to auth state changes to update user info
+    this.authService.isAdmin$.subscribe(async (isAdmin: boolean) => {
+      this.isAdmin = isAdmin;
+      // Refresh user data when auth state changes
+      await this.loadCurrentUser();
+    });
+  }
+
+  private async loadCurrentUser() {
+    try {
+      this.currentUser = await this.supabaseService.getCurrentUser();
+      if (this.currentUser) {
+        this.generateUserInitials();
+      } else {
+        // If no user, try to get from auth service
+        const authUser = await this.authService.getUser();
+        if (authUser) {
+          this.currentUser = {
+            id: authUser.id,
+            email: authUser.email,
+            first_name: authUser.user_metadata?.first_name || '',
+            last_name: authUser.user_metadata?.last_name || ''
+          };
+          this.generateUserInitials();
+        }
+      }
+    } catch (error) {
+      console.error('Error loading current user:', error);
+      // Set fallback user data
+      this.currentUser = {
+        email: 'Unknown User',
+        first_name: '',
+        last_name: ''
+      };
+      this.generateUserInitials();
+    }
+  }
+
+  private generateUserInitials() {
+    if (this.currentUser && this.currentUser.first_name && this.currentUser.last_name) {
+      const firstName = this.currentUser.first_name.charAt(0).toUpperCase();
+      const lastName = this.currentUser.last_name.charAt(0).toUpperCase();
+      this.userInitials = firstName + lastName;
+    } else if (this.currentUser && this.currentUser.email) {
+      // Fallback to email initials if name is not available
+      const emailParts = this.currentUser.email.split('@')[0];
+      this.userInitials = emailParts.charAt(0).toUpperCase();
+    } else {
+      this.userInitials = 'U'; // Default fallback
+    }
+  }
+
   private subscribeToAuthChanges(): void {
     this.authService.isAdmin$.subscribe(
       (isAdmin: boolean) => this.isAdmin = isAdmin
@@ -99,6 +157,11 @@ export class SidebarComponent {
     this.collapsedChange.emit(this.isCollapsed);
   }
 
+   toggleCollapse() {
+    this.isCollapsed = !this.isCollapsed;
+    this.collapsedState.emit(this.isCollapsed);
+  }
+  
   confirmLogout(): void {
     const dialogRef = this.dialog.open(DialogOverview, {
       width: '300px',
