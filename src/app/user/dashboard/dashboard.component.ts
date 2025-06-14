@@ -26,7 +26,7 @@ import { CalendarModule } from 'primeng/calendar';
 import { AccordionModule } from 'primeng/accordion';
 import { PaginatorModule } from 'primeng/paginator';
 import { ToastModule } from 'primeng/toast';
-import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType } from 'docx';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 
 
@@ -1196,137 +1196,203 @@ scrollToRanking() {
 }
 
 
-async exportRankingData() {
+async exportRankingPDF() {
   try {
-    // Create document content
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: [
-          new Paragraph({
-            text: "Supplier Ranking Report",
-            heading: "Heading1",
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 200 },
-          }),
-          new Paragraph({
-            text: `Generated on ${new Date().toLocaleDateString()}`,
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 400 },
-          }),
-          this.createRankingTable(),
-          new Paragraph({
-            text: "End of Report",
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 400 },
-          }),
-        ],
-      }],
+    // Create a new PDF document
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]); // A4 size (595 x 842 points)
+
+    // Set up fonts
+    const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    
+    // Add title
+    page.drawText('Supplier Ranking Report', {
+      x: 50,
+      y: 780,
+      size: 20,
+      font: helveticaBold,
+      color: rgb(0, 0.2, 0.4),
     });
 
-    // Generate the DOCX file
-    const blob = await Packer.toBlob(doc);
+    // Add date
+    page.drawText(`Generated on ${new Date().toLocaleDateString()}`, {
+      x: 50,
+      y: 750,
+      size: 12,
+      font: helvetica,
+      color: rgb(0.3, 0.3, 0.3),
+    });
+
+    // Add company logo (if available)
+    // const logoBytes = await fetch('/assets/logo.png').then(res => res.arrayBuffer());
+    // const logoImage = await pdfDoc.embedPng(logoBytes);
+    // page.drawImage(logoImage, {
+    //   x: 450,
+    //   y: 770,
+    //   width: 100,
+    //   height: 40,
+    // });
+
+    // Create table
+    await this.createPDFTable(pdfDoc, page);
+
+    // Add footer
+    page.drawText('Confidential - For Internal Use Only', {
+      x: 200,
+      y: 30,
+      size: 10,
+      font: helvetica,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+
+    // Save the PDF
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
 
     // Create download link
     const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `supplier_ranking_${new Date().toISOString().slice(0,10)}.docx`);
-    link.style.visibility = 'hidden';
-
+    link.href = url;
+    link.download = `supplier_ranking_${new Date().toISOString().slice(0,10)}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
     // Show success notification
-    alert('Supplier ranking exported successfully as Word document');
+    alert('Supplier ranking exported successfully as PDF');
   } catch (error) {
-    console.error('Error exporting ranking data:', error);
-    alert('Failed to export supplier ranking');
+    console.error('Error exporting PDF:', error);
+    alert('Failed to export supplier ranking as PDF');
   }
 }
 
-private createRankingTable(): Table {
-  // Table header
-  const headerRow = new TableRow({
-    children: [
-      this.createHeaderCell("Rank"),
-      this.createHeaderCell("Supplier"),
-      this.createHeaderCell("Avg Price"),
-      this.createHeaderCell("Inventory"),
-      this.createHeaderCell("Reliability"),
-      this.createHeaderCell("Overall"),
-      this.createHeaderCell("Contact"),
-      this.createHeaderCell("Phone"),
-      this.createHeaderCell("Email"),
-    ],
-    tableHeader: true,
-  });
+private async createPDFTable(pdfDoc: PDFDocument, page: any) {
+  const { width, height } = page.getSize();
+  const margin = 20;
+  const rowHeight = 30;
+  const headerHeight = 25;
+  const columnWidths = [30, 80, 50, 50, 50, 50, 70, 80, 100]; // Adjust as needed
+  const tableTop = 700;
+  
+  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-  // Table rows with data
-  const dataRows = this.rankedSuppliers.map((supplier, index) => {
-    return new TableRow({
-      children: [
-        this.createDataCell((index + 1).toString()),
-        this.createDataCell(supplier.supplier_name),
-        this.createDataCell(supplier.price_score.toFixed(2)),
-        this.createDataCell(supplier.inventory_score.toFixed(2)),
-        this.createDataCell(supplier.reliability_score.toFixed(2)),
-        this.createDataCell(supplier.overall_score.toFixed(2), true),
-        this.createDataCell(supplier.contact_person || 'N/A'),
-        this.createDataCell(supplier.phone || 'N/A'),
-        this.createDataCell(supplier.email || 'N/A'),
-      ],
+  // Draw table headers
+  const headers = [
+    "Rank", "Supplier", "Avg Price", "Inventory", 
+    "Reliability", "Overall", "Contact", "Phone", "Email"
+  ];
+  
+  let x = margin;
+  headers.forEach((header, i) => {
+    // Draw header background
+    page.drawRectangle({
+      x,
+      y: tableTop - headerHeight,
+      width: columnWidths[i],
+      height: headerHeight,
+      color: rgb(0.2, 0.4, 0.6),
+      borderColor: rgb(0.8, 0.8, 0.8),
+      borderWidth: 0.5,
     });
+    
+    // Draw header text
+    page.drawText(header, {
+      x: x + 5,
+      y: tableTop - headerHeight + 5,
+      size: 10,
+      font: helveticaBold,
+      color: rgb(1, 1, 1),
+      maxWidth: columnWidths[i] - 10,
+    });
+    
+    x += columnWidths[i];
   });
 
-  return new Table({
-    rows: [headerRow, ...dataRows],
-    width: {
-      size: 100,
-      type: WidthType.PERCENTAGE,
-    },
-    columnWidths: [5, 15, 10, 10, 10, 10, 15, 10, 15],
-  });
-}
-
-private createHeaderCell(text: string): TableCell {
-  return new TableCell({
-    children: [
-      new Paragraph({
-        children: [
-          new TextRun({
-            text,
-            bold: true,
-            color: "FFFFFF",
-          }),
-        ],
-        alignment: AlignmentType.CENTER,
-      }),
-    ],
-    shading: {
-      fill: "4472C4", // Blue color
-    },
-  });
-}
-
-private createDataCell(text: string, highlight: boolean = false): TableCell {
-  return new TableCell({
-    children: [
-      new Paragraph({
-        children: [
-          new TextRun({
-            text,
-            bold: highlight,
-            color: highlight ? "FF0000" : undefined,
-          }),
-        ],
-        alignment: AlignmentType.CENTER,
-      }),
-    ],
-    shading: highlight ? {
-      fill: "FFFF00", // Yellow highlight
-    } : undefined,
+  // Draw table rows
+  let currentY = tableTop - headerHeight - rowHeight;
+  
+  this.rankedSuppliers.forEach((supplier, index) => {
+    x = margin;
+    const rowData = [
+      (index + 1).toString(),
+      supplier.supplier_name,
+      supplier.price_score.toFixed(2),
+      supplier.inventory_score.toFixed(2),
+      supplier.reliability_score.toFixed(2),
+      supplier.overall_score.toFixed(2),
+      supplier.contact_person || 'N/A',
+      supplier.phone || 'N/A',
+      supplier.email || 'N/A'
+    ];
+    
+    // Alternate row colors
+    const rowColor = index % 2 === 0 ? rgb(0.95, 0.95, 0.95) : rgb(1, 1, 1);
+    
+    // Draw row background
+    page.drawRectangle({
+      x,
+      y: currentY,
+      width: columnWidths.reduce((a, b) => a + b, 0),
+      height: rowHeight,
+      color: rowColor,
+      borderColor: rgb(0.8, 0.8, 0.8),
+      borderWidth: 0.5,
+    });
+    
+    // Draw cell content
+    rowData.forEach((cell, i) => {
+      // Highlight overall score
+      const isOverall = i === 5;
+      const cellColor = isOverall ? rgb(0.8, 0, 0) : rgb(0, 0, 0);
+      
+      page.drawText(cell, {
+        x: x + 5,
+        y: currentY + 5,
+        size: 10,
+        font: isOverall ? helveticaBold : helvetica,
+        color: cellColor,
+        maxWidth: columnWidths[i] - 10,
+      });
+      
+      x += columnWidths[i];
+    });
+    
+    currentY -= rowHeight;
+    
+    // Add new page if we run out of space
+    if (currentY < margin) {
+      page = pdfDoc.addPage([595, 842]);
+      currentY = height - margin - headerHeight;
+      
+      // Redraw headers on new page
+      x = margin;
+      headers.forEach((header, i) => {
+        page.drawRectangle({
+          x,
+          y: currentY,
+          width: columnWidths[i],
+          height: headerHeight,
+          color: rgb(0.2, 0.4, 0.6),
+          borderColor: rgb(0.8, 0.8, 0.8),
+          borderWidth: 0.5,
+        });
+        
+        page.drawText(header, {
+          x: x + 5,
+          y: currentY + 5,
+          size: 10,
+          font: helveticaBold,
+          color: rgb(1, 1, 1),
+          maxWidth: columnWidths[i] - 10,
+        });
+        
+        x += columnWidths[i];
+      });
+      
+      currentY -= rowHeight;
+    }
   });
 }
 
