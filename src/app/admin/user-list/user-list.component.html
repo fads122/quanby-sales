@@ -1,175 +1,638 @@
 <app-sidebar></app-sidebar>
-<body>
-  <div class="search-bar">
-    <div class="search-container">
-      <mat-form-field appearance="outline">
-        <mat-icon matPrefix>search</mat-icon>
-        <input
-          matInput
-          [(ngModel)]="searchQuery"
-          placeholder="Search users..."
-          (keyup)="applyFilter($event)"
-        />
-      </mat-form-field>
-    </div>
-    <button mat-raised-button color="primary" (click)="openAddUserDialog()">
-      <mat-icon>person_add</mat-icon>
-      Add User
-    </button>
-    <button mat-raised-button color="primary" (click)="openAddSupplierDialog()">
-      <mat-icon>business</mat-icon>
-      Add Supplier
-    </button>
+
+<div class="admin-container">
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Admin Dashboard</h1>
+    <p class="dashboard-subtitle">Manage users and suppliers with ease</p>
   </div>
 
-  <div class="mat-elevation-z8">
-    <table mat-table [dataSource]="dataSource" matSort>
-      <!-- UID Column -->
-      <ng-container matColumnDef="uid">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> UID </th>
-        <td mat-cell *matCellDef="let user"> {{user.uid}} </td>
-      </ng-container>
-
-      <!-- Name Column -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
-        <td mat-cell *matCellDef="let user"> {{user.name}} </td>
-      </ng-container>
-
-      <!-- Email Column -->
-      <ng-container matColumnDef="email">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
-        <td mat-cell *matCellDef="let user"> {{user.email}} </td>
-      </ng-container>
-
-      <!-- Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> Actions </th>
-        <td mat-cell *matCellDef="let user">
-          <button mat-icon-button color="primary" (click)="editUser(user)" matTooltip="Edit User">
-            <mat-icon>edit</mat-icon>
+  <!-- Tab Navigation -->
+  <mat-tab-group [selectedIndex]="activeTab === 'users' ? 0 : 1" (selectedIndexChange)="onTabChange($event)">
+    
+    <!-- Users Tab -->
+    <mat-tab label="Users">
+      <!-- Action Bar -->
+      <div class="action-bar" style="margin-top: 10px;">
+        <div class="search-section">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input 
+            type="text" 
+            class="search-input" 
+            [(ngModel)]="searchQuery"
+            placeholder="Search users..."
+            (keyup)="applyFilter($event)"
+          />
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-primary" (click)="openAddUserDialog()">
+            <mat-icon>person_add</mat-icon>
+            Add User
           </button>
-          <button mat-icon-button color="warn" (click)="deleteUser(user)" matTooltip="Delete User">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-      <!-- Row shown when there is no matching data. -->
-      <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" colspan="4">
-          <div class="no-data-message">
-            <mat-icon>search_off</mat-icon>
-            <p>No users matching the filter "{{searchQuery}}"</p>
-          </div>
-        </td>
-      </tr>
-    </table>
-
-    <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"
-                   aria-label="Select page of users">
-    </mat-paginator>
-  </div>
-
-  <!-- Add User Dialog -->
-  <ng-template #addUserDialog class="box">
-    <h2 mat-dialog-title>Add User</h2>
-    <form [formGroup]="userForm" (ngSubmit)="onAddUser()" class="dialog-form">
-      <div class="name-row">
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>First Name</mat-label>
-          <input matInput formControlName="firstName" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>Last Name</mat-label>
-          <input matInput formControlName="lastName" />
-        </mat-form-field>
+        </div>
       </div>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Email</mat-label>
-        <input matInput formControlName="email" />
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Password</mat-label>
-        <input matInput formControlName="password" type="password" />
-      </mat-form-field>
-      <div class="actions">
-        <button mat-button type="button" (click)="closeDialog()">Cancel</button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">
+
+      <!-- Users Table -->
+      <div class="table-container">
+        <table mat-table [dataSource]="userDataSource" matSort #userSort="matSort">
+          <!-- UID Column -->
+          <ng-container matColumnDef="uid">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> UID </th>
+            <td mat-cell *matCellDef="let user"> {{user.uid}} </td>
+          </ng-container>
+
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
+            <td mat-cell *matCellDef="let user"> {{user.name}} </td>
+          </ng-container>
+
+          <!-- Email Column -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
+            <td mat-cell *matCellDef="let user"> {{user.email}} </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef> Actions </th>
+            <td mat-cell *matCellDef="let user">
+              <button class="action-btn btn-edit" (click)="editUser(user)" matTooltip="Edit User">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button class="action-btn btn-delete" (click)="deleteUser(user)" matTooltip="Delete User">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="userDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: userDisplayedColumns;"></tr>
+
+          <!-- Row shown when there is no matching data. -->
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" colspan="4">
+              <div class="no-data-message">
+                <mat-icon>search_off</mat-icon>
+                <p>No users matching the filter "{{searchQuery}}"</p>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <mat-paginator #userPaginator [pageSizeOptions]="[5, 10, 25, 100]"
+                       aria-label="Select page of users">
+        </mat-paginator>
+      </div>
+    </mat-tab>
+
+    <!-- Suppliers Tab -->
+    <mat-tab label="Suppliers">
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <div class="search-section">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input 
+            type="text" 
+            class="search-input" 
+            [(ngModel)]="searchQuery"
+            placeholder="Search suppliers..."
+            (keyup)="applySupplierFilter($event)"
+          />
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-primary" (click)="openAddSupplierDialog()">
+            <mat-icon>business</mat-icon>
+            Add Supplier
+          </button>
+        </div>
+      </div>
+
+      <!-- Suppliers Table -->
+      <div class="table-container">
+        <table mat-table [dataSource]="supplierDataSource" matSort #supplierSort="matSort">
+          <!-- ID Column -->
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
+            <td mat-cell *matCellDef="let supplier"> {{supplier.id}} </td>
+          </ng-container>
+
+          <!-- Supplier Name Column -->
+          <ng-container matColumnDef="supplier_name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Supplier Name </th>
+            <td mat-cell *matCellDef="let supplier"> {{supplier.supplier_name}} </td>
+          </ng-container>
+
+          <!-- Contact Person Column -->
+          <ng-container matColumnDef="contact_person">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Contact Person </th>
+            <td mat-cell *matCellDef="let supplier"> {{supplier.contact_person}} </td>
+          </ng-container>
+
+          <!-- Phone Column -->
+          <ng-container matColumnDef="phone">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Phone </th>
+            <td mat-cell *matCellDef="let supplier"> {{supplier.phone}} </td>
+          </ng-container>
+
+          <!-- Email Column -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
+            <td mat-cell *matCellDef="let supplier"> {{supplier.email}} </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef> Actions </th>
+            <td mat-cell *matCellDef="let supplier">
+              <button class="action-btn btn-edit" (click)="editSupplier(supplier)" matTooltip="Edit Supplier">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button class="action-btn btn-delete" (click)="deleteSupplier(supplier)" matTooltip="Delete Supplier">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="supplierDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: supplierDisplayedColumns;"></tr>
+
+          <!-- Row shown when there is no matching data. -->
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" colspan="6">
+              <div class="no-data-message">
+                <mat-icon>search_off</mat-icon>
+                <p>No suppliers matching the filter "{{searchQuery}}"</p>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <mat-paginator #supplierPaginator [pageSizeOptions]="[5, 10, 25, 100]"
+                       aria-label="Select page of suppliers">
+        </mat-paginator>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
+
+<!-- Add User Dialog -->
+<ng-template #addUserDialog class="box">
+  <div class="supplier-dialog-container">
+    <h2 mat-dialog-title class="dialog-title">
+      <mat-icon>person_add</mat-icon>
+      Add New User
+    </h2>
+    <p class="dialog-description">Create a new user account with access to the system</p>
+    
+    <form [formGroup]="userForm" (ngSubmit)="onAddUser()" class="supplier-dialog-form">
+      <!-- Basic Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>info</mat-icon>
+          Basic Information
+        </h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="firstName" placeholder="Enter first name" />
+            <mat-error *ngIf="userForm.get('firstName')?.hasError('required')">
+              First name is required
+            </mat-error>
+            <mat-error *ngIf="userForm.get('firstName')?.hasError('pattern')">
+              First name must contain only letters
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="lastName" placeholder="Enter last name" />
+            <mat-error *ngIf="userForm.get('lastName')?.hasError('required')">
+              Last name is required
+            </mat-error>
+            <mat-error *ngIf="userForm.get('lastName')?.hasError('pattern')">
+              Last name must contain only letters
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email Address</mat-label>
+            <input matInput formControlName="email" placeholder="user@example.com" />
+            <mat-error *ngIf="userForm.get('email')?.hasError('required')">
+              Email is required
+            </mat-error>
+            <mat-error *ngIf="userForm.get('email')?.hasError('email')">
+              Please enter a valid email address
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Account Security Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>security</mat-icon>
+          Account Security
+        </h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password" type="password" placeholder="Minimum 8 characters" />
+            <mat-error *ngIf="userForm.get('password')?.hasError('required')">
+              Password is required
+            </mat-error>
+            <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
+              Password must be at least 8 characters
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button mat-button type="button" (click)="closeDialog()" class="cancel-btn">
+          <mat-icon>cancel</mat-icon>
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid" class="submit-btn">
+          <mat-icon>person_add</mat-icon>
           Add User
         </button>
       </div>
     </form>
-  </ng-template>
+  </div>
+</ng-template>
 
-  <!-- Add Supplier Dialog -->
-  <ng-template #addSupplierDialog class="box">
-    <h2 mat-dialog-title>Add Supplier</h2>
-    <form [formGroup]="supplierForm" (ngSubmit)="onAddSupplier()" class="dialog-form">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Supplier Name</mat-label>
-        <input matInput formControlName="supplier_name" />
-      </mat-form-field>
+<!-- Add Supplier Dialog -->
+<ng-template #addSupplierDialog class="box">
+  <div class="supplier-dialog-container">
+    <h2 mat-dialog-title class="dialog-title">
+      <mat-icon>business</mat-icon>
+      Add New Supplier
+    </h2>
+    <p class="dialog-description">Create a new supplier account and assign access to specific users or departments</p>
+    
+    <form [formGroup]="supplierForm" (ngSubmit)="onAddSupplier()" class="supplier-dialog-form">
+      <!-- Basic Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>info</mat-icon>
+          Basic Information
+        </h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Supplier Name</mat-label>
+            <input matInput formControlName="supplier_name" placeholder="Enter supplier company name" />
+            <mat-error *ngIf="supplierForm.get('supplier_name')?.hasError('required')">
+              Supplier name is required
+            </mat-error>
+          </mat-form-field>
+        </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Contact Person</mat-label>
-        <input matInput formControlName="contact_person" />
-      </mat-form-field>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Contact Person</mat-label>
+            <input matInput formControlName="contact_person" placeholder="Primary contact name" />
+            <mat-error *ngIf="supplierForm.get('contact_person')?.hasError('required')">
+              Contact person is required
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Phone Number</mat-label>
+            <input matInput formControlName="phone" placeholder="Contact phone number" />
+            <mat-error *ngIf="supplierForm.get('phone')?.hasError('required')">
+              Phone number is required
+            </mat-error>
+          </mat-form-field>
+        </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Phone</mat-label>
-        <input matInput formControlName="phone" />
-      </mat-form-field>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email Address</mat-label>
+            <input matInput formControlName="email" placeholder="business@supplier.com" />
+            <mat-error *ngIf="supplierForm.get('email')?.hasError('required')">
+              Email is required
+            </mat-error>
+            <mat-error *ngIf="supplierForm.get('email')?.hasError('email')">
+              Please enter a valid email address
+            </mat-error>
+          </mat-form-field>
+        </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Email</mat-label>
-        <input matInput formControlName="email" />
-      </mat-form-field>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Address</mat-label>
+            <textarea matInput formControlName="address" placeholder="Complete business address" rows="3"></textarea>
+            <mat-error *ngIf="supplierForm.get('address')?.hasError('required')">
+              Address is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Address</mat-label>
-        <input matInput formControlName="address" />
-      </mat-form-field>
+      <!-- Social Media Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>share</mat-icon>
+          Social Media & Communication
+        </h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Group Chat Link</mat-label>
+            <input matInput formControlName="group_chat_link" placeholder="WhatsApp/Telegram group link" />
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Facebook</mat-label>
+            <input matInput formControlName="facebook" placeholder="Facebook page/profile" />
+          </mat-form-field>
+        </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Group Chat Link</mat-label>
-        <input matInput formControlName="group_chat_link" />
-      </mat-form-field>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Viber</mat-label>
+            <input matInput formControlName="viber" placeholder="Viber contact" />
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Telegram</mat-label>
+            <input matInput formControlName="telegram" placeholder="Telegram username" />
+          </mat-form-field>
+        </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Facebook</mat-label>
-        <input matInput formControlName="facebook" />
-      </mat-form-field>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Instagram</mat-label>
+            <input matInput formControlName="instagram" placeholder="Instagram handle" />
+          </mat-form-field>
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Viber</mat-label>
-        <input matInput formControlName="viber" />
-      </mat-form-field>
+      <!-- User Assignment Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>people</mat-icon>
+          Assign to Departments/Users
+        </h3>
+        
+        <div class="user-selection-container">
+          <div class="selected-users-display">
+            <strong>Selected Users:</strong>
+            <span class="selected-users-text">{{ getSelectedUserNames() }}</span>
+          </div>
+          
+          <button type="button" mat-stroked-button color="primary" (click)="toggleUserSelection()" class="select-users-btn">
+            <mat-icon>{{ showUserSelection ? 'close' : 'people' }}</mat-icon>
+            {{ showUserSelection ? 'Hide User Selection' : 'Select Users' }}
+          </button>
+          
+          <button type="button" mat-stroked-button color="warn" (click)="clearUserSelection()" class="clear-selection-btn">
+            <mat-icon>clear_all</mat-icon>
+            Clear Selection
+          </button>
+        </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Telegram</mat-label>
-        <input matInput formControlName="telegram" />
-      </mat-form-field>
+        <!-- User Selection Modal -->
+        <div *ngIf="showUserSelection" class="user-selection-modal">
+          <div class="user-selection-header">
+            <h4>Select Users to Assign Supplier</h4>
+            <p>Choose which departments/users should have access to this supplier</p>
+          </div>
+          
+          <div class="user-list-container">
+            <div *ngFor="let user of allUsers" class="user-item">
+              <mat-checkbox 
+                [checked]="selectedUsers.includes(user.id)"
+                (change)="onUserSelectionChange(user.id, $event.checked)"
+                class="user-checkbox">
+                <div class="user-info">
+                  <span class="user-name">{{ user.name }}</span>
+                  <span class="user-email">{{ user.email }}</span>
+                  <span class="user-type">{{ user.usertype }}</span>
+                </div>
+              </mat-checkbox>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Instagram</mat-label>
-        <input matInput formControlName="instagram" />
-      </mat-form-field>
+      <!-- Account Security Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>security</mat-icon>
+          Account Security
+        </h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Password</mat-label>
+            <input matInput type="password" formControlName="password" placeholder="Minimum 8 characters" />
+            <mat-error *ngIf="supplierForm.get('password')?.hasError('required')">
+              Password is required
+            </mat-error>
+            <mat-error *ngIf="supplierForm.get('password')?.hasError('minlength')">
+              Password must be at least 8 characters
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Password</mat-label>
-        <input matInput type="password" formControlName="password" />
-      </mat-form-field>
-
-      <div class="actions">
-        <button mat-button type="button" (click)="closeDialog()">Cancel</button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="supplierForm.invalid">
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button mat-button type="button" (click)="closeDialog()" class="cancel-btn">
+          <mat-icon>cancel</mat-icon>
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit" 
+                [disabled]="supplierForm.invalid || selectedUsers.length === 0" 
+                class="submit-btn">
+          <mat-icon>add_business</mat-icon>
           Add Supplier
         </button>
       </div>
     </form>
-  </ng-template>
-</body>
+  </div>
+</ng-template>
+
+<!-- Edit Supplier Dialog -->
+<ng-template #editSupplierDialog class="box">
+  <div class="supplier-dialog-container">
+    <h2 mat-dialog-title class="dialog-title">
+      <mat-icon>edit</mat-icon>
+      Edit Supplier
+    </h2>
+    
+    <form [formGroup]="supplierForm" (ngSubmit)="onUpdateSupplier()" class="supplier-dialog-form">
+      <!-- Basic Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>info</mat-icon>
+          Basic Information
+        </h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Supplier Name</mat-label>
+            <input matInput formControlName="supplier_name" placeholder="Enter supplier company name" />
+            <mat-error *ngIf="supplierForm.get('supplier_name')?.hasError('required')">
+              Supplier name is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Contact Person</mat-label>
+            <input matInput formControlName="contact_person" placeholder="Primary contact name" />
+            <mat-error *ngIf="supplierForm.get('contact_person')?.hasError('required')">
+              Contact person is required
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Phone Number</mat-label>
+            <input matInput formControlName="phone" placeholder="Contact phone number" />
+            <mat-error *ngIf="supplierForm.get('phone')?.hasError('required')">
+              Phone number is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email Address</mat-label>
+            <input matInput formControlName="email" placeholder="business@supplier.com" />
+            <mat-error *ngIf="supplierForm.get('email')?.hasError('required')">
+              Email is required
+            </mat-error>
+            <mat-error *ngIf="supplierForm.get('email')?.hasError('email')">
+              Please enter a valid email address
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Address</mat-label>
+            <textarea matInput formControlName="address" placeholder="Complete business address" rows="3"></textarea>
+            <mat-error *ngIf="supplierForm.get('address')?.hasError('required')">
+              Address is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Social Media Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>share</mat-icon>
+          Social Media & Communication
+        </h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Group Chat Link</mat-label>
+            <input matInput formControlName="group_chat_link" placeholder="WhatsApp/Telegram group link" />
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Facebook</mat-label>
+            <input matInput formControlName="facebook" placeholder="Facebook page/profile" />
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Viber</mat-label>
+            <input matInput formControlName="viber" placeholder="Viber contact" />
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Telegram</mat-label>
+            <input matInput formControlName="telegram" placeholder="Telegram username" />
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Instagram</mat-label>
+            <input matInput formControlName="instagram" placeholder="Instagram handle" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- User Assignment Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>people</mat-icon>
+          Assign to Departments/Users
+        </h3>
+        
+        <div class="user-selection-container">
+          <div class="selected-users-display">
+            <strong>Selected Users:</strong>
+            <span class="selected-users-text">{{ getSelectedUserNames() }}</span>
+          </div>
+          
+          <button type="button" mat-stroked-button color="primary" (click)="toggleUserSelection()" class="select-users-btn">
+            <mat-icon>{{ showUserSelection ? 'close' : 'people' }}</mat-icon>
+            {{ showUserSelection ? 'Hide User Selection' : 'Select Users' }}
+          </button>
+          
+          <button type="button" mat-stroked-button color="warn" (click)="clearUserSelection()" class="clear-selection-btn">
+            <mat-icon>clear_all</mat-icon>
+            Clear Selection
+          </button>
+        </div>
+
+        <!-- User Selection Modal -->
+        <div *ngIf="showUserSelection" class="user-selection-modal">
+          <div class="user-selection-header">
+            <h4>Select Users to Assign Supplier</h4>
+            <p>Choose which departments/users should have access to this supplier</p>
+          </div>
+          
+          <div class="user-list-container">
+            <div *ngFor="let user of allUsers" class="user-item">
+              <mat-checkbox 
+                [checked]="selectedUsers.includes(user.id)"
+                (change)="onUserSelectionChange(user.id, $event.checked)"
+                class="user-checkbox">
+                <div class="user-info">
+                  <span class="user-name">{{ user.name }}</span>
+                  <span class="user-email">{{ user.email }}</span>
+                  <span class="user-type">{{ user.usertype }}</span>
+                </div>
+              </mat-checkbox>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button mat-button type="button" (click)="closeDialog()" class="cancel-btn">
+          <mat-icon>cancel</mat-icon>
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit" 
+                [disabled]="!supplierForm.get('supplier_name')?.valid || 
+                           !supplierForm.get('contact_person')?.valid || 
+                           !supplierForm.get('phone')?.valid || 
+                           !supplierForm.get('email')?.valid || 
+                           !supplierForm.get('address')?.valid" 
+                class="submit-btn">
+          <mat-icon>save</mat-icon>
+          Update Supplier
+        </button>
+      </div>
+    </form>
+  </div>
+</ng-template>

@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { SidebarComponent } from '../../nav/sidebar/sidebar.component';
+import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 import { PaginatorModule } from 'primeng/paginator';
 import { SliderModule } from 'primeng/slider';
 import { SupabaseService } from '../../services/supabase.service';
@@ -48,6 +49,7 @@ interface SemanticSearchResult {
     FormsModule,
     TableModule,
     SidebarComponent,
+    BreadcrumbComponent,
     PaginatorModule,
     MatTabsModule,
     SliderModule,
@@ -78,6 +80,7 @@ export class PartsPickerComponent implements OnInit {
   isSemanticSearching = false;
   isTesting = false; // Change this to false to use real semantic search
   isLoading: boolean = true;
+  isSidebarCollapsed: boolean = false; // Add this property
 
   first: number = 0;
 rows: number = 5; // Items per page

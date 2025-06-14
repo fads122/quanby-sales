@@ -8,30 +8,32 @@
   </div>
 </div>
 
-<app-sidebar></app-sidebar>
-<body>
-  <div class="search-borrow-container">
-  <!-- 🔍 Search Bar (Left) -->
-  <span class="p-input-icon-left search-wrapper">
-    <i class="pi pi-search"></i>
-    <input
-      type="text"
-      pInputText
-      class="search-input"
-      placeholder="Search Borrower Department"
-      [(ngModel)]="searchTerm"
-      (input)="filterBorrowRequests()"
-    />
-  </span>
+<app-sidebar #sidebar (collapsedChange)="onSidebarCollapsedChange($event)"></app-sidebar>
+<div class="borrow-table-container">
+  <!-- Search Bar Container -->
+  <div class="search-bar">
+    <div class="search-borrow-container">
+      <!-- 🔍 Search Bar (Left) -->
+      <span class="p-input-icon-left search-wrapper">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          pInputText
+          class="search-input"
+          placeholder="Search Borrower Department"
+          [(ngModel)]="searchTerm"
+          (input)="filterBorrowRequests()"
+        />
+      </span>
 
-  <!-- ➕ Borrow Button (Right) -->
-  <button class="borrow-item-btn" (click)="goToBorrowForm()">
-    <i class="pi pi-plus"></i> Borrow Item
-  </button>
-</div>
-  <br>
+      <!-- ➕ Borrow Button (Right) -->
+      <button class="borrow-item-btn" (click)="goToBorrowForm()">
+        <i class="pi pi-plus"></i> Borrow Item
+      </button>
+    </div>
+  </div>
 
-<!-- ✅ Angular Material Table -->  
+<!-- ✅ Angular Material Table -->
 <div class="mat-table-container">
   <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
     <!-- Borrower Name Column -->
@@ -40,17 +42,17 @@
       <td mat-cell *matCellDef="let request"> {{request.borrower_name}} </td>
     </ng-container>
 
-    <!-- Department Column -->
-    <ng-container matColumnDef="borrower_department">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> Department/Location </th>
-      <td mat-cell *matCellDef="let request"> {{request.borrower_department}} </td>
-    </ng-container>
+        <!-- Department Column -->
+        <ng-container matColumnDef="borrower_department">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Department/Location </th>
+          <td mat-cell *matCellDef="let request"> {{request.borrower_department}} </td>
+        </ng-container>
 
-    <!-- Borrow Date Column -->
-    <ng-container matColumnDef="borrow_date">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> Borrow Date </th>
-      <td mat-cell *matCellDef="let request"> {{request.borrow_date}} </td>
-    </ng-container>
+        <!-- Borrow Date Column -->
+        <ng-container matColumnDef="borrow_date">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Borrow Date </th>
+          <td mat-cell *matCellDef="let request"> {{request.borrow_date | date}} </td>
+        </ng-container>
 
     <!-- Return Date Column -->
     <ng-container matColumnDef="return_date">
@@ -64,15 +66,15 @@
   <td mat-cell *matCellDef="let request">
     <div class="status-container">
       <!-- Only show Return button if not returned -->
-      <button *ngIf="request.status !== 'Returned' && request.status !== 'returned'" 
-              mat-raised-button color="primary" 
+      <button *ngIf="request.status !== 'Returned' && request.status !== 'returned'"
+              mat-raised-button color="primary"
               class="action-btn"
               (click)="markAsReturned(request.id); $event.stopPropagation()">
         Return
       </button>
-      
+
       <!-- Show returned status (no button) -->
-      <span *ngIf="request.status === 'Returned' || request.status === 'returned'" 
+      <span *ngIf="request.status === 'Returned' || request.status === 'returned'"
             class="status-returned">
         Returned
       </span>
@@ -85,7 +87,7 @@
   <ng-container matColumnDef="action">
   <th mat-header-cell *matHeaderCellDef>Action</th>
   <td mat-cell *matCellDef="let request">
-    <button mat-icon-button color="primary" 
+    <button mat-icon-button color="primary"
             class="view-btn"
             (click)="openDetailsModal(getFullRequest(request.id)); $event.stopPropagation()"
             matTooltip="View Details">
@@ -94,31 +96,14 @@
   </td>
 </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-
-    <!-- Remove the click handler from the row if you want to use only the view button -->
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-    <!-- No data row -->
-    <tr class="mat-row" *matNoDataRow>
-      <td class="no-items" colspan="5">
-        <mat-icon class="no-items-icon">inventory</mat-icon>
-        <p class="no-items-message">No borrowed items found</p>
-      </td>
-    </tr>
-  </table>
-
-  <mat-paginator [pageSizeOptions]="[8, 10, 15, 20]" showFirstLastButtons></mat-paginator>
-</div>
-
-    <!-- Add this modal container RIGHT HERE -->
-  <div *ngIf="showDetailsModal" class="modal-backdrop">
-    <div class="modal-content">
-      <ng-container *ngTemplateOutlet="borrowDetailsModal"></ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
     </div>
   </div>
 
-<!-- In your main component template (keep this at the bottom) -->
+
+<!-- Details Modal -->
 <ng-template #borrowDetailsModal>
   <div class="dialog-container">
     <!-- Close Button -->
@@ -126,57 +111,56 @@
       <mat-icon>close</mat-icon>
     </button>
 
-    <!-- Borrower Information -->
-    <div class="borrower-info">
-      <h3>Borrower Information</h3>
+    <!-- Details Content -->
+    <div class="details-content">
+      <h2>Borrow Request Details</h2>
       <div class="info-grid">
-        <p><strong>Name:</strong> {{ selectedBorrower?.borrower_name }}</p>
-        <p><strong>Department:</strong> {{ selectedBorrower?.borrower_department }}</p>
-        <p><strong>Contact:</strong> {{ selectedBorrower?.borrower_contact }}</p>
-        <p><strong>Email:</strong> {{ selectedBorrower?.borrower_email }}</p>
-        <p><strong>Borrow Date:</strong> {{ selectedBorrower?.borrow_date }}</p>
-        <p><strong>Return Date:</strong> {{ selectedBorrower?.return_date }}</p>
-        <p><strong>Status:</strong>
-          <span [ngClass]="{
-            'status-pending': selectedBorrower?.status !== 'Returned',
-            'status-returned': selectedBorrower?.status === 'Returned'
-          }">
-            {{ selectedBorrower?.status }}
+        <div>
+          <strong>Borrower Name:</strong> {{selectedRequest.borrower_name}}
+        </div>
+        <div>
+          <strong>Department:</strong> {{selectedRequest.borrower_department}}
+        </div>
+        <div>
+          <strong>Borrow Date:</strong> {{selectedRequest.borrow_date | date}}
+        </div>
+        <div>
+          <strong>Return Date:</strong> {{selectedRequest.return_date | date}}
+        </div>
+        <div>
+          <strong>Status:</strong>
+          <span [ngClass]="{'status-pending': selectedRequest.status === 'pending',
+                          'status-approved': selectedRequest.status === 'approved',
+                          'status-returned': selectedRequest.status === 'returned'}">
+            {{selectedRequest.status | titlecase}}
           </span>
-        </p>
+        </div>
       </div>
-      <div class="purpose-container">
-        <strong>Purpose:</strong>
-        <span class="purpose-content">
-          {{ selectedBorrower?.purpose || 'No purpose specified' }}
-        </span>
+
+      <!-- Items List -->
+      <h3>Items Borrowed:</h3>
+      <div class="items-list">
+        <div *ngFor="let item of selectedRequest.items" class="item-card">
+          <div class="item-header">
+            <img [src]="item.image" [alt]="item.name" class="item-image">
+            <div class="item-info">
+              <h4>{{item.name}}</h4>
+              <p>Quantity: {{item.quantity}}</p>
+            </div>
+          </div>
+          <div class="item-details">
+            <p>Description: {{item.description}}</p>
+            <p>Brand: {{item.brand}}</p>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <!-- Borrowed Equipment Section -->
-    <h3 class="equipment-title">Borrowed Equipment</h3>
-    <div *ngIf="selectedBorrower?.equipmentList?.length; else noEquipment" class="equipment-grid">
-      <mat-card class="equipment-card" *ngFor="let item of selectedBorrower.equipmentList">
-        <img [src]="getImagePath(item.image)" alt="{{ item.name }}" class="equipment-image"/>
-        <mat-card-content class="equipment-details">
-          <h4>{{ item.name }}</h4>
-          <p>Quantity: <strong>{{ item.quantity }}</strong></p>
-        </mat-card-content>
-      </mat-card>
-    </div>
-
-    <ng-template #noEquipment>
-      <p class="no-equipment">No equipment was borrowed in this request</p>
-    </ng-template>
-
-    <!-- PDF Viewer -->
-    <div *ngIf="selectedBorrower?.attached_file && isPdf(selectedBorrower.attached_file)" class="pdf-container">
-      <iframe
-        [src]="sanitizeUrl(selectedBorrower.attached_file)"
-        class="pdf-viewer"
-        frameborder="0">
-      </iframe>
     </div>
   </div>
 </ng-template>
-</body>
+
+<!-- Add this modal container RIGHT HERE -->
+<div *ngIf="showDetailsModal" class="modal-backdrop">
+  <div class="modal-content">
+    <ng-container *ngTemplateOutlet="borrowDetailsModal"></ng-container>
+  </div>
+</div>

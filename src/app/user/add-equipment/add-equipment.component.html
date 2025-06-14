@@ -352,6 +352,64 @@
             </div>
           </div>
 
+          <!-- Add this after the Condition Information section -->
+          <div class="section-group">
+            <h3>Property Details</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Property Number</label>
+                <input
+                  type="text"
+                  [value]="equipment.property_number || 'Auto-generated'"
+                  name="property_number{{i}}"
+                  readonly
+                  class="property-number-input"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Physical Specifications</label>
+                <input
+                  type="text"
+                  [(ngModel)]="equipment.size"
+                  name="size{{i}}"
+                  placeholder="Size/Dimensions (e.g., 15-inch, 42U)"
+                />
+              </div>
+              <div class="form-group">
+                <label>Color</label>
+                <input
+                  type="text"
+                  [(ngModel)]="equipment.color"
+                  name="color{{i}}"
+                  placeholder="Color specification"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group full-width">
+                <label>Software/License Details</label>
+                <div class="software-details">
+                  <input
+                    type="text"
+                    [(ngModel)]="equipment.software_name"
+                    name="software_name{{i}}"
+                    placeholder="Software/License name"
+                  />
+                  <input
+                    type="date"
+                    [(ngModel)]="equipment.subscription_expiry"
+                    name="subscription_expiry{{i}}"
+                    placeholder="License expiry date"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button type="button" (click)="removeInhouseEquipment(i)" *ngIf="inhouseEquipmentArray.length > 1" class="btn-remove">Remove Equipment</button>
         </form>
       </div>

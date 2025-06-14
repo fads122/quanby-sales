@@ -666,3 +666,72 @@ body{
   border-color: #242770;
   color: #ffffff; /* optional: to make text/icon white */
 }
+
+/* Main Container Styles */
+.borrow-table-container {
+  margin-left: 230px; /* Default width when sidebar is expanded */
+  padding: 24px;
+  transition: margin-left 0.3s ease, padding-left 0.3s ease, width 0.3s ease;
+  padding-top: 80px;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-family: 'Intel', sans-serif;
+  color: #333;
+  background-color: #FFFAFA;
+  min-height: 100vh;
+  position: relative;
+  width: calc(100% - 230px);
+  overflow-x: hidden;
+}
+
+/* Add styles for when sidebar is collapsed */
+.borrow-table-container.collapsed {
+  margin-left: 70px;
+  padding-left: 15px;
+  width: calc(100% - 70px);
+}
+
+/* Ensure smooth transitions for all content */
+.search-bar,
+.category-container,
+.table-container,
+.total-bar {
+  transition: all 0.3s ease;
+}
+
+/* Update mobile breakpoint to use collapsed class */
+@media (max-width: 768px) {
+  .borrow-table-container {
+    margin-left: 70px;
+    padding: 15px;
+    padding-top: 70px;
+    width: calc(100% - 70px);
+  }
+  
+  .search-bar,
+  .category-container,
+  .table-container,
+  .total-bar {
+    padding: 10px;
+  }
+}
+
+/* Add sticky positioning for search bar */
+.search-bar {
+  position: sticky;
+  top: 80px;
+  z-index: 10;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+/* Add sticky positioning for category container */
+.category-container {
+  position: sticky;
+  top: 140px;
+  z-index: 10;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}

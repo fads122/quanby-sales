@@ -45,7 +45,115 @@
   flex-direction: column;
   gap: 20px;
 }
+/* Loader Animation Styles (copied from dashboard for consistency) */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(5px);
+}
 
+.loading-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.loading-content h3 {
+  color: #03045E;
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  opacity: 0;
+  animation: fadeInOut 2s ease-in-out infinite;
+}
+
+.logo-loader {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  animation: logoFloat 3s ease-in-out infinite;
+}
+
+.logo-loader img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logo-loader::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 10px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0) 100%);
+  border-radius: 50%;
+  animation: shadowPulse 3s ease-in-out infinite;
+}
+
+.logo-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(102, 187, 222, 0.2) 0%, rgba(102, 187, 222, 0) 70%);
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) scale(1.05);
+  }
+}
+
+@keyframes shadowPulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateX(-50%) scale(0.8);
+    opacity: 0.1;
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateY(5px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .page-title {
   font-size: 28px;
   font-weight: 700;
@@ -760,4 +868,212 @@
 
 .delete-btn .material-icons {
   color: var(--danger);
+}
+
+/* Add these styles for the tab navigation */
+.tab-navigation {
+  margin-bottom: 24px;
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-container {
+  display: flex;
+  gap: 8px;
+  background: var(--white);
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-light);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--gray);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex: 1;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.tab-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--primary);
+  transform: scaleX(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+}
+
+.tab-button:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.tab-button.active {
+  background: var(--primary);
+  color: var(--white);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.tab-button.active::before {
+  transform: scaleX(1);
+}
+
+.tab-button.active:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.tab-icon {
+  font-family: 'Material Icons';
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+}
+
+.tab-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+}
+
+.tab-button:not(.active) .tab-count {
+  background: var(--gray-light);
+  color: var(--gray);
+}
+
+/* Tab content animation */
+.card {
+  animation: slideInFromRight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animation Keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Enhanced table animations */
+.table-container {
+  animation: fadeInScale 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mat-mdc-table {
+  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mat-mdc-row {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth transitions for all interactive elements */
+.tab-button span {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+}
+
+/* Tab switching animation */
+.tab-container .tab-button {
+  animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced hover effects */
+.tab-button:hover .tab-icon {
+  transform: scale(1.1);
+}
+
+.tab-button.active .tab-icon {
+  transform: scale(1.05);
+}
+
+/* Responsive adjustments for tabs */
+@media (max-width: 768px) {
+  .tab-container {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .tab-button {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .tab-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
 }
