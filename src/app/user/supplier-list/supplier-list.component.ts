@@ -171,9 +171,15 @@ export class SupplierListComponent implements OnInit {
 
   // Switch between current user suppliers and all suppliers
   switchTab(tab: 'current' | 'all'): void {
-    this.activeTab = tab;
-    this.updateDataSource();
-    this.filterSuppliers(); // Reapply current filter
+    // Add a small delay for smooth animation
+    setTimeout(() => {
+      this.activeTab = tab;
+      this.updateDataSource();
+      this.filterSuppliers(); // Reapply current filter
+      
+      // Trigger re-render of data source to ensure proper animation
+      this.dataSource.data = [...this.dataSource.data];
+    }, 100);
   }
 
   // Get the current tab label

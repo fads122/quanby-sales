@@ -389,7 +389,17 @@ export class UserListComponent implements OnInit {
 
   // Handle tab changes
   onTabChange(index: number) {
-    this.activeTab = index === 0 ? 'users' : 'suppliers';
+    // Add a small delay for smooth animation
+    setTimeout(() => {
+      this.activeTab = index === 0 ? 'users' : 'suppliers';
+      
+      // Trigger re-render of data sources to ensure proper animation
+      if (this.activeTab === 'users') {
+        this.userDataSource.data = [...this.userDataSource.data];
+      } else {
+        this.supplierDataSource.data = [...this.supplierDataSource.data];
+      }
+    }, 50);
   }
 
   // Apply filter for suppliers
