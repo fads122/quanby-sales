@@ -1015,6 +1015,7 @@
 /* Add to your component's CSS or global styles */
 .ranking-section {
   margin-top: 2rem;
+  margin-bottom: 2rem;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);

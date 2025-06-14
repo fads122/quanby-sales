@@ -225,6 +225,79 @@ body{
     background-color: #f9f9f9;
   }
 
+
+  /* Add these styles to your CSS file */
+
+.mat-table-container {
+  height: 5in; /* Fixed height of 5 inches */
+  overflow-y: auto; /* Vertical scrollbar when needed */
+  display: block;
+  position: relative;
+  margin-top: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+/* Ensure the table header stays fixed while scrolling */
+.mat-table {
+  width: 100%;
+  display: table;
+}
+
+/* Fix header row position */
+.mat-header-row {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 2;
+}
+
+/* Style the scrollbar (optional) */
+.mat-table-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mat-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.mat-table-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.mat-table-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Adjust paginator position */
+.mat-paginator {
+  position: sticky;
+  bottom: 0;
+  background-color: white;
+  z-index: 2;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* No items styling */
+.no-items {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.no-items-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+  color: #ccc;
+}
+
+.no-items-message {
+  margin-top: 10px;
+}
+
 /* View Button Styling */
 .view-btn {
   background-color: #f0f4ff;

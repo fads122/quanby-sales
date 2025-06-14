@@ -67,7 +67,7 @@ export class BorrowTableUserComponent implements OnInit, AfterViewInit {
   // Add isLoading property
   isLoading: boolean = true;
 
-displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_date', 'return_date', 'action'];
+displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_date', 'return_date', 'status', 'action'];
   dataSource = new MatTableDataSource<BorrowRequest>([]);
 
 @ViewChild(MatPaginator) paginator!: MatPaginator;
