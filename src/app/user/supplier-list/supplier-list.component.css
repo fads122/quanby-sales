@@ -44,7 +44,9 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 /* Loader Animation Styles (copied from dashboard for consistency) */
 .loading-overlay {
   position: fixed;
@@ -154,6 +156,7 @@
     transform: translateY(0);
   }
 }
+
 .page-title {
   font-size: 28px;
   font-weight: 700;
@@ -162,6 +165,7 @@
   position: relative;
   display: inline-block;
   margin-top: 50px;
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-title::after {
@@ -173,6 +177,7 @@
   height: 4px;
   background: var(--primary);
   border-radius: 2px;
+  animation: slideInFromLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .action-bar {
@@ -180,12 +185,14 @@
   justify-content: space-between;
   align-items: center;
   gap: 20px;
+  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .search-container {
   position: relative;
   flex-grow: 1;
   max-width: 500px;
+  animation: slideInFromLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .search-icon {
@@ -197,6 +204,7 @@
   font-family: 'Material Icons';
   pointer-events: none;
   font-size: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .search-input {
@@ -205,7 +213,7 @@
   border: 2px solid var(--gray-light);
   border-radius: 12px;
   font-size: 15px;
-  transition: var(--transition);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background-color: var(--white);
   box-shadow: var(--shadow-sm);
 }
@@ -214,6 +222,12 @@
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.2);
+  transform: translateY(-1px);
+}
+
+.search-input:focus + .search-icon {
+  color: var(--primary);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .add-button {
@@ -228,8 +242,9 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow-sm);
+  animation: slideInFromRight 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .add-button:hover {
@@ -237,9 +252,18 @@
   box-shadow: var(--shadow-md);
 }
 
+.add-button:active {
+  transform: translateY(0);
+}
+
 .button-icon {
   font-family: 'Material Icons';
   font-size: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.add-button:hover .button-icon {
+  transform: scale(1.1);
 }
 
 /* Card Styles */
