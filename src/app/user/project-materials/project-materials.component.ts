@@ -86,8 +86,7 @@ interface PostgrestError {
     FormsModule,
     SidebarComponent,
     ToastModule,
-    // BreadcrumbComponent,
-    // BreadcrumbComponent  // Removed because it's not used in the template
+    BreadcrumbComponent
   ],
   templateUrl: './project-materials.component.html',
   styleUrls: ['./project-materials.component.css'],
@@ -2454,4 +2453,52 @@ approveEquipment(equipment: any) {
     }
     console.log(`✅ Approved equipment: ${equipment.name}`);
 }
+
+  getTotalMaterials(projects: any[]): number {
+    return projects.reduce((total, project) => total + (project.materials?.length || 0), 0);
+  }
+
+  getMaterialsCountClass(count: number): string {
+    if (count === 0) return 'materials-badge-danger';
+    if (count < 3) return 'materials-badge-warning';
+    if (count < 5) return 'materials-badge-info';
+    return 'materials-badge-success';
+  }
+
+  getTotalProjectValue(project: any): number {
+    if (!project?.materials?.length) return 0;
+    return project.materials.reduce((total: number, material: any) => {
+      const actualCost = material.actual_cost || this.getActualCost(material);
+      return total + actualCost;
+    }, 0);
+  }
+
+  getStatusSeverity(status: string | undefined): string {
+    if (!status) return 'primary';
+
+    switch(status.toLowerCase()) {
+      case 'delivered': return 'success';
+      case 'delivering': return 'info';
+      case 'pending': return 'warning';
+      case 'cancelled': return 'danger';
+      default: return 'primary';
+    }
+  }
+
+  getDisplayStatus(status: string | undefined): string {
+    if (!status) return 'Status Unknown';
+
+    const statusMap: {[key: string]: string} = {
+      'delivered': 'Delivered',
+      'completed': 'Completed',
+      'in progress': 'In Progress',
+      'delivering': 'Delivering',
+      'pending': 'Pending',
+      'not yet delivered': 'Not Yet Delivered',
+      'cancelled': 'Cancelled',
+      'rejected': 'Rejected'
+    };
+
+    return statusMap[status.toLowerCase()] || status;
+  }
 }

@@ -1,21 +1,27 @@
 <app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
 
 <div class="content-wrapper" [class.sidebar-collapsed]="isCollapsed">
   <div class="project-materials-container">
-    <!-- Your existing content here -->
-    <div class="button-row">
-  <h4>My Projects</h4>
-  <div class="action-buttons">
-    <button class="btn-add-materials" (click)="openModal()">
-      <i class="fas fa-plus-circle"></i> Add Project
-    </button>
-    <button class="btn-view-templates" (click)="openTemplatesModal()">
-      <i class="fas fa-layer-group"></i> View Templates
-    </button>
-  </div>
-</div>
+    <!-- Modern Header Section -->
+    <div class="page-header">
+      <div class="header-content">
+        <div class="header-text">
+          <h1 class="page-title">Project Materials</h1>
+          <p class="page-subtitle">Manage your projects and track equipment usage</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-add-materials" (click)="openModal()">
+            <i class="pi pi-plus"></i> Add Project
+          </button>
+          <button class="btn-view-templates" (click)="openTemplatesModal()">
+            <i class="pi pi-layer-group"></i> View Templates
+          </button>
+        </div>
+      </div>
+    </div>
 
-
+    <!-- Templates Modal -->
     <div class="modal-backdrop" *ngIf="showTemplatesModal">
       <div class="modal-content template-modal">
         <span class="close-btn" (click)="closeTemplatesModal()">&times;</span>
@@ -39,489 +45,697 @@
       </div>
     </div>
 
+    <!-- My Projects Section -->
+    <div class="table-section">
+      <div class="table-container">
+        <div class="table-header">
+          <h2 class="table-title">My Projects</h2>
+          <div class="table-stats">
+            <span class="stat-item">
+              <i class="pi pi-folder"></i>
+              <span>{{ myProjects.length }} Total Projects</span>
+            </span>
+            <span class="stat-item">
+              <i class="pi pi-box"></i>
+              <span>{{ getTotalMaterials(myProjects) }} Total Materials</span>
+            </span>
+          </div>
+        </div>
 
-    <!-- ✅ My Projects Section -->
-<div class="project-card-grid">
-  <div *ngFor="let project of myProjects" class="project-card" (click)="viewProject(project)">
-    <h3 class="project-title"><i class="fas fa-folder"></i> {{ project.name }}</h3>
-    <p class="project-description">
-      {{ project.description | slice:0:120 }}...
-      <a (click)="expandDescription(project)">See More</a>
-    </p>
-    <ul class="project-materials">
-      <li *ngFor="let material of project.materials.slice(0, 2)">
-        <span class="material-name1">{{ material.name }}</span>
-        <span class="material-quantity1">{{ material.quantity }} units</span>
-        - <strong>{{ getActualCost(material) | currency:'PHP' }}</strong> total
-      </li>
+        <!-- Modern Table -->
+        <div class="modern-table-container">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th class="table-header-cell">
+                  <div class="header-content">
+                    <span>Project Information</span>
+                    <i class="pi pi-sort"></i>
+                  </div>
+                </th>
+                <th class="table-header-cell">
+                  <div class="header-content">
+                    <span>Client</span>
+                    <i class="pi pi-sort"></i>
+                  </div>
+                </th>
+                <th class="table-header-cell">
+                  <div class="header-content">
+                    <span>Materials</span>
+                  </div>
+                </th>
+                <th class="table-header-cell">
+                  <div class="header-content">
+                    <span>Total Value</span>
+                    <i class="pi pi-sort"></i>
+                  </div>
+                </th>
+                <th class="table-header-cell">
+                  <div class="header-content">
+                    <span>Actions</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let project of myProjects" class="table-row" (click)="viewProject(project)">
+                <td class="table-cell project-cell">
+                  <div class="project-info">
+                    <div class="project-avatar">
+                      <i class="pi pi-folder"></i>
+                    </div>
+                    <div class="project-details">
+                      <span class="project-name">{{ project.name }}</span>
+                      <span class="project-description">{{ project.description | slice:0:80 }}{{ project.description.length > 80 ? '...' : '' }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="table-cell">
+                  <div class="client-info">
+                    <span class="client-value">{{ project.client_name || 'Not specified' }}</span>
+                    <span class="client-label">Client</span>
+                  </div>
+                </td>
+                <td class="table-cell">
+                  <div class="materials-container">
+                    <span class="materials-badge" [class]="getMaterialsCountClass(project.materials?.length || 0)">
+                      <i class="pi pi-box"></i>
+                      <span>{{ project.materials?.length || 0 }}</span>
+                    </span>
+                  </div>
+                </td>
+                <td class="table-cell">
+                  <div class="value-info">
+                    <span class="value-amount">{{ getTotalProjectValue(project) | currency }}</span>
+                    <span class="value-label">Total</span>
+                  </div>
+                </td>
+                <td class="table-cell actions-cell">
+                  <div class="action-buttons">
+                    <button class="action-button view-button"
+                            (click)="viewProject(project); $event.stopPropagation()"
+                            title="View Details">
+                      <i class="pi pi-eye"></i>
+                    </button>
+                    <button class="action-button edit-button"
+                            (click)="editProjectModal(project); $event.stopPropagation()"
+                            title="Edit Project">
+                      <i class="pi pi-pencil"></i>
+                    </button>
+                    <button class="action-button delete-button"
+                            (click)="confirmDeleteProject(project); $event.stopPropagation()"
+                            title="Delete Project">
+                      <i class="pi pi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-      <!-- Show "+X more..." if there are more than 2 materials -->
-      <li *ngIf="project.materials.length > 2" class="more-materials">
-        +{{ project.materials.length - 2 }} more...
-      </li>
-    </ul>
-
-
-
-    <div class="project-actions">
-      <button class="action-icon-btn" (click)="editProjectModal(project); $event.stopPropagation()">
-        <i class="fas fa-edit"></i>
-      </button>
-      <button class="action-icon-btn" (click)="confirmDeleteProject(project); $event.stopPropagation()">
-        <i class="fas fa-trash"></i>
-      </button>
+          <!-- Empty State -->
+          <div *ngIf="myProjects.length === 0" class="empty-state">
+            <div class="empty-icon">
+              <i class="pi pi-inbox"></i>
+            </div>
+            <h3>No Projects Found</h3>
+            <p>You haven't created any projects yet. Start by adding your first project.</p>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<h4>Other Users' Projects</h4>
-<div class="project-card-grid">
-  <div *ngFor="let project of otherProjects" class="project-card" (click)="viewProject(project)">
-    <h3 class="project-title"><i class="fas fa-folder"></i> {{ project.name }}</h3>
-    <p class="project-description">
-      {{ project.description | slice:0:120 }}...
-      <a (click)="expandDescription(project)">See More</a>
-    </p>
-    <ul class="project-materials">
-      <li *ngFor="let material of project.materials.slice(0, 2)">
-        <span class="material-name">{{ material.name }}</span>
-        <span class="material-quantity">{{ material.quantity }} units</span>
-        - <strong>{{ material.srp | currency:'PHP' }}</strong> each
-      </li>
+    <!-- Other Users' Projects Section -->
+    <div class="table-section">
+      <div class="table-container">
+        <div class="table-header">
+          <h2 class="table-title">Other Users' Projects</h2>
+          <div class="table-stats">
+            <span class="stat-item">
+              <i class="pi pi-users"></i>
+              <span>{{ otherProjects.length }} Total Projects</span>
+            </span>
+            <span class="stat-item">
+              <i class="pi pi-box"></i>
+              <span>{{ getTotalMaterials(otherProjects) }} Total Materials</span>
+            </span>
+          </div>
+        </div>
 
-      <!-- Show "+X more..." if there are more than 2 materials -->
-      <li *ngIf="project.materials.length > 2" class="more-materials">
-        +{{ project.materials.length - 2 }} more...
-      </li>
-    </ul>
+        <!-- Modern Table -->
+        <div class="modern-table-container">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th class="table-header-cell">
+                  <div class="header-content">
+                    <span>Project Information</span>
+                    <i class="pi pi-sort"></i>
+                  </div>
+                </th>
+                <th class="table-header-cell">
+                  <div class="header-content">
+                    <span>Client</span>
+                    <i class="pi pi-sort"></i>
+                  </div>
+                </th>
+                <th class="table-header-cell">
+                  <div class="header-content">
+                    <span>Materials</span>
+                  </div>
+                </th>
+                <th class="table-header-cell">
+                  <div class="header-content">
+                    <span>Total Value</span>
+                    <i class="pi pi-sort"></i>
+                  </div>
+                </th>
+                <th class="table-header-cell">
+                  <div class="header-content">
+                    <span>Actions</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let project of otherProjects" class="table-row" (click)="viewProject(project)">
+                <td class="table-cell project-cell">
+                  <div class="project-info">
+                    <div class="project-avatar">
+                      <i class="pi pi-folder"></i>
+                    </div>
+                    <div class="project-details">
+                      <span class="project-name">{{ project.name }}</span>
+                      <span class="project-description">{{ project.description | slice:0:80 }}{{ project.description.length > 80 ? '...' : '' }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="table-cell">
+                  <div class="client-info">
+                    <span class="client-value">{{ project.client_name || 'Not specified' }}</span>
+                    <span class="client-label">Client</span>
+                  </div>
+                </td>
+                <td class="table-cell">
+                  <div class="materials-container">
+                    <span class="materials-badge" [class]="getMaterialsCountClass(project.materials?.length || 0)">
+                      <i class="pi pi-box"></i>
+                      <span>{{ project.materials?.length || 0 }}</span>
+                    </span>
+                  </div>
+                </td>
+                <td class="table-cell">
+                  <div class="value-info">
+                    <span class="value-amount">{{ getTotalProjectValue(project) | currency }}</span>
+                    <span class="value-label">Total</span>
+                  </div>
+                </td>
+                <td class="table-cell actions-cell">
+                  <div class="action-buttons">
+                    <button class="action-button view-button"
+                            (click)="viewProject(project); $event.stopPropagation()"
+                            title="View Details">
+                      <i class="pi pi-eye"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-
-    <!-- <p class="total-cost"><strong>Total SRP:</strong> {{ getTotalSrp(project) | currency }}</p> -->
-  </div>
-</div>
-
-
-<!-- Create New Project Modal -->
-<div class="modal-backdrop edit-project-modal" *ngIf="showModal">
-  <div class="modal-content">
-    <!-- Modal Header -->
-    <!-- Modal Header -->
-    <div class="modal-header">
-      <h2 class="modal-title">Create New Project</h2>
-
-      <span class="close-btn" (click)="closeModal()">&times;</span>
+          <!-- Empty State -->
+          <div *ngIf="otherProjects.length === 0" class="empty-state">
+            <div class="empty-icon">
+              <i class="pi pi-users"></i>
+            </div>
+            <h3>No Other Projects</h3>
+            <p>There are no projects from other users to display.</p>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Create New Project Modal -->
+    <div class="modal-backdrop" *ngIf="showModal">
+      <div class="modal-content add-project-modal">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="header-content">
+            <div class="header-info">
+              <h2 class="modal-title">Create New Project</h2>
+              <p class="modal-subtitle">Add a new project with materials and client information</p>
+            </div>
+            <button class="modal-close" (click)="closeModal()">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <!-- Project Information Section -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-info-circle"></i>
+              Project Information
+            </h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Project Name *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  placeholder="Enter project name"
+                  [(ngModel)]="project.name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Client Name *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  placeholder="Enter client's name"
+                  [(ngModel)]="project.client_name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Client Phone</label>
+                <input
+                  type="tel"
+                  class="form-input"
+                  placeholder="+1 (123) 456-7890"
+                  [(ngModel)]="project.client_phone"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Client Email</label>
+                <input
+                  type="email"
+                  class="form-input"
+                  placeholder="client@example.com"
+                  [(ngModel)]="project.client_email"
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Client Address</label>
+                <textarea
+                  class="form-textarea"
+                  placeholder="Full client address"
+                  [(ngModel)]="project.client_address"
+                  rows="3"
+                ></textarea>
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Project Description *</label>
+                <textarea
+                  class="form-textarea"
+                  placeholder="Enter project description"
+                  [(ngModel)]="project.description"
+                  rows="4"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Available Materials Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <h3 class="section-title">
+                <i class="pi pi-box"></i>
+                Available Materials
+              </h3>
+              <div class="search-container">
+                <div class="search-input-wrapper">
+                  <i class="pi pi-search search-icon"></i>
+                  <input
+                    type="text"
+                    class="search-input"
+                    placeholder="Search materials..."
+                    [(ngModel)]="searchTerm"
+                    (input)="filterEquipmentList()"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="materials-grid">
+              <div *ngFor="let equipment of filteredEquipmentList" class="material-card">
+                <div class="material-header">
+                  <div class="material-info">
+                    <h4 class="material-name">{{ equipment.name }}</h4>
+                    <p class="material-details">{{ equipment.model }} • {{ equipment.brand }}</p>
+                    <span class="stock-info">{{ equipment.quantity }} units available</span>
+                  </div>
+                  <div class="material-actions">
+                    <button class="view-btn" (click)="viewEquipmentDetails(equipment)" title="View Details">
+                      <i class="pi pi-eye"></i>
+                    </button>
+                    <label class="checkbox-wrapper">
+                      <input
+                        type="checkbox"
+                        [checked]="selectedItems.includes(equipment.id)"
+                        (change)="toggleFullEquipmentSelection(equipment)"
+                      />
+                      <span class="checkmark"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="filteredEquipmentList.length === 0" class="empty-state">
+                <i class="pi pi-inbox empty-icon"></i>
+                <p>No materials available</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected Materials Section -->
+          <div class="form-section" *ngIf="selectedEquipments.length > 0">
+            <div class="section-header">
+              <h3 class="section-title">
+                <i class="pi pi-list"></i>
+                Selected Materials
+              </h3>
+              <div class="file-upload">
+                <label class="file-upload-label">
+                  <i class="pi pi-paperclip"></i>
+                  <span>Attach File</span>
+                  <input type="file" (change)="handleFileUpload($event)" class="file-input" />
+                </label>
+              </div>
+            </div>
+
+            <div class="selected-materials-table">
+              <table class="materials-table">
+                <thead>
+                  <tr>
+                    <th>Material</th>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Supplier</th>
+                    <th>Cost</th>
+                    <th>Quantity</th>
+                    <th>Profit Margin</th>
+                    <th>Actual Cost</th>
+                    <th>Status</th>
+                    <th>Brochure</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let selected of selectedEquipments" [class.rejected-row]="selected.status === 'rejected'">
+                    <td [class.rejected-text]="selected.status === 'rejected'">
+                      <div class="material-cell">
+                        <span class="material-name">{{ selected.name }}</span>
+                      </div>
+                    </td>
+                    <td [class.rejected-text]="selected.status === 'rejected'">{{ selected.brand }}</td>
+                    <td [class.rejected-text]="selected.status === 'rejected'">{{ selected.model }}</td>
+                    <td [class.rejected-text]="selected.status === 'rejected'">{{ selected.supplier }}</td>
+                    <td [class.rejected-text]="selected.status === 'rejected'">${{ selected.srp }}</td>
+                    <td [class.rejected-text]="selected.status === 'rejected'">
+                      <input
+                        type="number"
+                        [(ngModel)]="selected.quantity"
+                        min="1"
+                        [disabled]="selected.status === 'rejected'"
+                        (focus)="storePreviousQuantity(selected)"
+                        (change)="validateQuantity(selected)"
+                        class="quantity-input"
+                      />
+                    </td>
+                    <td [class.rejected-text]="selected.status === 'rejected'">
+                      <input
+                        type="number"
+                        [(ngModel)]="selected.profitMargin"
+                        min="0"
+                        [disabled]="selected.status === 'rejected'"
+                        placeholder="20"
+                        class="margin-input"
+                      />
+                    </td>
+                    <td>
+                      {{ selected.status === 'rejected' ? 'REJECTED' : (getActualCost(selected) | currency) }}
+                    </td>
+                    <td>
+                      <span class="status-badge"
+                            [class.rejected]="selected.status === 'rejected'"
+                            [class.approved]="selected.status === 'approved'">
+                        {{ selected.status === 'rejected' ? 'Rejected' : 'Approved' }}
+                      </span>
+                    </td>
+                    <td>
+                      <a *ngIf="selected.brochure_url"
+                         href="{{selected.brochure_url}}"
+                         target="_blank"
+                         class="brochure-link"
+                         title="View Brochure">
+                        <i class="pi pi-file-pdf"></i>
+                      </a>
+                      <span *ngIf="!selected.brochure_url" class="no-brochure">N/A</span>
+                    </td>
+                    <td>
+                      <div class="action-buttons">
+                        <button *ngIf="selected.status !== 'rejected'"
+                                class="action-btn reject-btn"
+                                (click)="rejectEquipment(selected)"
+                                title="Reject">
+                          <i class="pi pi-times"></i>
+                        </button>
+                        <button *ngIf="selected.status === 'rejected'"
+                                class="action-btn approve-btn"
+                                (click)="approveEquipment(selected)"
+                                title="Approve">
+                          <i class="pi pi-check"></i>
+                        </button>
+                        <button class="action-btn remove-btn"
+                                (click)="removeSelectedEquipment(selected.equipment_id)"
+                                title="Remove">
+                          <i class="pi pi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Financial Summary -->
+          <div class="financial-summary" *ngIf="selectedEquipments.length > 0">
+            <div class="summary-card">
+              <h3 class="summary-title">Financial Summary</h3>
+              <div class="summary-items">
+                <div class="summary-item">
+                  <span class="label">Subtotal:</span>
+                  <span class="value">{{ getTotalSelectedSrp() | currency:'PHP' }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">VAT (12%):</span>
+                  <span class="value">{{ calculateVAT() | currency:'PHP' }}</span>
+                </div>
+                <div class="summary-item total">
+                  <span class="label">Total Cost:</span>
+                  <span class="value">{{ calculateTotalWithVAT() | currency:'PHP' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">
+            <i class="pi pi-times"></i>
+            Cancel
+          </button>
+          <button class="btn-primary" (click)="submitProject()" [disabled]="selectedEquipments.length === 0">
+            <i class="pi pi-save"></i>
+            Create Project
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Project Modal -->
+    <div class="modal-backdrop edit-project-modal" *ngIf="showEditModal && editProject">
+      <div class="modal-content" [@flyToSidebar]="animationState" [class.animating]="isAnimating">
+        <span class="close-btn" (click)="showEditModal = false">&times;</span>
+        <h2 class="modal-title">Edit Project</h2>
+
+        <!-- Sections container (for horizontal layout) -->
+        <span class="close-btn" (click)="showEditModal = false">&times;</span>
+        <h2 class="modal-title">Edit Project</h2>
+
         <!-- Sections container (for horizontal layout) -->
         <div class="sections-container">
 
           <!-- Project Details Section -->
           <div class="section">
             <h3 class="section-title">Project Details</h3>
-
             <div class="form-group">
               <label class="modal-label">Project Name:</label>
-              <input
-                type="text"
-                class="input-field"
-                placeholder="Enter project name"
-                [(ngModel)]="project.name"
-              />
+              <input type="text" class="input-field" placeholder="Enter project name" [(ngModel)]="editProject.name">
             </div>
-
-            <div class="form-group">
-              <label class="modal-label">Client's Name:</label>
-              <input
-                type="text"
-                class="input-field"
-                placeholder="Enter client's name"
-                [(ngModel)]="project.client_name"
-              />
-            </div>
-
-              <div class="form-group">
-              <label class="modal-label">Client Phone:</label>
-              <input
-                type="tel"
-                class="input-field"
-                placeholder="+1 (123) 456-7890"
-                [(ngModel)]="project.client_phone"
-              />
-            </div>
-
-              <div class="form-group">
-            <label class="modal-label">Client Address:</label>
-            <textarea
-              class="textarea-field"
-              placeholder="Full client address"
-              [(ngModel)]="project.client_address"
-            ></textarea>
-          </div>
-
-              <div class="form-group">
-              <label class="modal-label">Client Email:</label>
-              <input
-                type="email"
-                class="input-field"
-                placeholder="client@example.com"
-                [(ngModel)]="project.client_email"
-              />
-            </div>
-
             <div class="form-group">
               <label class="modal-label">Project Description:</label>
-              <textarea
-                class="textarea-field"
-                placeholder="Enter project description"
-                [(ngModel)]="project.description"
-              ></textarea>
+              <textarea class="textarea-field" placeholder="Enter project description" [(ngModel)]="editProject.description"></textarea>
+            </div>
+
+            <!-- Add these new fields for client contact information -->
+            <div class="form-group">
+              <label class="modal-label">Client Address:</label>
+              <input type="text" class="input-field" placeholder="Enter client address" [(ngModel)]="editProject.client_address">
+            </div>
+            <div class="form-group">
+              <label class="modal-label">Client Email:</label>
+              <input type="email" class="input-field" placeholder="Enter client email" [(ngModel)]="editProject.client_email">
+            </div>
+            <div class="form-group">
+              <label class="modal-label">Client Phone:</label>
+              <input type="tel" class="input-field" placeholder="Enter client phone" [(ngModel)]="editProject.client_phone">
             </div>
           </div>
-          <!-- Selected Materials Section -->
+
+          <!-- Available Materials Section -->
           <div class="section">
-            <!-- Title + Search Row -->
-            <div class="section-title-row">
-              <h3 class="">Available Materials</h3>
-              <div class="search-bar-container">
-                <input
-                  type="text"
-                  class="search-input"
-                  placeholder="Search model, brand, supplier..."
-                  [(ngModel)]="searchTerm"
-                  (input)="filterEquipmentList()"
-                />
-                <i class="fas fa-search search-icon"></i>
-              </div>
-            </div>
-
+            <h3 class="section-title">Available Materials</h3>
             <div class="materials-container">
-              <div *ngFor="let equipment of filteredEquipmentList" class="material-item">
+              <div *ngFor="let equipment of equipmentList" class="material-item">
                 <div class="material-info">
-                  <!-- Left side: Equipment details -->
-                  <div class="material-text">
-                    <span class="material-name">{{ equipment.name }}</span>
-                    <span class="material-model">({{ equipment.model }})</span>
-                    <span class="material-quantity">{{ equipment.quantity }} left</span>
-                  </div>
-
-                  <!-- Right side: View button and checkbox -->
+                  <span class="material-name">{{ equipment.name }} ({{ equipment.quantity }} left)</span>
                   <div class="material-actions">
                     <button class="view-btn" (click)="viewEquipmentDetails(equipment)">
-                      <i class="fas fa-eye"></i>
+                      <i class="fas fa-eye"></i> View
                     </button>
-                    <input
-                      type="checkbox"
-                      [checked]="selectedItems.includes(equipment.id)"
-                      (change)="toggleFullEquipmentSelection(equipment)"
-                    />
+                    <div class="material-checkbox">
+                      <input type="checkbox"
+                             [id]="'equipment_' + equipment.id"
+                             (change)="toggleEquipment(equipment)"
+                             [checked]="isEquipmentSelected(equipment.id)">
+                    </div>
                   </div>
                 </div>
               </div>
-
               <p *ngIf="equipmentList.length === 0" class="no-materials">No materials available.</p>
             </div>
           </div>
 
-
-
         </div> <!-- End of sections container -->
 
+        <!-- Assigned Materials Section -->
         <div class="section">
-  <div class="section-title-row">
-    <h3 class="section-title">Selected Materials</h3>
-    <input type="file" (change)="handleFileUpload($event)" class="file-input" />
-  </div>
+          <h3 class="section-title">Assigned Materials</h3>
+          <div class="materials-container">
 
-  <div class="materials-container" *ngIf="selectedEquipments.length > 0; else noMaterials">
-    <table class="materials-table">
-      <thead>
-        <tr>
-          <!-- <th>Name</th> -->
-          <th>Brand</th>
-          <th>Model</th>
-          <th>Supplier</th>
-          <th>Cost</th>
-          <th>Quantity</th>
-          <th>Profit Margin (%)</th>
-          <th>Actual Cost</th>
-          <th>Status</th>
-          <th>Brochure</th>
-          <th>Action</th>
+            <table class="materials-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Brand</th>
+                  <th>Model</th>
+                  <th>Supplier</th>
+                  <th>Quantity</th>
+                  <th>Cost</th>
+                  <th>Profit Margin (%)</th>
+                  <th>Actual Cost</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+        <tr *ngFor="let material of editProject.materials" [class.rejected-row]="material.status === 'rejected'">
+            <!-- Columns with strikethrough when rejected -->
+            <td [class.rejected-text]="material.status === 'rejected'">{{ material.name || 'Unknown' }}</td>
+            <td [class.rejected-text]="material.status === 'rejected'">{{ material.brand || 'N/A' }}</td>
+            <td [class.rejected-text]="material.status === 'rejected'">{{ material.model || 'N/A' }}</td>
+            <td [class.rejected-text]="material.status === 'rejected'">{{ material.supplier || 'N/A' }}</td>
+            <td [class.rejected-text]="material.status === 'rejected'">
+                <input type="number"
+                       class="quantity-input"
+                       [(ngModel)]="material.quantity"
+                       min="1"
+                       [disabled]="material.status === 'rejected'"
+                       (change)="updateActualCostInEdit(material)">
+            </td>
+            <td [class.rejected-text]="material.status === 'rejected'">{{ material.cost || 'N/A' }}</td>
+            <td [class.rejected-text]="material.status === 'rejected'">
+                <input type="number"
+                       [(ngModel)]="material.profitMargin"
+                       min="0"
+                       placeholder="20"
+                       class="margin-input"
+                       [disabled]="material.status === 'rejected'"
+                       (change)="updateActualCostInEdit(material)">
+            </td>
+
+            <!-- Columns without strikethrough -->
+            <td>
+                {{ material.status === 'rejected' ? 'REJECTED' : (material.actual_cost | currency) }}
+            </td>
+            <td class="status-col">
+                <span class="status-badge"
+                      [class.rejected]="material.status === 'rejected'"
+                      [class.approved]="material.status === 'approved'">
+                    {{ material.status === 'rejected' ? 'Rejected' : 'Approved' }}
+                </span>
+            </td>
+            <td class="action-col">
+                <button *ngIf="material.status !== 'rejected'"
+                        class="action-btnn reject-btnn"
+                        (click)="rejectMaterialInEdit(material)">
+                    <i class="fas fa-times"></i>
+                </button>
+                <button *ngIf="material.status === 'rejected'"
+                        class="action-btnn approve-btnn"
+                        (click)="approveMaterialInEdit(material)">
+                    <i class="fas fa-check"></i>
+                </button>
+            </td>
         </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let selected of selectedEquipments">
-          <!-- Columns that should have strikethrough when rejected -->
-          <!-- <td [class.rejected]="{{ selected.status === 'rejected' }}">{{ selected.name }}</td> -->
-          <td [class.rejected-text]="selected.status === 'rejected'">{{ selected.brand }}</td>
-          <td [class.rejected-text]="selected.status === 'rejected'">{{ selected.model }}</td>
-          <td [class.rejected-text]="selected.status === 'rejected'">{{ selected.supplier }}</td>
-          <td [class.rejected-text]="selected.status === 'rejected'">${{ selected.srp }}</td>
-          <td [class.rejected-text]="selected.status === 'rejected'">
-            <input
-              type="number"
-              [(ngModel)]="selected.quantity"
-              min="0"
-              [disabled]="selected.status === 'rejected'"
-              (focus)="storePreviousQuantity(selected)"
-              (change)="validateQuantity(selected)"
-              class="quantity-input"
-            />
-          </td>
-          <td [class.rejected-text]="selected.status === 'rejected'">
-            <input
-              type="number"
-              [(ngModel)]="selected.profitMargin"
-              min="0"
-              [disabled]="selected.status === 'rejected'"
-              [placeholder]="'20'"
-              class="margin-input"
-            />
-          </td>
-          <!-- Columns that should NOT have strikethrough -->
-          <td>
-            {{ selected.status === 'rejected' ? 'REJECTED' : (getActualCost(selected) | currency) }}
-        </td>
-        <td class="status-col">
-            <span class="status-badge"
-                  [class.rejected]="selected.status === 'rejected'"
-                  [class.approved]="selected.status === 'approved'">
-                {{ selected.status === 'rejected' ? 'Rejected' : 'Approved' }}
-            </span>
-        </td>
-        <td class="brochure-col">
-          <a *ngIf="selected.brochure_url"
-             href="{{selected.brochure_url}}"
-             target="_blank"
-             class="brochure-link"
-             title="View Brochure">
-            <i class="fas fa-file-pdf"></i> PDF
-          </a>
-          <span *ngIf="!selected.brochure_url" class="no-brochure">
-            N/A
-          </span>
-        </td>
-        <td class="action-col">
-            <button *ngIf="selected.status !== 'rejected'"
-                    class="action-btnn reject-btnn"
-                    (click)="rejectEquipment(selected)">
-                <i class="fas fa-times"></i>
-            </button>
-            <button *ngIf="selected.status === 'rejected'"
-                    class="action-btnn approve-btnn"
-                    (click)="approveEquipment(selected)">
-                <i class="fas fa-check"></i>
-            </button>
-        </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    </tbody>
+            </table>
 
-  <ng-template #noMaterials>
-    <p class="no-materials">No materials selected yet.</p>
-  </ng-template>
-</div>
-
-        <!-- Total Cost Section -->
-        <div class="total-cost-section">
-          <div>
-            <strong>Subtotal: {{ getTotalSelectedSrp() | currency:'PHP' }}</strong>
-          </div>
-          <div>
-            <strong>VAT (20%): {{ calculateVAT() | currency:'PHP' }}</strong>
-          </div>
-          <div>
-            <strong>Total Cost: {{ calculateTotalWithVAT() | currency:'PHP' }}</strong>
+            <p *ngIf="editProject.materials.length === 0" class="no-materials">No materials assigned yet.</p>
           </div>
         </div>
 
         <!-- Modal Actions -->
         <div class="modal-actions">
-          <button class="action-btn cancel-btn" (click)="closeModal()">Cancel</button>
-          <button class="action-btn save-btn" (click)="submitProject()">
-            <i class="fas fa-save"></i> Save Project
+          <button class="action-btn cancel-btn" (click)="showEditModal = false">Cancel</button>
+          <button class="action-btn save-btn" (click)="saveEditedProject()">
+            <i class="fas fa-save"></i> Save Changes
           </button>
         </div>
       </div>
-</div>
-<!-- Edit Project Modal -->
-<div class="modal-backdrop edit-project-modal" *ngIf="showEditModal && editProject">
-  <div class="modal-content" [@flyToSidebar]="animationState" [class.animating]="isAnimating">
-    <span class="close-btn" (click)="showEditModal = false">&times;</span>
-    <h2 class="modal-title">Edit Project</h2>
-
-    <!-- Sections container (for horizontal layout) -->
-    <span class="close-btn" (click)="showEditModal = false">&times;</span>
-    <h2 class="modal-title">Edit Project</h2>
-
-    <!-- Sections container (for horizontal layout) -->
-    <div class="sections-container">
-
-      <!-- Project Details Section -->
-      <div class="section">
-        <h3 class="section-title">Project Details</h3>
-        <div class="form-group">
-          <label class="modal-label">Project Name:</label>
-          <input type="text" class="input-field" placeholder="Enter project name" [(ngModel)]="editProject.name">
-        </div>
-        <div class="form-group">
-          <label class="modal-label">Project Description:</label>
-          <textarea class="textarea-field" placeholder="Enter project description" [(ngModel)]="editProject.description"></textarea>
-        </div>
-
-        <!-- Add these new fields for client contact information -->
-        <div class="form-group">
-          <label class="modal-label">Client Address:</label>
-          <input type="text" class="input-field" placeholder="Enter client address" [(ngModel)]="editProject.client_address">
-        </div>
-        <div class="form-group">
-          <label class="modal-label">Client Email:</label>
-          <input type="email" class="input-field" placeholder="Enter client email" [(ngModel)]="editProject.client_email">
-        </div>
-        <div class="form-group">
-          <label class="modal-label">Client Phone:</label>
-          <input type="tel" class="input-field" placeholder="Enter client phone" [(ngModel)]="editProject.client_phone">
-        </div>
-      </div>
-
-         <!-- Available Materials Section -->
-      <div class="section">
-        <h3 class="section-title">Available Materials</h3>
-        <div class="materials-container">
-          <div *ngFor="let equipment of equipmentList" class="material-item">
-            <div class="material-info">
-              <span class="material-name">{{ equipment.name }} ({{ equipment.quantity }} left)</span>
-              <div class="material-actions">
-                <button class="view-btn" (click)="viewEquipmentDetails(equipment)">
-                  <i class="fas fa-eye"></i> View
-                </button>
-                <div class="material-checkbox">
-                  <input type="checkbox"
-                         [id]="'equipment_' + equipment.id"
-                         (change)="toggleEquipment(equipment)"
-                         [checked]="isEquipmentSelected(equipment.id)">
-                </div>
-              </div>
-            </div>
-          </div>
-          <p *ngIf="equipmentList.length === 0" class="no-materials">No materials available.</p>
-        </div>
-      </div>
-
-    </div> <!-- End of sections container -->
-
-    <!-- Assigned Materials Section -->
-    <div class="section">
-      <h3 class="section-title">Assigned Materials</h3>
-      <div class="materials-container">
-
-        <table class="materials-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Brand</th>
-              <th>Model</th>
-              <th>Supplier</th>
-              <th>Quantity</th>
-              <th>Cost</th>
-              <th>Profit Margin (%)</th>
-              <th>Actual Cost</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-    <tr *ngFor="let material of editProject.materials" [class.rejected-row]="material.status === 'rejected'">
-        <!-- Columns with strikethrough when rejected -->
-        <td [class.rejected-text]="material.status === 'rejected'">{{ material.name || 'Unknown' }}</td>
-        <td [class.rejected-text]="material.status === 'rejected'">{{ material.brand || 'N/A' }}</td>
-        <td [class.rejected-text]="material.status === 'rejected'">{{ material.model || 'N/A' }}</td>
-        <td [class.rejected-text]="material.status === 'rejected'">{{ material.supplier || 'N/A' }}</td>
-        <td [class.rejected-text]="material.status === 'rejected'">
-            <input type="number"
-                   class="quantity-input"
-                   [(ngModel)]="material.quantity"
-                   min="1"
-                   [disabled]="material.status === 'rejected'"
-                   (change)="updateActualCostInEdit(material)">
-        </td>
-        <td [class.rejected-text]="material.status === 'rejected'">{{ material.cost || 'N/A' }}</td>
-        <td [class.rejected-text]="material.status === 'rejected'">
-            <input type="number"
-                   [(ngModel)]="material.profitMargin"
-                   min="0"
-                   placeholder="20"
-                   class="margin-input"
-                   [disabled]="material.status === 'rejected'"
-                   (change)="updateActualCostInEdit(material)">
-        </td>
-
-        <!-- Columns without strikethrough -->
-        <td>
-            {{ material.status === 'rejected' ? 'REJECTED' : (material.actual_cost | currency) }}
-        </td>
-        <td class="status-col">
-            <span class="status-badge"
-                  [class.rejected]="material.status === 'rejected'"
-                  [class.approved]="material.status === 'approved'">
-                {{ material.status === 'rejected' ? 'Rejected' : 'Approved' }}
-            </span>
-        </td>
-        <td class="action-col">
-            <button *ngIf="material.status !== 'rejected'"
-                    class="action-btnn reject-btnn"
-                    (click)="rejectMaterialInEdit(material)">
-                <i class="fas fa-times"></i>
-            </button>
-            <button *ngIf="material.status === 'rejected'"
-                    class="action-btnn approve-btnn"
-                    (click)="approveMaterialInEdit(material)">
-                <i class="fas fa-check"></i>
-            </button>
-        </td>
-    </tr>
-</tbody>
-        </table>
-
-        <p *ngIf="editProject.materials.length === 0" class="no-materials">No materials assigned yet.</p>
-      </div>
     </div>
 
-    <!-- Modal Actions -->
-    <div class="modal-actions">
-      <button class="action-btn cancel-btn" (click)="showEditModal = false">Cancel</button>
-      <button class="action-btn save-btn" (click)="saveEditedProject()">
-        <i class="fas fa-save"></i> Save Changes
-      </button>
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-backdrop" *ngIf="showDeleteModal">
+      <div class="modal-content">
+        <h2 class="modal-title">Confirm Deletion</h2>
+        <p>Are you sure you want to delete "{{selectedProject?.name}}"?</p>
+        <div class="delete-modal-actions">
+          <button class="action-btn delete-btn"
+                  *ngIf="selectedProject?.id"
+                  (click)="deleteProject(selectedProject.id)"
+                  [disabled]="isDeleting">
+            <span *ngIf="!isDeleting">Yes</span>
+            <span *ngIf="isDeleting">Deleting...</span>
+          </button>
+          <button class="action-btn cancel-btn"
+                  (click)="closeDeleteModal()"
+                  [disabled]="isDeleting">
+            No
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-
-
-
-
-  <!-- Delete Confirmation Modal -->
-<div class="modal-backdrop" *ngIf="showDeleteModal">
-  <div class="modal-content">
-    <h2 class="modal-title">Confirm Deletion</h2>
-    <p>Are you sure you want to delete "{{selectedProject?.name}}"?</p>
-    <div class="delete-modal-actions">
-      <button class="action-btn delete-btn"
-              *ngIf="selectedProject?.id"
-              (click)="deleteProject(selectedProject.id)"
-              [disabled]="isDeleting">
-        <span *ngIf="!isDeleting">Yes</span>
-        <span *ngIf="isDeleting">Deleting...</span>
-      </button>
-      <button class="action-btn cancel-btn"
-              (click)="closeDeleteModal()"
-              [disabled]="isDeleting">
-        No
-      </button>
-    </div>
-  </div>
-</div>
-
 
     <!-- Project Cards -->
     <div class="project-card-grid">
@@ -547,154 +761,278 @@
         </div>
       </div>
     </div>
- <!-- 🌟 Project Details Modal -->
-<div class="modal-backdrop" *ngIf="showProjectDetailsModal">
-  <div class="modal-content project-details-modal">
-    <!-- ❌ Close Button -->
-    <span class="close-btn" (click)="closeProjectDetailsModal()">&times;</span>
+    <!-- 🌟 Project Details Modal -->
+    <div class="modal-backdrop" *ngIf="showProjectDetailsModal">
+      <div class="modal-content project-details-modal">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="header-content">
+            <div class="project-info">
+              <h2 class="modal-title">{{ selectedProject?.name || 'Project Details' }}</h2>
+              <div class="meta-info">
+                <span class="project-count">{{ selectedProject?.materials?.length || 0 }} materials</span>
+                <span class="separator">•</span>
+                <span class="status" [ngClass]="getStatusSeverity(selectedProject?.delivery_status)">
+                  {{ getDisplayStatus(selectedProject?.delivery_status) || 'Active' }}
+                </span>
+              </div>
+            </div>
+            <button class="modal-close" (click)="closeProjectDetailsModal()">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+        </div>
 
-    <!-- 🕒 Date & Time -->
-    <p class="timestamp">{{ currentDateTime }}</p>
+        <!-- Project Overview -->
+        <div class="project-overview">
+          <div class="overview-header">
+            <div class="project-info">
+              <div class="project-avatar-large">
+                <i class="pi pi-folder"></i>
+              </div>
+              <div class="project-details-large">
+                <h3 class="project-title">{{ selectedProject?.name || 'Unnamed project' }}</h3>
+                <div class="project-meta">
+                  <span class="project-amount-large">{{ selectedProject?.total | currency }}</span>
+                  <span class="separator">•</span>
+                  <span class="project-status" [ngClass]="getStatusSeverity(selectedProject?.delivery_status)">
+                    {{ getDisplayStatus(selectedProject?.delivery_status) || 'Active' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <!-- 📌 Sticky Header -->
-    <div class="modal-header">
-      <h3>{{ selectedProject?.name }}</h3>
-      <!-- 📎 View File Button -->
-      <div *ngIf="selectedProject?.file_url">
-        <button class="view-file-btn" (click)="viewFileAttached(selectedProject.file_url)">
-          📎 View Attached File
-        </button>
+        <!-- Project Details Grid -->
+        <div class="details-grid">
+          <!-- Basic Information -->
+          <div class="detail-card">
+            <h3 class="section-title">
+              <i class="pi pi-info-circle"></i>
+              Basic Information
+            </h3>
+            <div class="detail-content">
+              <div class="detail-row">
+                <span class="label">Project Name</span>
+                <span class="value">{{ selectedProject?.name || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Client Name</span>
+                <span class="value">{{ selectedProject?.client_name || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Description</span>
+                <span class="value description">{{ selectedProject?.description || 'No description available' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Client Address</span>
+                <span class="value">{{ selectedProject?.client_address || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Client Email</span>
+                <span class="value">{{ selectedProject?.client_email || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Client Phone</span>
+                <span class="value">{{ selectedProject?.client_phone || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Summary -->
+          <div class="detail-card">
+            <h3 class="section-title">
+              <i class="pi pi-dollar"></i>
+              Financial Summary
+            </h3>
+            <div class="detail-content">
+              <div class="detail-row highlight">
+                <span class="label">Total Amount</span>
+                <span class="value amount">{{ selectedProject?.total | currency }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Subtotal</span>
+                <span class="value">{{ selectedProject?.subtotal | currency }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">VAT (20%)</span>
+                <span class="value">{{ selectedProject?.vat | currency }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Project Status</span>
+                <span class="value">{{ getDisplayStatus(selectedProject?.delivery_status) || 'Active' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Materials Information -->
+          <div class="detail-card" *ngIf="selectedProject?.materials?.length">
+            <h3 class="section-title">
+              <i class="pi pi-box"></i>
+              Materials Overview
+            </h3>
+            <div class="detail-content">
+              <div class="detail-row highlight">
+                <span class="label">Total Materials</span>
+                <span class="value amount">{{ selectedProject.materials.length }}</span>
+              </div>
+              <div class="materials-list">
+                <div class="detail-row" *ngFor="let material of selectedProject.materials.slice(0, 3)">
+                  <span class="material-info">
+                    <span class="material-name">{{ material.name }}</span>
+                    <span class="material-quantity">{{ material.quantity }} units</span>
+                  </span>
+                  <span class="material-cost">{{ (material.actual_cost | currency) || 'N/A' }}</span>
+                </div>
+                <div class="detail-row" *ngIf="selectedProject.materials.length > 3">
+                  <span class="value">+{{ selectedProject.materials.length - 3 }} more materials</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attachments Section -->
+          <div class="detail-card" *ngIf="selectedProject?.file_url">
+            <h3 class="section-title">
+              <i class="pi pi-paperclip"></i>
+              Attachments
+            </h3>
+            <div class="detail-content">
+              <div class="attachment-info">
+                <div class="attachment-preview">
+                  <i class="pi pi-file-pdf"></i>
+                  <span class="attachment-name">Project Document</span>
+                </div>
+                <button class="download-button" (click)="viewFileAttached(selectedProject.file_url)">
+                  <i class="pi pi-eye"></i>
+                  <span>View File</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Materials Table Section -->
+        <div class="materials-section" *ngIf="selectedProject?.materials?.length">
+          <h3 class="section-title">
+            <i class="pi pi-list"></i>
+            Materials Used
+          </h3>
+          <div class="materials-table-container">
+            <table class="materials-table">
+              <thead>
+                <tr>
+                  <th>Material Name</th>
+                  <th class="highlight">Quantity</th>
+                  <th>SRP (each)</th>
+                  <th class="highlight">Total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let material of selectedProject?.materials"
+                    [class.rejected-row]="material.status === 'rejected'">
+                  <td [class.rejected-text]="material.status === 'rejected'">{{ material.name }}</td>
+                  <td [class.rejected-text]="material.status === 'rejected'">{{ material.quantity }}</td>
+                  <td [class.rejected-text]="material.status === 'rejected'">{{ material.srp | currency:'PHP' }}</td>
+                  <td [class.rejected-text]="material.status === 'rejected'">
+                    {{ material.actual_cost | currency:'PHP' }}
+                  </td>
+                  <td>
+                    <span class="status-badge"
+                          [class.rejected]="material.status === 'rejected'"
+                          [class.approved]="material.status === 'approved'">
+                      {{ material.status || 'approved' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="modal-actions">
+          <button
+            class="deliver-btn"
+            (click)="markAsDelivered(selectedProject)"
+            [disabled]="selectedProject?.delivered">
+            <i class="pi pi-truck"></i>
+            Deliver Project
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- End of Project Details Modal -->
+    <!-- Equipment Details Modal -->
+    <div class="modal-backdrop" *ngIf="showEquipmentDetailsModal && selectedEquipmentDetails">
+      <div class="modal-content equipment-modal">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h2 class="modal-title">Equipment Details</h2>
+          <span class="close-btn" (click)="closeEquipmentDetailsModal()">&times;</span>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body" *ngIf="selectedEquipmentDetails as details">
+          <div class="equipment-details">
+
+            <!-- Equipment Image -->
+            <div class="equipment-image">
+              <img *ngIf="details?.product_images?.length"
+                  [src]="details?.product_images?.[0] ?? 'assets/default-image.png'"
+                  alt="Product Image"
+                  style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />
+              <span *ngIf="!details?.product_images?.length">No image</span>
+            </div>
+
+
+            <!-- Equipment Info -->
+            <div class="detail-row">
+              <h3>{{ details?.name }}</h3>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Brand:</span>
+              <span class="detail-value">{{ details?.brand }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Model:</span>
+              <span class="detail-value">{{ details?.model }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">SRP:</span>
+              <span class="detail-value">₱{{ details?.srp }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Supplier:</span>
+              <span class="detail-value">{{ details?.supplier }}</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <!-- <div class="modal-footer">
+          <button class="action-btn save-btn" (click)="closeEquipmentDetailsModal()">
+            <i class="fas fa-check"></i> Done
+          </button>
+        </div> -->
+
       </div>
     </div>
 
-    <!-- 🔹 Project Information -->
-    <div class="project-info">
-      <p class="client-name"><strong>Client Name:</strong> {{ selectedProject?.client_name }}</p>
-      <p class="description"><strong>Description:</strong> {{ selectedProject?.description }}</p>
-      <p><strong>Address:</strong> {{ selectedProject.client_address }}</p>
-      <p><strong>Email:</strong> {{ selectedProject.client_email }}</p>
-      <p><strong>Phone:</strong> {{ selectedProject.client_phone }}</p>
-    </div>
 
-    <!-- 🔹 Materials Section -->
-    <div class="materials-section">
-      <h4>Materials Used</h4>
-      <table class="materials-table">
-        <thead>
-          <tr>
-            <th>Material Name</th>
-            <th class="highlight">Quantity</th>
-            <th>SRP (each)</th>
-            <th class="highlight">Total</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let material of selectedProject?.materials"
-              [class.rejected-row]="material.status === 'rejected'">
-            <td [class.rejected-text]="material.status === 'rejected'">{{ material.name }}</td>
-            <td [class.rejected-text]="material.status === 'rejected'">{{ material.quantity }}</td>
-            <td [class.rejected-text]="material.status === 'rejected'">{{ material.srp | currency:'PHP' }}</td>
-            <td [class.rejected-text]="material.status === 'rejected'">
-              {{ material.actual_cost | currency:'PHP' }}
-            </td>
-            <td>
-              <span class="status-badge"
-                    [class.rejected]="material.status === 'rejected'"
-                    [class.approved]="material.status === 'approved'">
-                {{ material.status || 'approved' }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Financial Summary -->
-    <div class="total-cost-section">
-      <p><strong>Subtotal (Approved Items):</strong> {{ selectedProject?.subtotal | currency:'PHP' }}</p>
-      <p><strong>VAT (20%):</strong> {{ selectedProject?.vat | currency:'PHP' }}</p>
-      <p><strong>Total Cost:</strong> {{ selectedProject?.total | currency:'PHP' }}</p>
-    </div>
-
-    <!-- Deliver Button -->
-    <button
-      class="deliver-btn"
-      (click)="markAsDelivered(selectedProject)"
-      [disabled]="selectedProject?.delivered">
-      Deliver
-    </button>
-  </div>
-</div>
-<!-- End of Project Details Modal -->
-<!-- Equipment Details Modal -->
-<div class="modal-backdrop" *ngIf="showEquipmentDetailsModal && selectedEquipmentDetails">
-  <div class="modal-content equipment-modal">
-
-    <!-- Modal Header -->
-    <div class="modal-header">
-      <h2 class="modal-title">Equipment Details</h2>
-      <span class="close-btn" (click)="closeEquipmentDetailsModal()">&times;</span>
-    </div>
-
-    <!-- Modal Body -->
-    <div class="modal-body" *ngIf="selectedEquipmentDetails as details">
-      <div class="equipment-details">
-
-        <!-- Equipment Image -->
-        <div class="equipment-image">
-          <img *ngIf="details?.product_images?.length"
-              [src]="details?.product_images?.[0] ?? 'assets/default-image.png'"
-              alt="Product Image"
-              style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />
-          <span *ngIf="!details?.product_images?.length">No image</span>
-        </div>
-
-
-        <!-- Equipment Info -->
-        <div class="detail-row">
-          <h3>{{ details?.name }}</h3>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Brand:</span>
-          <span class="detail-value">{{ details?.brand }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Model:</span>
-          <span class="detail-value">{{ details?.model }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">SRP:</span>
-          <span class="detail-value">₱{{ details?.srp }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Supplier:</span>
-          <span class="detail-value">{{ details?.supplier }}</span>
-        </div>
-
+    <!-- 🖼️ Image Modal -->
+    <div class="modal-backdrop" *ngIf="showImageModal">
+      <div class="modal-content image-modal">
+        <span class="close-btn" (click)="closeImageModal()">&times;</span>
+        <img [src]="selectedImageUrl" alt="Attached File" class="attached-image" />
       </div>
     </div>
 
-    <!-- Modal Footer -->
-    <!-- <div class="modal-footer">
-      <button class="action-btn save-btn" (click)="closeEquipmentDetailsModal()">
-        <i class="fas fa-check"></i> Done
-      </button>
-    </div> -->
-
   </div>
-</div>
-
-
-<!-- 🖼️ Image Modal -->
-<div class="modal-backdrop" *ngIf="showImageModal">
-  <div class="modal-content image-modal">
-    <span class="close-btn" (click)="closeImageModal()">&times;</span>
-    <img [src]="selectedImageUrl" alt="Attached File" class="attached-image" />
-  </div>
-</div>
-
-</div>
 </div>
 <!-- Toast Notification -->
 <!-- <div *ngIf="showToast" class="toast">

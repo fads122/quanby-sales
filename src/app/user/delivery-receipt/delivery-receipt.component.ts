@@ -19,6 +19,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 
 interface DeliveryReceipt {
   id: string;
@@ -57,7 +58,8 @@ interface FileDialogData {
     SidebarComponent,
     MatSnackBarModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    BreadcrumbComponent
   ],
   templateUrl: './delivery-receipt.component.html',
   styleUrls: ['./delivery-receipt.component.css']
@@ -69,6 +71,7 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
   searchQuery: string = '';
   selectedReceipt: DeliveryReceipt | null = null;
   selectedUpdateFile: File | null = null;
+  isCollapsed = false;
 
   displayedColumns: string[] = ['project', 'client', 'delivery_date', 'status', 'attachment', 'actions'];
   rows: number = 5;
@@ -79,8 +82,17 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
   @ViewChild('receiptDetailsDialog') receiptDetailsDialog!: TemplateRef<any>;
   @ViewChild('fileDialog') fileDialog!: TemplateRef<any>;
 
+  // Computed properties for template
+  get totalReceipts(): number {
+    return this.dataSource.data.length;
+  }
+
+  get deliveredReceipts(): number {
+    return this.dataSource.data.filter(r => r.status === 'Delivered').length;
+  }
+
   constructor(
-    private dialog: MatDialog,
+    public dialog: MatDialog,
     private snackBar: MatSnackBar,
     private sanitizer: DomSanitizer
   ) {
@@ -284,5 +296,9 @@ getFileIcon(fileName: string): string {
     return 'picture_as_pdf';
   }
   return 'insert_drive_file';
+}
+
+onSidebarCollapsed(collapsed: boolean) {
+  this.isCollapsed = collapsed;
 }
 }

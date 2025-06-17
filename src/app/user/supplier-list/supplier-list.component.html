@@ -15,6 +15,7 @@
   <!-- Header Section -->
   <div class="header">
     <h1 class="page-title">Supplier Management</h1>
+    <p class="page-description">Manage and track your supplier relationships, view contact information, and monitor supplier performance across your organization.</p>
     <div class="action-bar">
       <div class="search-container">
         <span class="search-icon">search</span>
@@ -121,10 +122,10 @@
                   <span *ngIf="activeTab === 'current'">No suppliers assigned to you</span>
                   <span *ngIf="activeTab === 'all'">No suppliers found</span>
                 </p>
-                <button mat-raised-button color="primary" (click)="openAddSupplierDialog()">
+                <!-- <button mat-raised-button color="primary" (click)="openAddSupplierDialog()">
                   <mat-icon>add</mat-icon>
                   Add New Supplier
-                </button>
+                </button> -->
               </div>
             </td>
           </tr>

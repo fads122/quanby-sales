@@ -1,190 +1,298 @@
-<div class="layout-container">
-  <app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<div class="loading-overlay" *ngIf="loading">
+  <div class="loading-content">
+    <div class="logo-loader">
+      <div class="logo-glow"></div>
+      <img src="/images/quanby.png" alt="Quanby Logo">
+    </div>
+    <h3>Loading Clients...</h3>
+  </div>
+</div>
 
-  <!-- Update main-content div to use collapsed class -->
-  <div class="main-content" [class.sidebar-collapsed]="isCollapsed">
-    <div class="loading-overlay" *ngIf="loading">
-      <div class="loading-content">
-        <div class="logo-loader">
-          <div class="logo-glow"></div>
-          <img src="/images/quanby.png" alt="Quanby Logo">
-        </div>
-        <h3>Loading Clients...</h3>
+<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
+
+<div class="client-list-container" [class.collapsed]="isCollapsed">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-title">Client Directory</h1>
+        <p class="page-subtitle">Manage your client relationships and track project information</p>
       </div>
     </div>
-    <div class="content-container">
-      <div class="header-section">
-        <h1>Client Directory</h1>
-        <p class="subtitle" style="color: #9d9fac;">Manage your client relationships</p>
+  </div>
+
+  <!-- Table Section -->
+  <div class="table-section">
+    <div class="table-container">
+      <div class="table-header">
+        <h2 class="table-title">Clients</h2>
+        <div class="table-stats">
+          <span class="stat-item">
+            <i class="pi pi-users"></i>
+            <span>{{ totalItems }} Total Clients</span>
+          </span>
+          <span class="stat-item">
+            <i class="pi pi-briefcase"></i>
+            <span>{{ getTotalProjects() }} Total Projects</span>
+          </span>
+        </div>
       </div>
 
-      <!-- <div class="mb-4 table-controls">
-        <button mat-raised-button color="primary" (click)="loadProjects()" [disabled]="loading">
-          <mat-icon>refresh</mat-icon>
-          Refresh
-        </button>
-      </div> -->
-
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Clients</h2>
-        </div>
-
-        <div class="mat-elevation-z8">
-          <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-            <!-- Client Column -->
-            <ng-container matColumnDef="client">
-              <th mat-header-cell *matHeaderCellDef>Client Information</th>
-              <td mat-cell *matCellDef="let clientGroup">
+      <!-- Modern Table -->
+      <div class="modern-table-container">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Client Information</span>
+                  <i class="pi pi-sort"></i>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Contact</span>
+                  <i class="pi pi-sort"></i>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Address</span>
+                  <i class="pi pi-sort"></i>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Projects</span>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Actions</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let clientGroup of dataSource.data" class="table-row">
+              <td class="table-cell client-cell">
                 <div class="client-info">
-                  <span class="client-name">{{clientGroup.client_name}}</span>
-                  <span class="client-email">{{clientGroup.client_email || 'No email provided'}}</span>
+                  <div class="client-avatar">
+                    <i class="pi pi-user"></i>
+                  </div>
+                  <div class="client-details">
+                    <span class="client-name">{{ clientGroup.client_name }}</span>
+                    <span class="client-email">{{ clientGroup.client_email || 'No email provided' }}</span>
+                  </div>
                 </div>
               </td>
-            </ng-container>
-
-            <!-- Contact Column -->
-            <ng-container matColumnDef="contact">
-              <th mat-header-cell *matHeaderCellDef>Contact</th>
-              <td mat-cell *matCellDef="let clientGroup">
-                {{clientGroup.client_phone || 'Not provided'}}
+              <td class="table-cell">
+                <div class="contact-info">
+                  <span class="contact-value">{{ clientGroup.client_phone || 'Not provided' }}</span>
+                  <span class="contact-label">Phone</span>
+                </div>
               </td>
-            </ng-container>
-
-            <!-- Address Column -->
-            <ng-container matColumnDef="address">
-              <th mat-header-cell *matHeaderCellDef>Address</th>
-              <td mat-cell *matCellDef="let clientGroup">
-                {{clientGroup.client_address || 'Not provided'}}
+              <td class="table-cell">
+                <div class="address-info">
+                  <span class="address-value">{{ clientGroup.client_address || 'Not provided' }}</span>
+                  <span class="address-label">Location</span>
+                </div>
               </td>
-            </ng-container>
-
-            <!-- Projects Column -->
-            <ng-container matColumnDef="projects">
-              <th mat-header-cell *matHeaderCellDef>Projects</th>
-              <td mat-cell *matCellDef="let clientGroup">
-                <mat-chip-listbox>
-                  <mat-chip [color]="getProjectCountColor(clientGroup.projects?.length || 0)" selected>
-                    {{clientGroup.projects?.length || 0}}
-                  </mat-chip>
-                </mat-chip-listbox>
+              <td class="table-cell">
+                <div class="projects-container">
+                  <span class="projects-badge" [class]="getProjectCountClass(clientGroup.projects?.length || 0)">
+                    <i class="pi pi-briefcase"></i>
+                    <span>{{ clientGroup.projects?.length || 0 }}</span>
+                  </span>
+                </div>
               </td>
-            </ng-container>
-
-            <!-- Actions Column -->
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let clientGroup">
-                <button mat-icon-button color="primary" (click)="showClientDetails(clientGroup)"
-                        matTooltip="View details">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-            <!-- Empty state -->
-            <tr class="mat-row" *matNoDataRow>
-              <td class="mat-cell" colspan="5">
-                <div class="empty-message">
-                  <mat-icon>inbox</mat-icon>
-                  <p>No clients found</p>
+              <td class="table-cell actions-cell">
+                <div class="action-buttons">
+                  <button class="action-button view-button"
+                          (click)="showClientDetails(clientGroup)"
+                          title="View Details">
+                    <i class="pi pi-eye"></i>
+                  </button>
                 </div>
               </td>
             </tr>
-          </table>
+          </tbody>
+        </table>
 
-          <mat-paginator
-            [pageSize]="pageSize"
-            [pageSizeOptions]="[5, 10, 25, 100]"
-            [showFirstLastButtons]="true"
-            [length]="totalItems"
-            [pageIndex]="pageIndex"
-            aria-label="Select page">
-          </mat-paginator>
+        <!-- Empty State -->
+        <div *ngIf="dataSource.data.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <i class="pi pi-inbox"></i>
+          </div>
+          <h3>No Clients Found</h3>
+          <p>There are currently no clients to display.</p>
         </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        [showFirstLastButtons]="true"
+        [pageIndex]="pageIndex"
+        (page)="onPageChange($event)"
+        aria-label="Select page">
+      </mat-paginator>
+    </div>
+  </div>
+</div>
+
+<!-- Modern Client Details Modal -->
+<p-dialog
+  [(visible)]="displayProjectDetails"
+  [modal]="true"
+  [style]="{width: '85%', maxWidth: '900px'}"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="client-dialog"
+  [showHeader]="false"
+  [dismissableMask]="true"
+  [closeOnEscape]="true"
+  [baseZIndex]="1000"
+  [blockScroll]="true"
+  [maskStyleClass]="'custom-overlay-mask'"
+  [transitionOptions]="'300ms cubic-bezier(0.4, 0, 0.2, 1)'">
+
+  <div class="client-details-container" *ngIf="selectedClient">
+    <!-- Header Section -->
+    <div class="modal-header">
+      <div class="header-content">
+        <div class="client-info">
+          <h2 class="modal-title">{{ selectedClient.client_name }}</h2>
+          <div class="meta-info">
+            <span class="project-count">{{ selectedClient.projects?.length || 0 }} projects</span>
+            <span class="separator">•</span>
+            <span class="status" [ngClass]="getProjectCountColor(selectedClient.projects?.length)">
+              Active Client
+            </span>
+          </div>
+        </div>
+        <button class="modal-close" (click)="closeProjectDetails()">
+          <i class="pi pi-times"></i>
+        </button>
       </div>
     </div>
 
-    <!-- Add this at the bottom of your template -->
-    <p-dialog
-      [(visible)]="displayProjectDetails"
-      [modal]="true"
-      [style]="{width: '85%', maxWidth: '900px'}"
-      [draggable]="false"
-      [resizable]="false"
-      styleClass="project-dialog"
-      [showHeader]="false"
-      [dismissableMask]="true"
-      [closeOnEscape]="true"
-      [baseZIndex]="1000"
-      [blockScroll]="true"
-      [maskStyleClass]="'custom-overlay-mask'"
-      [transitionOptions]="'300ms cubic-bezier(0.4, 0, 0.2, 1)'">
-
-        <div class="project-details-container" *ngIf="selectedClient">
-            <!-- Header Section -->
-            <div class="header-section">
-                <div class="header-content">
-                    <div class="client-info">
-                        <h2>{{selectedClient.client_name}}</h2>
-                        <div class="meta-info">
-                            <span class="project-count">{{selectedClient.projects?.length || 0}} projects</span>
-                            <span class="separator">•</span>
-                            <span class="status" [ngClass]="getProjectCountColor(selectedClient.projects?.length)">
-                                Active Client
-                            </span>
-                        </div>
-                    </div>
-                    <button class="close-btn" (click)="closeProjectDetails()">
-                        <i class="pi pi-times"></i>
-                    </button>
-                </div>
+    <!-- Project Navigation -->
+    <div class="project-nav" *ngIf="selectedClient.projects?.length > 1">
+      <div class="nav-header">
+        <h3 class="section-title">
+          <i class="pi pi-folder"></i>
+          Select Project
+        </h3>
+      </div>
+      <div class="nav-scroll">
+        <button *ngFor="let project of selectedClient.projects; let i = index"
+                [class.active]="i === selectedProjectIndex"
+                (click)="selectProject(i)"
+                class="project-nav-btn">
+          <div class="project-nav-content">
+            <div class="project-avatar">
+              <i class="pi pi-briefcase"></i>
             </div>
-
-            <!-- Content Section -->
-            <div class="content-section">
-                <div class="details-grid">
-                    <!-- Contact Information -->
-                    <div class="detail-card">
-                        <h3><i class="pi pi-user"></i>Contact Information</h3>
-                        <div class="detail-content">
-                            <div class="detail-row">
-                                <span class="label">Email</span>
-                                <span class="value">{{selectedClient.client_email || 'N/A'}}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="label">Phone</span>
-                                <span class="value">{{selectedClient.client_phone || 'N/A'}}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="label">Address</span>
-                                <span class="value description">{{selectedClient.client_address || 'N/A'}}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Projects Overview -->
-                    <div class="detail-card">
-                        <h3><i class="pi pi-folder"></i>Projects Overview</h3>
-                        <div class="detail-content">
-                            <div class="detail-row highlight">
-                                <span class="label">Total Projects</span>
-                                <span class="value amount">{{selectedClient.projects?.length || 0}}</span>
-                            </div>
-                            <div class="projects-list" *ngIf="selectedClient.projects?.length">
-                                <div class="detail-row" *ngFor="let project of selectedClient.projects">
-                                    <span class="project-name">{{project.name}}</span>
-                                    <span class="value amount">{{project.total | currency}}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="project-details">
+              <span class="project-name">{{ project.name || 'Unnamed project' }}</span>
+              <span class="project-amount">{{ project.total | currency }}</span>
             </div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="modal-body">
+      <!-- Project Overview -->
+      <div class="project-overview" *ngIf="selectedClient.projects?.length">
+        <div class="overview-header">
+          <div class="project-info">
+            <div class="project-avatar-large">
+              <i class="pi pi-briefcase"></i>
+            </div>
+            <div class="project-details-large">
+              <h3 class="project-title">{{ getSelectedProject().name || 'Unnamed project' }}</h3>
+              <div class="project-meta">
+                <span class="project-amount-large">{{ getSelectedProject().total | currency }}</span>
+                <span class="separator">•</span>
+                <span class="project-status" [ngClass]="getProjectCountColor(selectedClient.projects?.length)">
+                  {{ selectedClient.projects?.length > 1 ? 'Multiple Projects' : 'Single Project' }}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
-    </p-dialog>
+      </div>
+
+      <div class="details-grid">
+        <!-- Contact Information -->
+        <div class="detail-card">
+          <h3 class="section-title">
+            <i class="pi pi-user"></i>
+            Contact Information
+          </h3>
+          <div class="detail-content">
+            <div class="detail-row">
+              <span class="label">Email</span>
+              <span class="value">{{ selectedClient.client_email || 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Phone</span>
+              <span class="value">{{ selectedClient.client_phone || 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Address</span>
+              <span class="value description">{{ selectedClient.client_address || 'N/A' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects Overview -->
+        <div class="detail-card">
+          <h3 class="section-title">
+            <i class="pi pi-folder"></i>
+            Projects Overview
+          </h3>
+          <div class="detail-content">
+            <div class="detail-row highlight">
+              <span class="label">Total Projects</span>
+              <span class="value amount">{{ selectedClient.projects?.length || 0 }}</span>
+            </div>
+            <div class="projects-list" *ngIf="selectedClient.projects?.length">
+              <div class="detail-row" *ngFor="let project of selectedClient.projects.slice(0, 3)">
+                <span class="project-name">{{ project.name }}</span>
+                <span class="value amount">{{ project.total | currency }}</span>
+              </div>
+              <div class="detail-row" *ngIf="selectedClient.projects.length > 3">
+                <span class="value">+{{ selectedClient.projects.length - 3 }} more projects</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="detail-card">
+          <h3 class="section-title">
+            <i class="pi pi-dollar"></i>
+            Financial Summary
+          </h3>
+          <div class="detail-content">
+            <div class="detail-row highlight">
+              <span class="label">Total Value</span>
+              <span class="value amount">{{ getTotalProjectValue() | currency }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Average Project Value</span>
+              <span class="value">{{ getAverageProjectValue() | currency }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+</p-dialog>
