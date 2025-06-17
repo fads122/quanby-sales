@@ -45,8 +45,8 @@ interface EditingState {
   condition: boolean;
   supplier: boolean;
   supplier_cost: boolean;
-  stocks_on_hand: boolean;
   srp: boolean;
+  stocks_on_hand: boolean;
   [key: string]: boolean;
 }
 
@@ -497,30 +497,38 @@ export class EquipmentDetailsComponent implements OnInit {
     }
   }
 
-  openModal(url: string, event: Event) {
-    event.preventDefault();
+//  openModal(url: string, event: Event) {
+//   try {
+//     console.log("Function triggered");
+//     event.preventDefault();
 
-    if (!url) {
-      console.warn("Return Slip URL is missing or invalid!");
-      return;
-    }
+//     if (!url) {
+//       console.warn("URL missing");
+//       return;
+//     }
 
-    this.originalReturnSlipUrl = url;
+//     console.log("Original URL:", url);
+    
+//     if (url.endsWith('.docx')) {
+//       url = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+//       console.log("Converted DOCX URL:", url);
+//     }
 
-    if (url.endsWith('.docx')) {
-      url = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
-    }
+//     this.returnSlipUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+//     console.log("Sanitized URL:", this.returnSlipUrl);
 
-    console.log("Opening Return Slip (Converted URL):", url);
+//     const modalElement = document.getElementById('returnSlipModal');
+//     console.log("Modal element found:", !!modalElement);
 
-    this.returnSlipUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-    const modalElement = document.getElementById('returnSlipModal');
-
-    if (modalElement) {
-      this.currentModal = new bootstrap.Modal(modalElement);
-      this.currentModal.show();
-    }
-  }
+//     if (modalElement) {
+//       this.currentModal = new bootstrap.Modal(modalElement);
+//       this.currentModal.show();
+//       console.log("Modal shown");
+//     }
+//   } catch (error) {
+//     console.error("Modal error:", error);
+//   }
+// }
 
   closeModal() {
     if (this.currentModal) {
@@ -551,6 +559,16 @@ export class EquipmentDetailsComponent implements OnInit {
     }
 
     this.equipmentData = data;
+
+    // Fix: Parse repair_logs if it's a string
+    if (typeof this.equipmentData.repair_logs === 'string') {
+      try {
+        this.equipmentData.repair_logs = JSON.parse(this.equipmentData.repair_logs);
+      } catch (e) {
+        console.error('Failed to parse repair_logs:', e);
+        this.equipmentData.repair_logs = [];
+      }
+    }
 
     if (!this.isOperationalEquipment) {
       let costData = await this.supabaseService.getCostHistory(equipmentId);
@@ -815,30 +833,17 @@ export class EquipmentDetailsComponent implements OnInit {
     });
   }
 
-  openBrochureModal(url: string, event: Event) {
-    event.preventDefault();
-
-    if (!url) {
-      console.warn("Brochure URL is missing or invalid!");
-      return;
-    }
-
-    this.originalBrochureUrl = url;
-
-    if (url.endsWith('.pdf') || url.endsWith('.docx')) {
-      url = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
-    }
-
-    console.log("Opening Brochure (Converted URL):", url);
-
-    this.brochureUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-
-    const modalElement = document.getElementById('brochureModal');
-    if (modalElement) {
-      this.brochureModalInstance = new bootstrap.Modal(modalElement);
-      this.brochureModalInstance.show();
-    }
+openBrochure(url: string, event: Event) {
+  event.preventDefault();
+  if (!url) {
+    console.warn("Brochure URL is missing or invalid!");
+    return;
   }
+  const finalUrl = url.endsWith('.pdf') || url.endsWith('.docx')
+    ? `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
+    : url;
+  window.open(finalUrl, '_blank');
+}
 
   closeBrochureModal() {
     if (this.brochureModalInstance) {
@@ -925,6 +930,13 @@ export class EquipmentDetailsComponent implements OnInit {
     if (conditionLower.includes('fair')) return 'warning';
     if (conditionLower.includes('poor') || conditionLower.includes('bad')) return 'danger';
     return 'secondary';
+  }
+
+    openReturnSlip(url: string) {
+    const finalUrl = url.endsWith('.docx')
+      ? `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
+      : url;
+    window.open(finalUrl, '_blank');
   }
 
 }

@@ -61,6 +61,7 @@ export class SupabaseService {
   private equipmentId: string | null = null;
   private model: any;
   private isModelLoading = false;
+  private imageBucket = 'equipment-images';
 
 
   constructor() {
@@ -2940,4 +2941,19 @@ async semanticSearch(query: string, threshold = 0.3): Promise<any[]> {
 
     return { error };
   }
+
+async getImageUrl(filename: string): Promise<string> {
+  try {
+    const { data, error } = await this.supabase
+      .storage
+      .from('equipment-images')
+      .createSignedUrl(filename, 3600); // 1 hour expiry
+    
+    if (error) throw error;
+    return data.signedUrl;
+  } catch (error) {
+    console.error('Error getting image URL:', error);
+    return 'assets/default-image.png';
+  }
+}
 }
