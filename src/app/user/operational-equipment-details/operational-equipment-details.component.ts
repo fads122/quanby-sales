@@ -87,6 +87,17 @@ export class OperationalEquipmentDetailsComponent implements OnInit {
       }
 
       this.equipmentData = data;
+
+      // Parse repair_logs if it's a string
+      if (this.equipmentData && typeof this.equipmentData.repair_logs === 'string') {
+        try {
+          this.equipmentData.repair_logs = JSON.parse(this.equipmentData.repair_logs);
+        } catch (e) {
+          console.error('Failed to parse repair_logs:', e);
+          this.equipmentData.repair_logs = [];
+        }
+      }
+
       console.log('Barcode exists:', !!this.equipmentData?.barcode);
 
       if (this.equipmentData && !this.equipmentData.barcode && this.equipmentData.serial_number) {
@@ -176,17 +187,27 @@ openBarcodeModal(barcode: string) {
     this.selectedBarcode = null;
   }
 
- openReturnSlipModal(url: string) {
-    this.returnSlipUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-      url.endsWith('.docx')
-        ? `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
-        : url
-    );
-    this.showReturnSlipModal = true;
-  }
+openReturnSlipModal(url: string) {
+  this.returnSlipUrl = url.endsWith('.docx')
+    ? `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
+    : url;
+  this.showReturnSlipModal = true;
+}
 
   closeReturnSlipModal() {
     this.showReturnSlipModal = false;
     this.returnSlipUrl = null;
   }
+
+  openReturnSlip(url: string) {
+    const finalUrl = url.endsWith('.docx')
+      ? `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
+      : url;
+    window.open(finalUrl, '_blank');
+  }
+  
+    getSupabaseImageUrl(filename: string): string {
+  // Replace with your actual Supabase project ref
+  return `https://xvcgubrtandfivlqcmww.supabase.co/storage/v1/object/public/equipment-images/${filename}`;
+}
 }

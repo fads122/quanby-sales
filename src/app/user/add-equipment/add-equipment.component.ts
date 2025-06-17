@@ -118,20 +118,20 @@ export class AddEquipmentComponent implements OnInit {
 
 inhouseEquipmentArray: InhouseEquipment[] = [{
   name: '',
-  brand: '',
-  model: '',
   quantity: 1,
+  images: [],
   serial_number: '',
   qr_code: '',
   barcode: '',
-  images: [],
   date_acquired: new Date().toISOString().split('T')[0],
   product_type: 'operational_equipment',
+  brand: '',
+  model: '',
   condition: '',
   damaged: false,
   repair_logs: [],
   return_slip: '',
-  // ownership_type: 'private'
+  // Add any other required properties from your interface
 }];
 
   productCategories = [
@@ -398,11 +398,12 @@ private categorySearchTerms: { [key: string]: string[] } = {
     }
   }
 
-  handleInhouseImageUpload(event: Event, index: number): void {
+  async handleInhouseImageUpload(event: Event, index: number): Promise<void> {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      const files = Array.from(input.files);
-      this.inhouseEquipmentArray[index].images = files.map(file => URL.createObjectURL(file));
+      const urls = await this.uploadImages(input.files, 'equipment-images');
+      this.inhouseEquipmentArray[index].images = urls;
+      this.cdRef.detectChanges();
     }
   }
 
@@ -413,21 +414,21 @@ removeInhouseEquipment(index: number) {
 
 async addInhouseEquipment() {
   const newEquipment: InhouseEquipment = {
-    name: '',
-    quantity: 1,
-    images: [],
-    serial_number: '',
-    qr_code: '',
-    barcode: '',
-    date_acquired: new Date().toISOString().split('T')[0],
-    product_type: '',
-    brand: '',
-    model: '',
-    condition: '',
-    damaged: false,
-    repair_logs: [],
-    return_slip: ''
-  };
+  name: '',
+  quantity: 1,
+  images: [],
+  serial_number: '',
+  qr_code: '',
+  barcode: '',
+  date_acquired: new Date().toISOString().split('T')[0],
+  product_type: 'operational_equipment',
+  brand: '',
+  model: '',
+  condition: '',
+  damaged: false,
+  repair_logs: [],
+  return_slip: ''
+};
 
   // Generate property number immediately
   await this.generatePropertyNumber(newEquipment);
@@ -503,10 +504,10 @@ async loadSupplierEquipment(supplierName: string) {
 
         // Handle image uploads
         this.loadingMessage = 'Uploading images...';
-        const imageInput = document.getElementById(`productImage${this.equipmentDataArray.indexOf(equipment)}`) as HTMLInputElement;
+        const imageInput = document.getElementById(`equipmentImageInput${this.equipmentDataArray.indexOf(equipment)}`) as HTMLInputElement;
+        let imageUrls: string[] = [];
         if (imageInput && imageInput.files) {
-          const imageUrls = await this.uploadImages(imageInput.files, 'equipment-images');
-          equipment.product_images = imageUrls;
+          imageUrls = await this.uploadImages(imageInput.files, 'equipment-images');
         }
 
         // Handle brochure upload if exists
@@ -621,11 +622,6 @@ async loadSupplierEquipment(supplierName: string) {
 
         // Upload images
         this.loadingMessage = 'Uploading images...';
-        const imageInput = document.getElementById(`inhouseImageInput${this.inhouseEquipmentArray.indexOf(equipment)}`) as HTMLInputElement;
-        let imageUrls: string[] = [];
-        if (imageInput && imageInput.files) {
-          imageUrls = await this.uploadImages(imageInput.files, 'equipment-images');
-        }
 
         // Handle return slip
         let returnSlipUrl = '';
@@ -642,10 +638,10 @@ async loadSupplierEquipment(supplierName: string) {
           brand: equipment.brand,
           model: equipment.model,
           quantity: equipment.quantity,
-          serial_number: equipment.serial_number,
+          images: equipment.images || [],  // Ensure images array exists
+          serial_number: equipment.serial_number,  // Use correct property name
           qr_code: equipment.qr_code,
           barcode: equipment.barcode,
-          images: imageUrls,
           date_acquired: equipment.date_acquired,
           product_type: equipment.product_type,
           status: equipment.condition === 'Inactive' ? 'inactive' : 'available',
