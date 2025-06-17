@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
@@ -21,12 +21,16 @@ import { AsyncPipe } from '@angular/common';
   templateUrl: './breadcrumb.component.html',
   styleUrls: ['./breadcrumb.component.css']
 })
-export class BreadcrumbComponent {
+export class BreadcrumbComponent implements OnInit {
   isCollapsed = false;
 
   constructor(
     public breadcrumbService: BreadcrumbService
   ) {}
+
+  ngOnInit() {
+    // Breadcrumb service subscription for debugging removed
+  }
 
   @Input() set sidebarCollapsed(value: boolean) {
     this.isCollapsed = value;

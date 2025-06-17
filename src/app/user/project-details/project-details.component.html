@@ -1,82 +1,165 @@
 <div class="project-details-container" *ngIf="client">
   <!-- Header Section -->
-  <div class="header-section">
+  <div class="modal-header">
     <div class="header-content">
       <div class="client-info">
-        <h2>{{client.client_name || 'No client name'}}</h2>
+        <h2 class="modal-title">{{ client.client_name || 'No client name' }}</h2>
         <div class="meta-info">
-          <span class="project-count">{{client.projects?.length || 0}} projects</span>
+          <span class="project-count">{{ client.projects?.length || 0 }} projects</span>
           <span class="separator">•</span>
           <span class="status" [ngClass]="getStatusSeverity(deliveryStatus)">
             {{ getDeliveryStatusText(deliveryStatus) }}
           </span>
         </div>
       </div>
-      <button class="close-btn" (click)="ref.close()">
+      <button class="modal-close" (click)="ref.close()">
         <i class="pi pi-times"></i>
       </button>
     </div>
   </div>
 
   <!-- Project Navigation -->
-  <div class="project-nav" *ngIf="client.projects?.length">
+  <div class="project-nav" *ngIf="client.projects?.length > 1">
+    <div class="nav-header">
+      <h3 class="section-title">
+        <i class="pi pi-folder"></i>
+        Select Project
+      </h3>
+    </div>
     <div class="nav-scroll">
-      <button *ngFor="let project of client.projects"
+      <button *ngFor="let project of client.projects; let i = index"
               [class.active]="project.id === selectedProject?.id"
               (click)="selectProject(project)"
               class="project-nav-btn">
-        <i class="pi pi-folder"></i>
-        <span class="project-name">{{project.name || 'Unnamed project'}}</span>
+        <div class="project-nav-content">
+          <div class="project-avatar">
+            <i class="pi pi-briefcase"></i>
+          </div>
+          <div class="project-details">
+            <span class="project-name">{{ project.name || 'Unnamed project' }}</span>
+            <span class="project-amount">{{ project.total | currency }}</span>
+          </div>
+        </div>
       </button>
     </div>
   </div>
 
   <!-- Main Content -->
-  <div class="content-section" *ngIf="selectedProject">
+  <div class="modal-body" *ngIf="selectedProject">
     <div class="loading-overlay" *ngIf="isLoading">
-      <p-progressSpinner [style]="{width: '50px', height: '50px'}"></p-progressSpinner>
+      <div class="loading-content">
+        <p-progressSpinner [style]="{width: '50px', height: '50px'}"></p-progressSpinner>
+        <span>Loading project details...</span>
+      </div>
+    </div>
+
+    <!-- Project Overview -->
+    <div class="project-overview">
+      <div class="overview-header">
+        <div class="project-info">
+          <div class="project-avatar-large">
+            <i class="pi pi-briefcase"></i>
+          </div>
+          <div class="project-details-large">
+            <h3 class="project-title">{{ selectedProject.name || 'Unnamed project' }}</h3>
+            <div class="project-meta">
+              <span class="project-date">Created {{ (selectedProject.created_at | date:'mediumDate') || 'N/A' }}</span>
+              <span class="separator">•</span>
+              <span class="project-status" [ngClass]="getStatusSeverity(selectedProject.delivery_status)">
+                {{ getDisplayStatus(selectedProject.delivery_status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Project Details Grid -->
     <div class="details-grid">
+      <!-- Basic Information -->
       <div class="detail-card">
-        <h3><i class="pi pi-info-circle"></i>Basic Information</h3>
+        <h3 class="section-title">
+          <i class="pi pi-info-circle"></i>
+          Basic Information
+        </h3>
         <div class="detail-content">
           <div class="detail-row">
             <span class="label">Project Name</span>
-            <span class="value">{{selectedProject.name || 'N/A'}}</span>
+            <span class="value">{{ selectedProject.name || 'N/A' }}</span>
           </div>
           <div class="detail-row">
-            <span class="label">Created</span>
-            <span class="value">{{(selectedProject.created_at | date:'mediumDate') || 'N/A'}}</span>
+            <span class="label">Created Date</span>
+            <span class="value">{{ (selectedProject.created_at | date:'mediumDate') || 'N/A' }}</span>
           </div>
           <div class="detail-row">
             <span class="label">Description</span>
-            <span class="value description">{{selectedProject.description || 'No description available'}}</span>
+            <span class="value description">{{ selectedProject.description || 'No description available' }}</span>
           </div>
         </div>
       </div>
 
+      <!-- Financial Details -->
       <div class="detail-card">
-        <h3><i class="pi pi-dollar"></i>Financial Details</h3>
+        <h3 class="section-title">
+          <i class="pi pi-dollar"></i>
+          Financial Details
+        </h3>
         <div class="detail-content">
           <div class="detail-row highlight">
             <span class="label">Total Amount</span>
-            <span class="value amount">{{(selectedProject.total | currency) || 'N/A'}}</span>
+            <span class="value amount">{{ (selectedProject.total | currency) || 'N/A' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Project Status</span>
+            <span class="value">{{ getDisplayStatus(selectedProject.delivery_status) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Information -->
+      <div class="detail-card" *ngIf="deliveryReceipts?.length">
+        <h3 class="section-title">
+          <i class="pi pi-truck"></i>
+          Delivery Information
+        </h3>
+        <div class="detail-content">
+          <div class="detail-row highlight">
+            <span class="label">Delivery Receipts</span>
+            <span class="value amount">{{ deliveryReceipts.length }}</span>
+          </div>
+          <div class="delivery-list">
+            <div class="detail-row" *ngFor="let receipt of deliveryReceipts.slice(0, 3)">
+              <span class="receipt-info">
+                <span class="receipt-date">{{ receipt.created_at | date:'shortDate' }}</span>
+                <span class="receipt-status" [ngClass]="getStatusSeverity(receipt.status)">
+                  {{ getDisplayStatus(receipt.status) }}
+                </span>
+              </span>
+            </div>
+            <div class="detail-row" *ngIf="deliveryReceipts.length > 3">
+              <span class="value">+{{ deliveryReceipts.length - 3 }} more receipts</span>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Attachments Section -->
       <div class="detail-card" *ngIf="selectedProject?.file_url">
-        <h3><i class="pi pi-paperclip"></i>Attachments</h3>
+        <h3 class="section-title">
+          <i class="pi pi-paperclip"></i>
+          Attachments
+        </h3>
         <div class="detail-content">
-          <button pButton
-                  icon="pi pi-download"
-                  label="Download Attachment"
-                  class="p-button-outlined download-btn"
-                  (click)="downloadFile(selectedProject.file_url)">
-          </button>
+          <div class="attachment-info">
+            <div class="attachment-preview">
+              <i class="pi pi-file-pdf"></i>
+              <span class="attachment-name">Project Document</span>
+            </div>
+            <button class="download-button" (click)="downloadFile(selectedProject.file_url)">
+              <i class="pi pi-download"></i>
+              <span>Download</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,254 +1,337 @@
-<div class="layout-container">
-  <app-sidebar></app-sidebar>
-  <div class="loading-overlay" *ngIf="loading">
-    <div class="loading-content">
-      <div class="logo-loader">
-        <div class="logo-glow"></div>
-        <img src="/images/quanby.png" alt="Quanby Logo">
-      </div>
-      <h3>Loading Receipts...</h3>
-    </div>
-  </div>
-
-  <div class="main-content">
-    <div class="content-container">
-      <div class="header-section">
-        <h1>Delivery Receipts</h1>
-        <p class="subtitle">Track and manage your delivery receipts</p>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div class="header-content">
-            <h2 class="card-title">Receipts</h2>
-            <mat-form-field appearance="outline" class="search-input">
-              <mat-icon matPrefix>search</mat-icon>
-              <input matInput placeholder="Search receipts..." [(ngModel)]="searchQuery" (input)="filterReceipts()">
-            </mat-form-field>
-          </div>
-        </div>
-
-        <div class="mat-elevation-z8">
-          <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z0">
-            <!-- Project Column -->
-            <ng-container matColumnDef="project">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                <div class="header-cell-content">
-                  <mat-icon class="header-icon">work</mat-icon>
-                  Project
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let receipt">
-                <div class="project-cell">
-                  <span class="project-name">{{receipt.project_name}}</span>
-                </div>
-              </td>
-            </ng-container>
-
-            <!-- Client Column -->
-            <ng-container matColumnDef="client">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                <div class="header-cell-content">
-                  <mat-icon class="header-icon">business</mat-icon>
-                  Client
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let receipt">{{receipt.client_name}}</td>
-            </ng-container>
-
-            <!-- Delivery Date Column -->
-            <ng-container matColumnDef="delivery_date">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                <div class="header-cell-content">
-                  <mat-icon class="header-icon">event</mat-icon>
-                  Delivery Date
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let receipt">
-                <span class="delivery-date">{{receipt.delivery_date || 'Not delivered'}}</span>
-              </td>
-            </ng-container>
-
-            <!-- Status Column -->
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                <div class="header-cell-content">
-                  <mat-icon class="header-icon">flag</mat-icon>
-                  Status
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let receipt">
-                <mat-chip-listbox>
-                  <mat-chip [ngClass]="{'status-Delivered': receipt.status === 'Delivered', 'status-Delivering': receipt.status === 'Delivering'}">
-                    <div class="chip-content">
-                      <mat-icon *ngIf="receipt.status === 'Delivered'" class="status-icon">check_circle</mat-icon>
-                      <mat-icon *ngIf="receipt.status === 'Delivering'" class="status-icon">local_shipping</mat-icon>
-                      <span>{{receipt.status}}</span>
-                    </div>
-                  </mat-chip>
-                </mat-chip-listbox>
-              </td>
-            </ng-container>
-
-            <!-- Attachment Column -->
-            <ng-container matColumnDef="attachment">
-              <th mat-header-cell *matHeaderCellDef>
-                <div class="header-cell-content">
-                  <mat-icon class="header-icon">attachment</mat-icon>
-                  Attachment
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let receipt">
-                <div *ngIf="receipt.attached_file" class="attachment-cell">
-                  <button mat-icon-button class="action-button view"
-                          (click)="openFileDialog(receipt.attached_file)"
-                          [matTooltip]="isImage(receipt.attached_file) ? 'View Image' : 'View PDF'">
-                    <mat-icon>{{isImage(receipt.attached_file) ? 'image' : 'picture_as_pdf'}}</mat-icon>
-                  </button>
-                  <span class="file-name">{{receipt.attached_file.split('/').pop()}}</span>
-                </div>
-                <div *ngIf="!receipt.attached_file" class="no-attachment">
-                  <mat-icon>attach_file_off</mat-icon>
-                  <span>No attachment</span>
-                </div>
-              </td>
-            </ng-container>
-
-            <!-- Actions Column -->
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let receipt">
-                <button mat-icon-button class="action-button view"
-                        (click)="showReceiptDetails(receipt)"
-                        matTooltip="View details">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-            <!-- Empty state -->
-            <tr class="mat-row" *matNoDataRow>
-              <td class="mat-cell" colspan="6">
-                <div class="empty-state">
-                  <mat-icon class="empty-icon">inventory_2</mat-icon>
-                  <h4 class="empty-title">No delivery receipts found</h4>
-                </div>
-              </td>
-            </tr>
-          </table>
-
-          <mat-paginator
-            [length]="dataSource.data.length"
-            [pageSize]="rows"
-            [pageSizeOptions]="[5, 10, 25, 100]"
-            [showFirstLastButtons]="true"
-            (page)="pageChange($event)">
-          </mat-paginator>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Receipt Details Dialog -->
-<ng-template #receiptDetailsDialog>
-  <div class="modern-dialog">
-
-    <div class="dialog-title">
-      <div class="title-content">
-        <mat-icon>description</mat-icon>
-        <div class="title-text">
-          <h2>{{selectedReceipt?.project_name}}</h2>
-          <div class="status-badge" [ngClass]="selectedReceipt?.status?.toLowerCase()">
-            <mat-icon *ngIf="selectedReceipt?.status === 'Delivered'">task_alt</mat-icon>
-            <mat-icon *ngIf="selectedReceipt?.status === 'Delivering'">local_shipping</mat-icon>
-            {{selectedReceipt?.status}}
-          </div>
-        </div>
-      </div>
-      <p>{{selectedReceipt?.client_name}}</p>
-      <!-- <button mat-icon-button mat-dialog-close class="close-btn">
-        <mat-icon>close</mat-icon>
-      </button> -->
-    </div>
-
-    <mat-dialog-content>
-      <form class="receipt-form" *ngIf="selectedReceipt">
-        <mat-form-field appearance="outline">
-          <mat-label>Received By</mat-label>
-          <input matInput [(ngModel)]="selectedReceipt.received_by" name="receivedBy" placeholder="Enter recipient name">
-          <mat-icon matPrefix>account_circle</mat-icon>
-        </mat-form-field>
-
-        <div class="form-row">
-          <mat-form-field appearance="outline">
-            <mat-label>Delivered Date</mat-label>
-            <input matInput [matDatepicker]="picker" [(ngModel)]="selectedReceipt.delivered_date" name="deliveredDate">
-            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-            <mat-icon matPrefix>calendar_today</mat-icon>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Delivered Time</mat-label>
-            <input matInput type="time" [(ngModel)]="selectedReceipt.delivered_time" name="deliveredTime">
-            <mat-icon matPrefix>access_time</mat-icon>
-          </mat-form-field>
-        </div>
-
-        <div class="upload-section">
-          <div class="upload-area" (click)="fileInput.click()">
-            <div class="upload-content">
-              <mat-icon>upload_file</mat-icon>
-              <div class="upload-text">
-                <ng-container *ngIf="!selectedUpdateFile">
-                  <span class="upload-title">Upload Document</span>
-                  <span class="upload-subtitle">Click to browse files</span>
-                </ng-container>
-                <ng-container *ngIf="selectedUpdateFile">
-                  <span class="file-selected">{{selectedUpdateFile.name}}</span>
-                  <span class="file-ready">Ready to upload</span>
-                </ng-container>
-              </div>
-            </div>
-          </div>
-          <input #fileInput type="file" (change)="onFileSelectedForUpdate($event, selectedReceipt)" style="display: none">
-        </div>
-      </form>
-    </mat-dialog-content>
-
-    <mat-dialog-actions>
-      <button mat-button mat-dialog-close class="cancel-btn">
-        <mat-icon>close</mat-icon>
-        Cancel
-      </button>
-      <button mat-flat-button color="primary" (click)="saveUpdatedFile(selectedReceipt!)" class="save-btn">
-        <mat-icon>check</mat-icon>
-        Save Changes
-      </button>
-    </mat-dialog-actions>
-    </div>
-</ng-template>
-
-<!-- File Preview Dialog -->
-<ng-template #fileDialog let-dialogData="data">
-  <mat-dialog-content class="file-dialog-container">
-    <img *ngIf="isImage(dialogData.url)" [src]="dialogData.url" class="file-preview">
-    <iframe *ngIf="isPdf(dialogData.url)" [src]="sanitizeUrl(dialogData.url)" class="file-preview pdf"></iframe>
-  </mat-dialog-content>
-  <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Close</button>
-  </mat-dialog-actions>
-</ng-template>
 <div class="loading-overlay" *ngIf="loading">
   <div class="loading-content">
     <div class="logo-loader">
       <div class="logo-glow"></div>
       <img src="/images/quanby.png" alt="Quanby Logo">
     </div>
-    <h3>Loading Sales Orders...</h3>
+    <h3>Loading Delivery Receipts...</h3>
   </div>
 </div>
+
+<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
+
+<div class="delivery-receipt-container" [class.collapsed]="isCollapsed">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-title">Delivery Receipts</h1>
+        <p class="page-subtitle">Track and manage all delivery receipts across projects</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="controls-section">
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <i class="pi pi-search search-icon"></i>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search by project name, client, or status..."
+          [(ngModel)]="searchQuery"
+          (input)="filterReceipts()"
+        />
+        <button 
+          *ngIf="searchQuery" 
+          class="clear-search" 
+          (click)="searchQuery = ''; filterReceipts()">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  <div class="table-section">
+    <div class="table-container">
+      <div class="table-header">
+        <h2 class="table-title">Delivery Receipts</h2>
+        <div class="table-stats">
+          <span class="stat-item">
+            <i class="pi pi-file-text"></i>
+            <span>{{ totalReceipts }} Total Receipts</span>
+          </span>
+          <span class="stat-item">
+            <i class="pi pi-check-circle"></i>
+            <span>{{ deliveredReceipts }} Delivered</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Modern Table -->
+      <div class="modern-table-container">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Project</span>
+                  <i class="pi pi-sort"></i>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Client</span>
+                  <i class="pi pi-sort"></i>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Delivery Date</span>
+                  <i class="pi pi-sort"></i>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Status</span>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Attachment</span>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Actions</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let receipt of dataSource.data" class="table-row">
+              <td class="table-cell project-cell">
+                <div class="project-info">
+                  <div class="project-avatar">
+                    <i class="pi pi-briefcase"></i>
+                  </div>
+                  <div class="project-details">
+                    <span class="project-name">{{ receipt.project_name }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="table-cell">
+                <span class="client-badge">{{ receipt.client_name }}</span>
+              </td>
+              <td class="table-cell">
+                <div class="date-info">
+                  <span class="date-value">{{ receipt.delivery_date || 'Not delivered' }}</span>
+                  <span class="date-label">Expected</span>
+                </div>
+              </td>
+              <td class="table-cell">
+                <div class="status-container">
+                  <span *ngIf="receipt.status === 'Delivered'" 
+                        class="status-badge delivered">
+                    <i class="pi pi-check-circle"></i>
+                    <span>Delivered</span>
+                  </span>
+                  <span *ngIf="receipt.status === 'Delivering'" 
+                        class="status-badge delivering">
+                    <i class="pi pi-truck"></i>
+                    <span>Delivering</span>
+                  </span>
+                </div>
+              </td>
+              <td class="table-cell">
+                <div class="attachment-container">
+                  <div *ngIf="receipt.attached_file" class="attachment-info">
+                    <button class="attachment-button view-button" 
+                            (click)="openFileDialog(receipt.attached_file)"
+                            [title]="isImage(receipt.attached_file) ? 'View Image' : 'View PDF'">
+                      <i [class]="isImage(receipt.attached_file) ? 'pi pi-image' : 'pi pi-file-pdf'"></i>
+                    </button>
+                    <span class="file-name">{{ receipt.attached_file.split('/').pop() }}</span>
+                  </div>
+                  <div *ngIf="!receipt.attached_file" class="no-attachment">
+                    <i class="pi pi-file-exclamation"></i>
+                    <span>No attachment</span>
+                  </div>
+                </div>
+              </td>
+              <td class="table-cell actions-cell">
+                <div class="action-buttons">
+                  <button class="action-button view-button" 
+                          (click)="showReceiptDetails(receipt); $event.stopPropagation()"
+                          title="View Details">
+                    <i class="pi pi-eye"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div *ngIf="dataSource.data.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <i class="pi pi-inbox"></i>
+          </div>
+          <h3>No Delivery Receipts Found</h3>
+          <p>There are currently no delivery receipts to display.</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator
+        [length]="totalReceipts"
+        [pageSize]="rows"
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        [showFirstLastButtons]="true"
+        (page)="pageChange($event)">
+      </mat-paginator>
+    </div>
+  </div>
+</div>
+
+<!-- Modern Details Modal -->
+<div *ngIf="selectedReceipt" class="modal-overlay" (click)="dialog.closeAll()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Delivery Receipt Details</h2>
+      <button class="modal-close" (click)="dialog.closeAll()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Project Information -->
+      <div class="detail-section">
+        <h3 class="section-title">
+          <i class="pi pi-briefcase"></i>
+          Project Information
+        </h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label class="info-label">Project Name</label>
+            <span class="info-value">{{ selectedReceipt.project_name }}</span>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Client</label>
+            <span class="info-value">{{ selectedReceipt.client_name }}</span>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Status</label>
+            <span class="status-badge" 
+                  [class.delivered]="selectedReceipt.status === 'Delivered'"
+                  [class.delivering]="selectedReceipt.status === 'Delivering'">
+              <i [class]="selectedReceipt.status === 'Delivered' ? 'pi pi-check-circle' : 'pi pi-truck'"></i>
+              <span>{{ selectedReceipt.status }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Details -->
+      <div class="detail-section">
+        <h3 class="section-title">
+          <i class="pi pi-calendar"></i>
+          Delivery Details
+        </h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label class="info-label">Expected Delivery</label>
+            <span class="info-value">{{ selectedReceipt.delivery_date || 'Not specified' }}</span>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Received By</label>
+            <span class="info-value">{{ selectedReceipt.received_by || 'Not specified' }}</span>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Delivered Date</label>
+            <span class="info-value">{{ selectedReceipt.delivered_date || 'Not delivered' }}</span>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Delivered Time</label>
+            <span class="info-value">{{ selectedReceipt.delivered_time || 'Not specified' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Update Form -->
+      <div class="detail-section">
+        <h3 class="section-title">
+          <i class="pi pi-pencil"></i>
+          Update Receipt
+        </h3>
+        <form class="update-form">
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">Received By</label>
+              <input 
+                type="text" 
+                class="form-input"
+                [(ngModel)]="selectedReceipt.received_by" 
+                name="receivedBy" 
+                placeholder="Enter recipient name">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Delivered Date</label>
+              <input 
+                type="date" 
+                class="form-input"
+                [(ngModel)]="selectedReceipt.delivered_date" 
+                name="deliveredDate">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">Delivered Time</label>
+              <input 
+                type="time" 
+                class="form-input"
+                [(ngModel)]="selectedReceipt.delivered_time" 
+                name="deliveredTime">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Upload Document</label>
+              <div class="file-upload-area" (click)="fileInput.click()">
+                <div class="upload-content">
+                  <i class="pi pi-upload"></i>
+                  <div class="upload-text">
+                    <ng-container *ngIf="!selectedUpdateFile">
+                      <span class="upload-title">Click to browse files</span>
+                      <span class="upload-subtitle">Images and PDFs only</span>
+                    </ng-container>
+                    <ng-container *ngIf="selectedUpdateFile">
+                      <span class="file-selected">{{ selectedUpdateFile.name }}</span>
+                      <span class="file-ready">Ready to upload</span>
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+              <input #fileInput type="file" (change)="onFileSelectedForUpdate($event, selectedReceipt)" style="display: none">
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="secondary-button" (click)="dialog.closeAll()">Cancel</button>
+      <button class="primary-button" (click)="saveUpdatedFile(selectedReceipt)">
+        <i class="pi pi-check"></i>
+        <span>Save Changes</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- File Preview Dialog -->
+<ng-template #fileDialog let-dialogData="data">
+  <div class="file-preview-modal">
+    <div class="file-preview-header">
+      <h3>File Preview</h3>
+      <button class="modal-close" (click)="dialog.closeAll()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+    <div class="file-preview-content">
+      <img *ngIf="isImage(dialogData.url)" [src]="dialogData.url" class="file-preview">
+      <iframe *ngIf="isPdf(dialogData.url)" [src]="sanitizeUrl(dialogData.url)" class="file-preview pdf"></iframe>
+    </div>
+  </div>
+</ng-template>

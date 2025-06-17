@@ -14,6 +14,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableDataSource } from '@angular/material/table';
 import { DialogModule } from 'primeng/dialog';
+import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 
 interface PaginatedResponse {
   data: any[];
@@ -34,7 +35,8 @@ interface PaginatedResponse {
     MatTooltipModule,
     MatCardModule,
     MatProgressSpinnerModule,
-    DialogModule
+    DialogModule,
+    BreadcrumbComponent
   ],
   templateUrl: './client-list.component.html',
   styleUrls: ['./client-list.component.css'],
@@ -51,6 +53,7 @@ export class ClientListComponent implements OnInit, AfterViewInit {
   pageIndex = 0;
   displayProjectDetails: boolean = false;
   selectedClient: any = null;
+  selectedProjectIndex: number = 0;
   isCollapsed = false;
 
   constructor(
@@ -96,14 +99,53 @@ export class ClientListComponent implements OnInit, AfterViewInit {
     return 'success';
   }
 
+  getProjectCountClass(count: number): string {
+    if (count === 0) return 'projects-badge-danger';
+    if (count < 3) return 'projects-badge-warning';
+    if (count < 5) return 'projects-badge-info';
+    return 'projects-badge-success';
+  }
+
+  getTotalProjects(): number {
+    return this.dataSource.data.reduce((total, client) => total + (client.projects?.length || 0), 0);
+  }
+
+  getTotalProjectValue(): number {
+    if (!this.selectedClient?.projects?.length) return 0;
+    return this.selectedClient.projects.reduce((total: number, project: any) => total + (project.total || 0), 0);
+  }
+
+  getAverageProjectValue(): number {
+    if (!this.selectedClient?.projects?.length) return 0;
+    const totalValue = this.getTotalProjectValue();
+    return totalValue / this.selectedClient.projects.length;
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.pageIndex = event.pageIndex;
+    this.loadProjects();
+  }
+
   showClientDetails(client: any): void {
     this.selectedClient = client;
+    this.selectedProjectIndex = 0;
     this.displayProjectDetails = true;
+  }
+
+  selectProject(index: number): void {
+    this.selectedProjectIndex = index;
+  }
+
+  getSelectedProject(): any {
+    if (!this.selectedClient?.projects?.length) return {};
+    return this.selectedClient.projects[this.selectedProjectIndex] || this.selectedClient.projects[0];
   }
 
   closeProjectDetails(): void {
     this.displayProjectDetails = false;
     this.selectedClient = null;
+    this.selectedProjectIndex = 0;
   }
 
   ngOnDestroy(): void {

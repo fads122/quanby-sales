@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { SupabaseService } from '../../services/supabase.service';
-import { NgIf, NgFor, NgClass, NgTemplateOutlet, CommonModule } from '@angular/common';
+import { NgIf, NgFor, CommonModule } from '@angular/common';
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
 import { SidebarComponent } from "../../nav/sidebar/sidebar.component";
 import { FormsModule } from '@angular/forms';
@@ -12,10 +12,11 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { DatePipe, TitleCasePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 
 interface InhouseEquipment {
     id: string;
@@ -55,17 +56,15 @@ interface BorrowRequest {
     CommonModule,
     NgIf,
     NgFor,
-    NgClass,
-    NgTemplateOutlet,
     FormsModule,
     MatTableModule,
     MatIconModule,
     MatPaginatorModule,
     MatDialogModule,
     DatePipe,
-    TitleCasePipe,
     MatTooltipModule,
-    SidebarComponent
+    SidebarComponent,
+    BreadcrumbComponent
   ],
   templateUrl: './borrow-table-user.component.html',
   styleUrls: ['./borrow-table-user.component.css']
@@ -73,8 +72,9 @@ interface BorrowRequest {
 export class BorrowTableUserComponent implements OnInit, AfterViewInit {
   isLoading: boolean = true;
   selectedBorrower: any = null;
+  isCollapsed = false;
 
-displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_date', 'return_date', 'status', 'action'];
+  displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_date', 'return_date', 'status', 'action'];
   dataSource = new MatTableDataSource<BorrowRequest>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -87,6 +87,18 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
   borrowRequests: BorrowRequest[] = [];
   equipmentList: any[] = []; // Add this line
   
+  // Computed properties for template
+  get totalRequests(): number {
+    return this.dataSource.data.length;
+  }
+
+  get activeRequests(): number {
+    return this.dataSource.data.filter(r => r.status !== 'Returned' && r.status !== 'returned').length;
+  }
+
+  get isRequestActive(): boolean {
+    return this.selectedRequest && this.selectedRequest.status !== 'Returned' && this.selectedRequest.status !== 'returned';
+  }
 
   constructor(
     private router: Router,
@@ -97,6 +109,7 @@ displayedColumns: string[] = ['borrower_name', 'borrower_department', 'borrow_da
   ) {}
 
   onSidebarCollapsedChange(isCollapsed: boolean) {
+    this.isCollapsed = isCollapsed;
     const container = document.querySelector('.borrow-table-container');
     if (container) {
       if (isCollapsed) {

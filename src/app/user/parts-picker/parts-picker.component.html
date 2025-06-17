@@ -1,6 +1,7 @@
 <app-sidebar (collapsedChange)="isSidebarCollapsed = $event"></app-sidebar>
 <app-breadcrumb [sidebarCollapsed]="isSidebarCollapsed"></app-breadcrumb>
-<!-- Loader Overlay (place at the top of your template) -->
+
+<!-- Loader Overlay -->
 <div class="loading-overlay" *ngIf="isLoading">
   <div class="loading-content">
     <div class="logo-loader">
@@ -10,139 +11,230 @@
     <h3>Loading Parts Picker...</h3>
   </div>
 </div>
+
 <div class="equipment-container" [class.sidebar-collapsed]="isSidebarCollapsed">
-  <!-- Search Bar -->
-  <div class="search-bar">
-  <div class="search-mode-toggle">
-    <button (click)="toggleSearchMode()"
-            class="search-mode-button"
-            [ngClass]="{ 'active-mode': searchMode === 'semantic' }">
-      {{ searchMode === 'text' ? '🔍 Text Search' : '🧠 Semantic Search' }}
-    </button>
-  </div>
-
-  <input
-    type="text"
-    [(ngModel)]="searchQuery"
-    (input)="onSearch()"
-    placeholder="{{ searchMode === 'text' ? 'Search by model number...' : 'Describe what you need...' }}"
-    class="search-input"
-  />
-
-  <button class="view-saved-button" (click)="navigateToSavedEquipment()">
-    <i class="pi pi-folder-open"></i> Saved Equipment
-  </button>
-</div>
-
-<!-- Add to parts-picker.component.html -->
-<div class="test-buttons" *ngIf="isTesting">
-  <button (click)="searchQuery = 'bearing'; runSemanticSearch()">Test Bearing</button>
-  <button (click)="searchQuery = 'hydraulic'; runSemanticSearch()">Test Hydraulic</button>
-  <button (click)="searchQuery = 'electric'; runSemanticSearch()">Test Electric</button>
-</div>
-
-<!-- Replace your semantic search results section -->
-<div *ngIf="searchMode === 'semantic'" class="parts-grid">
-  <div *ngFor="let product of semanticSearchResults" class="part-card">
-    <!-- Card Header -->
-    <div class="card-header">
-      <div class="match-badge">
-        {{(product.similarity * 100).toFixed(0)}}% match
-      </div>
-      <div class="product-image-container">
-        <img [src]="product.image" [alt]="product.name" class="product-image">
-      </div>
-      <!-- <h3>{{product.name}}</h3> -->
+  <!-- Modern Search Bar -->
+  <div class="search-container">
+    <div class="search-header">
+      <h2 class="search-title">Parts Picker</h2>
+      <p class="search-subtitle">Find and select equipment for your projects</p>
     </div>
-
-    <!-- Card Body -->
-    <div class="card-body">
-      <div class="product-info">
-        <div class="product-model">{{product.model}}</div>
-        <div class="product-brand">{{product.brand}}</div>
-        <div class="product-price">₱{{product.price | number:'1.2-2'}}</div>
+    
+    <div class="search-controls">
+      <!-- Search Mode Toggle -->
+      <div class="search-mode-toggle">
+        <div class="toggle-container">
+          <button 
+            class="toggle-option" 
+            [class.active]="searchMode === 'text'"
+            (click)="searchMode = 'text'; onSearch()">
+            <i class="pi pi-search"></i>
+            <span>Text Search</span>
+          </button>
+          <button 
+            class="toggle-option" 
+            [class.active]="searchMode === 'semantic'"
+            (click)="searchMode = 'semantic'; onSearch()">
+            <i class="pi pi-brain"></i>
+            <span>AI Search</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Card Actions -->
-      <div class="card-actions">
-        <input type="number"
-               class="quantity-input"
-               [(ngModel)]="product.quantity"
-               min="1">
-        <button class="add-button"
-                [class.selected]="isSelected(product)"
-                (click)="toggleProductSelection(product)">
-          {{ isSelected(product) ? '- Remove' : '+ Add' }}
+      <!-- Search Input -->
+      <div class="search-input-container">
+        <i class="pi pi-search search-icon"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (input)="onSearch()"
+          [placeholder]="searchMode === 'text' ? 'Search by model, brand, or supplier...' : 'Describe what you need in natural language...'"
+          class="search-input"
+        />
+        <button 
+          *ngIf="searchQuery" 
+          class="clear-search" 
+          (click)="searchQuery = ''; onSearch()">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="search-actions">
+        <button class="btn-secondary" (click)="navigateToSavedEquipment()">
+          <i class="pi pi-folder-open"></i>
+          <span>Saved</span>
         </button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Category Tabs -->
-<div class="category-container">
-  <div class="category-scroll">
-    <button
-      *ngFor="let category of categories"
-      (click)="selectedCategory = category.name"
-      [class.active]="selectedCategory === category.name">
-      {{ category.name }} ({{ category.count }})
-    </button>
+  <!-- Test Buttons (Hidden in production) -->
+  <div class="test-buttons" *ngIf="isTesting">
+    <button (click)="searchQuery = 'bearing'; runSemanticSearch()">Test Bearing</button>
+    <button (click)="searchQuery = 'hydraulic'; runSemanticSearch()">Test Hydraulic</button>
+    <button (click)="searchQuery = 'electric'; runSemanticSearch()">Test Electric</button>
   </div>
-</div>
 
-<!-- Card Grid with Images -->
-<div class="parts-grid-container">
-  <div class="parts-grid">
-    <div class="part-card" *ngFor="let product of filteredProducts()">
-      <div class="card-header">
-        <div class="match-badge">{{ product.matchPercentage }}% match</div>
-        <div class="product-image-container">
-          <img [src]="product.image" alt="{{ product.name }}" class="product-image"/>
+  <!-- Category Filter -->
+  <div class="category-filter" *ngIf="categories.length > 1">
+    <div class="category-scroll">
+      <button
+        *ngFor="let category of categories"
+        (click)="selectedCategory = category.name"
+        [class.active]="selectedCategory === category.name"
+        class="category-btn">
+        <span class="category-name">{{ category.name }}</span>
+        <span class="category-count">({{ category.count }})</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search Results -->
+  <div class="results-container">
+    <!-- Semantic Search Results -->
+    <div *ngIf="searchMode === 'semantic' && semanticSearchResults.length > 0" class="parts-grid">
+      <div *ngFor="let product of semanticSearchResults" class="part-card modern-card">
+        <div class="card-image-section">
+          <div class="image-container">
+            <img [src]="product.image" [alt]="product.name" class="product-image">
+            <div class="image-overlay">
+              <div class="match-indicator">
+                <span class="match-percentage">{{(product.similarity * 100).toFixed(0)}}%</span>
+                <span class="match-label">Match</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <h3>{{ product.name }}</h3>
+
+        <div class="card-content">
+          <div class="product-header">
+            <h3 class="product-name">{{product.name}}</h3>
+            <div class="product-meta">
+              <span class="product-model">{{product.model}}</span>
+              <span class="product-brand">{{product.brand}}</span>
+            </div>
+          </div>
+
+          <div class="product-details">
+            <div class="price-section">
+              <span class="price-label">Price</span>
+              <span class="price-value">₱{{product.price | number:'1.2-2'}}</span>
+            </div>
+            <div class="supplier-section">
+              <span class="supplier-label">Supplier</span>
+              <span class="supplier-value">{{product.supplier}}</span>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <div class="quantity-control">
+              <label class="quantity-label">Qty</label>
+              <input 
+                type="number"
+                [(ngModel)]="product.quantity"
+                min="1"
+                class="quantity-input"
+              >
+            </div>
+            <button 
+              class="action-button"
+              [class.selected]="isSelected(product)"
+              (click)="toggleProductSelection(product)">
+              <i [class]="isSelected(product) ? 'pi pi-minus' : 'pi pi-plus'"></i>
+              <span>{{ isSelected(product) ? 'Remove' : 'Add' }}</span>
+            </button>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="card-body">
-        <div class="product-info">
-          <div class="product-model">{{ product.model }}</div>
-          <div class="product-brand">{{ product.brand }}</div>
-          <div class="product-price">{{ product.supplier_cost | currency: 'PHP' }}</div>
+    <!-- Regular Search Results -->
+    <div *ngIf="searchMode === 'text' || (searchMode === 'semantic' && semanticSearchResults.length === 0)" class="parts-grid">
+      <div *ngFor="let product of filteredProducts()" class="part-card modern-card">
+        <div class="card-image-section">
+          <div class="image-container">
+            <img [src]="product.image" alt="{{ product.name }}" class="product-image"/>
+            <div class="image-overlay">
+              <div class="availability-indicator">
+                <span class="availability-text">In Stock</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="card-actions">
-          <input
-            type="number"
-            [(ngModel)]="product.quantity"
-            min="0"
-            max="99"
-            class="quantity-input"
-            placeholder="Qty"
-          />
-          <button class="add-button" (click)="toggleProductSelection(product)">
-            {{ isSelected(product) ? 'Remove' : 'Add' }}
-          </button>
+        <div class="card-content">
+          <div class="product-header">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <div class="product-meta">
+              <span class="product-model">{{ product.model }}</span>
+              <span class="product-brand">{{ product.brand }}</span>
+            </div>
+          </div>
+
+          <div class="product-details">
+            <div class="price-section">
+              <span class="price-label">Price</span>
+              <span class="price-value">{{ product.supplier_cost | currency: 'PHP' }}</span>
+            </div>
+            <div class="supplier-section">
+              <span class="supplier-label">Supplier</span>
+              <span class="supplier-value">{{ product.supplier }}</span>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <div class="quantity-control">
+              <label class="quantity-label">Qty</label>
+              <input
+                type="number"
+                [(ngModel)]="product.quantity"
+                min="1"
+                class="quantity-input"
+                placeholder="1"
+              />
+            </div>
+            <button 
+              class="action-button"
+              [class.selected]="isSelected(product)"
+              (click)="toggleProductSelection(product)">
+              <i [class]="isSelected(product) ? 'pi pi-minus' : 'pi pi-plus'"></i>
+              <span>{{ isSelected(product) ? 'Remove' : 'Add' }}</span>
+            </button>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="(searchMode === 'text' && filteredProducts().length === 0) || (searchMode === 'semantic' && semanticSearchResults.length === 0 && searchQuery)" class="empty-state">
+      <div class="empty-icon">
+        <i class="pi pi-search"></i>
+      </div>
+      <h3>No results found</h3>
+      <p>Try adjusting your search terms or browse by category</p>
     </div>
   </div>
 
   <!-- Pagination -->
-  <p-paginator
-    [rows]="5"
-    [totalRecords]="filteredProducts().length"
-    (onPageChange)="onPageChange($event)"
-    styleClass="custom-paginator"
-  ></p-paginator>
-</div>
+  <div class="pagination-container" *ngIf="(searchMode === 'text' && filteredProducts().length > 5) || (searchMode === 'semantic' && semanticSearchResults.length > 5)">
+    <p-paginator
+      [rows]="5"
+      [totalRecords]="searchMode === 'semantic' ? semanticSearchResults.length : filteredProducts().length"
+      (onPageChange)="onPageChange($event)"
+      styleClass="modern-paginator"
+    ></p-paginator>
+  </div>
 
-  <!-- Total Price & View Selected Button -->
+  <!-- Total Price Bar -->
   <div class="total-bar">
-    <span (click)="toggleDropdown()" class="total-label">
-      Total Price: <span class="total-price">{{ getTotalPrice() | currency: 'PHP' }}</span>
-    </span>
-    <button class="view-selected-button" (click)="openModal()">
-      <i class="pi pi-list"></i> View Selected ({{ selectedProducts.length }})
+    <div class="total-info">
+      <span class="total-label">Total Price:</span>
+      <span class="total-price">{{ getTotalPrice() | currency: 'PHP' }}</span>
+    </div>
+    <button class="view-selected-button" (click)="openModal()" [disabled]="selectedProducts.length === 0">
+      <i class="pi pi-list"></i>
+      <span>View Selected ({{ selectedProducts.length }})</span>
     </button>
   </div>
 
@@ -219,54 +311,52 @@
       </div>
     </div>
   </div>
-<!-- Add this near your table or in the modal -->
-<div *ngIf="compatibilityIssues.length" class="compatibility-alert">
-  <h3>⚠️ Compatibility Issues</h3>
-  <ul>
-    <li *ngFor="let issue of compatibilityIssues">{{ issue }}</li>
-  </ul>
-</div>
 
-<!-- Add compatibility check button -->
-<button
-  class="compatibility-button"
-  (click)="checkCompatibility()"
-  [disabled]="selectedProducts.length < 2 || isCheckingCompatibility">
-  <i class="pi pi-check-circle"></i>
-  {{ isCheckingCompatibility ? 'Checking...' : 'Check Compatibility' }}
-</button>
+  <!-- Add this near your table or in the modal -->
+  <div *ngIf="compatibilityIssues.length" class="compatibility-alert">
+    <h3>⚠️ Compatibility Issues</h3>
+    <ul>
+      <li *ngFor="let issue of compatibilityIssues">{{ issue }}</li>
+    </ul>
+  </div>
 
-<!-- Update your product rows to show compatibility -->
-<ng-template pTemplate="body" let-product>
-  <tr [class.compatible]="product.compatible">
-    <!-- ... existing cells ... -->
-    <td *ngIf="product.compatible" class="compatibility-badge">
-      <span class="compatible-tag">✓ Compatible</span>
-    </td>
-  </tr>
-  <!-- Suggestions Panel -->
-<div *ngIf="showSuggestionsPanel" class="suggestions-panel">
-  <h3>🔍 Smart Suggestions</h3>
+  <!-- Add compatibility check button -->
+  <button
+    class="compatibility-button"
+    (click)="checkCompatibility()"
+    [disabled]="selectedProducts.length < 2 || isCheckingCompatibility">
+    <i class="pi pi-check-circle"></i>
+    {{ isCheckingCompatibility ? 'Checking...' : 'Check Compatibility' }}
+  </button>
 
-  <div *ngFor="let group of suggestedParts" class="suggestion-group">
-    <h4>{{ group.category }}</h4>
-    <div class="suggestion-cards">
-      <div
-        *ngFor="let part of group.parts"
-        class="suggestion-card"
-        (click)="addSuggestion(part)"
-      >
-        <img [src]="part.image || '/assets/no-image.png'" alt="{{ part.name }}" />
-        <p><strong>{{ part.name }}</strong></p>
-        <p>{{ part.model }}</p>
-        <p class="price">{{ part.supplier_cost | currency: 'PHP' }}</p>
-        <button class="suggestion-add">+ Add</button>
+  <!-- Update your product rows to show compatibility -->
+  <ng-template pTemplate="body" let-product>
+    <tr [class.compatible]="product.compatible">
+      <!-- ... existing cells ... -->
+      <td *ngIf="product.compatible" class="compatibility-badge">
+        <span class="compatible-tag">✓ Compatible</span>
+      </td>
+    </tr>
+    <!-- Suggestions Panel -->
+    <div *ngIf="showSuggestionsPanel" class="suggestions-panel">
+      <h3>🔍 Smart Suggestions</h3>
+
+      <div *ngFor="let group of suggestedParts" class="suggestion-group">
+        <h4>{{ group.category }}</h4>
+        <div class="suggestion-cards">
+          <div
+            *ngFor="let part of group.parts"
+            class="suggestion-card"
+            (click)="addSuggestion(part)"
+          >
+            <img [src]="part.image || '/assets/no-image.png'" alt="{{ part.name }}" />
+            <p><strong>{{ part.name }}</strong></p>
+            <p>{{ part.model }}</p>
+            <p class="price">{{ part.supplier_cost | currency: 'PHP' }}</p>
+            <button class="suggestion-add">+ Add</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-
-</ng-template>
-
-
+  </ng-template>
 </div>
