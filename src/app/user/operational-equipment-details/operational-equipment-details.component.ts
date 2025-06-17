@@ -29,6 +29,10 @@ interface OperationalEquipment {
   repair_logs: any[] | null;
   return_slip: string | null;
   description?: string | null;
+  property_number?: string | null;
+  size?: string | null;
+  color?: string | null;
+  software_name?: string | null;
 }
 
 @Component({
