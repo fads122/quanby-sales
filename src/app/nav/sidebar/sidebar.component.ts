@@ -6,7 +6,6 @@ import { SupabaseService } from '../../services/supabase.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApplicationConfig } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { Subject } from 'rxjs';
@@ -25,7 +24,6 @@ export const appConfig: ApplicationConfig = {
     CommonModule,
     RouterModule,
     MatDialogModule,
-    MatSnackBarModule
   ],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
@@ -174,41 +172,66 @@ export class SidebarComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.snackBar.open('Logging out...', '', {
-          duration: 2000,
-        });
-        setTimeout(() => {
-          this.logout();
-        }, 2000);
+        this.logout();
       }
     });
   }
 
-  async logout(): Promise<void> {
-    try {
-      console.log('Starting logout process...');
-      const signOutResult = await this.authService.signOut();
-      console.log('SignOut result:', signOutResult);
-
-      localStorage.clear();
-      console.log('LocalStorage cleared');
-
-      await this.router.navigate(['/login']);
-      console.log('Navigation completed');
-
-      this.snackBar.open('Successfully logged out', 'Close', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom'
-      });
-    } catch (error) {
-      console.error('Logout failed:', error);
-      this.snackBar.open('Logout failed. Please try again.', 'Close', {
-        duration: 3000,
-        panelClass: ['error-snackbar']
-      });
-    }
+async logout(): Promise<void> {
+  try {
+    // Reset layout state before logout
+    this.isCollapsed = false;
+    this.collapsedState.emit(false);
+    
+    // Reset body styles
+    document.body.classList.remove('collapsed');
+    document.body.style.marginLeft = '';
+    document.body.style.width = '';
+    
+    // Then proceed with logout
+    const signOutResult = await this.authService.signOut();
+    localStorage.clear();
+    localStorage.setItem('logoutMessage', 'You have been logged out successfully');
+    
+    // Force full page reload to ensure clean state
+    window.location.href = '/login';
+  } catch (error) {
+    console.error('Logout failed:', error);
   }
+}
+
+private resetLayoutBeforeLogout(): void {
+  // Add transition-disabling class
+  document.body.classList.add('logout-transition');
+  
+  // Reset all possible affecting styles
+  document.body.style.margin = '0';
+  document.body.style.padding = '0';
+  document.body.style.width = '100vw';
+  document.body.style.minWidth = '100vw';
+  document.body.style.overflowX = 'hidden';
+  
+  // Reset HTML element
+  document.documentElement.style.width = '100vw';
+  document.documentElement.style.minWidth = '100vw';
+  document.documentElement.style.overflowX = 'hidden';
+  
+  // Force reset of login container
+  const loginContainers = document.querySelectorAll('.login-container, app-login');
+  loginContainers.forEach(container => {
+    const el = container as HTMLElement;
+    el.style.width = '100vw';
+    el.style.minWidth = '100vw';
+    el.style.maxWidth = '100vw';
+    el.style.margin = '0';
+    el.style.padding = '0';
+    el.style.position = 'relative';
+    el.style.left = '0';
+  });
+  
+  // Remove any sidebar-related classes
+  document.body.classList.remove('sidebar-collapsed', 'sidebar-expanded');
+}
 }
 
 @Component({

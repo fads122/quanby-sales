@@ -134,6 +134,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   paginatedSuppliers: any[] = []; // Suppliers to display on current page
   itemsPerPage: number = 5;
 
+  isLoaded = false;
+
 
   constructor(private supabaseService: SupabaseService, private cdr: ChangeDetectorRef, private router: Router) {}
 
@@ -393,9 +395,29 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.lowStockCount = this.lowStockEquipment.length;
   }
 
-  ngAfterViewInit() {
-    this.initializeChart();
+// Modify your loading completion handler
+completeLoading() {
+  this.isLoading = false;
+  setTimeout(() => {
+    this.isLoaded = true;
+    this.cdr.detectChanges(); // Trigger change detection
+    this.recalculateLayout(); // Call this if you have chart resizing logic
+  }, 100);
+}
+
+// Add this method
+recalculateLayout() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('resize'));
   }
+}
+
+// Update ngAfterViewInit
+ngAfterViewInit() {
+  this.initializeChart();
+  // Add a fallback resize handler
+  setTimeout(() => this.recalculateLayout(), 500);
+}
 
   async loadUserEmail() {
     const user = await this.supabaseService.getUser();

@@ -53,3 +53,11 @@ body {
 * {
   margin: 0;
 }
+body.logout-transition {
+  transition: none !important;
+}
+
+body.logout-transition * {
+  transition: none !important;
+}
+
