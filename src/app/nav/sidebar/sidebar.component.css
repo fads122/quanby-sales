@@ -52,19 +52,22 @@
 
 /* Sidebar header */
 .sidebar-header {
-  padding: 20px;
+  padding: 0 16px; /* Changed from 16px to remove vertical padding */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  min-height: 80px;
-  border-bottom: 1px solid var(--border-color);
-  background: #f8fafc;
+  height: 64px; /* Changed from min-height to fixed height */
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0; /* Prevent header from shrinking */
+  box-sizing: border-box; /* Include padding in height calculation */
 }
 
 .app-logo {
   display: flex;
   align-items: center;
   gap: 12px;
+  height: 100%; /* Take full height of header */
+  padding: 12px 0; /* Add vertical padding here instead */
 }
 
 .logo-icon {
@@ -89,6 +92,20 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1; /* Ensure consistent line height */
+}
+
+/* Ensure images don't affect layout */
+.app-logo img {
+  height: 40px;
+  width: auto;
+  display: block; /* Remove any inline spacing */
+}
+
+/* Prevent any content shifts */
+.sidebar.collapsed .sidebar-header {
+  height: 64px; /* Same as expanded state */
+  justify-content: center; /* Center toggle button when collapsed */
 }
 
 /* Toggle button */
