@@ -1253,6 +1253,7 @@ async getUniqueSuppliersFromCostHistory(equipmentId: string) {
     }
   }
 
+
   async getRepairLogs(equipmentId: string): Promise<any[]> {
   const { data, error } = await this.supabase
     .from('repair_logs') // or whatever your repair logs table is called
@@ -2120,6 +2121,23 @@ async sendScheduledNotifications() {
   }
 }
 
+// async scheduleNotification(notification: any): Promise<void> {
+//   try {
+//     const scheduledDate = new Date(notification.scheduled_for);
+//     scheduledDate.setHours(scheduledDate.getHours() + 8); // ✅ Adjust to UTC+8
+//       .from('notifications')
+//       .update({ isRead: true })
+//       .eq('id', notificationId);
+
+//     if (error) throw error;
+
+//     console.log(`✅ Notification ${notificationId} marked as read.`);
+
+//   } catch (error) {
+//     console.error('❌ Error marking notification as read:', error);
+//   }
+// }
+
 async scheduleNotification(notification: any): Promise<void> {
   try {
     const scheduledDate = new Date(notification.scheduled_for);
@@ -2140,22 +2158,6 @@ async scheduleNotification(notification: any): Promise<void> {
     console.log("🔔 Notification status:", notification.status);
   } catch (err) {
     console.error("❌ Error scheduling notification:", err);
-  }
-}
-
-async markSingleNotificationAsRead(notificationId: string): Promise<void> {
-  try {
-    const { error } = await this.supabase
-      .from('notifications')
-      .update({ isRead: true })
-      .eq('id', notificationId);
-
-    if (error) throw error;
-
-    console.log(`✅ Notification ${notificationId} marked as read.`);
-
-  } catch (error) {
-    console.error('❌ Error marking notification as read:', error);
   }
 }
 
@@ -2955,5 +2957,35 @@ async getImageUrl(filename: string): Promise<string> {
     console.error('Error getting image URL:', error);
     return 'assets/default-image.png';
   }
+}
+
+
+// Save a new equipment entry
+async saveEquipmentEntry(entry: any): Promise<any> {
+  const { data, error } = await this.supabase
+    .from('saved_equipment')
+    .insert([entry])
+    .select()
+    .single(); // This ensures you get the inserted row with id
+  if (error) throw error;
+  return data;
+}
+
+// Get all saved equipment entries (optionally by user)
+async getSavedEquipment(userId?: string): Promise<any[]> {
+  let query = this.supabase.from('saved_equipment').select('*').order('timestamp', { ascending: false });
+  if (userId) query = query.eq('user_id', userId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+// Delete a saved equipment entry by id
+async deleteSavedEquipment(id: string): Promise<void> {
+  const { error } = await this.supabase
+    .from('saved_equipment')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
 }
 }

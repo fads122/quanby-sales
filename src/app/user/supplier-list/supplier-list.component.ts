@@ -64,7 +64,7 @@ export class SupplierListComponent implements OnInit {
   showAddDialog: boolean = false;
   showDeleteDialog: boolean = false;
 
-  displayedColumns: string[] = ['number', 'supplier_name', 'contact_person', 'phone', 'email', 'actions'];
+  displayedColumns: string[] = ['number', 'supplier_name', 'contact_person', 'phone', 'email', 'status', 'actions'];
   dataSource!: MatTableDataSource<any>;
 
   @ViewChild('addSupplierDialog') addSupplierDialog!: TemplateRef<any>;
@@ -126,7 +126,7 @@ export class SupplierListComponent implements OnInit {
       if (supplierIds.length > 0) {
         // Fetch supplier details for each ID
         const { data, error } = await this.supabaseService.from('suppliers')
-          .select('id, supplier_name, contact_person, phone, email, address')
+          .select('id, supplier_name, contact_person, phone, email, address, status')
           .in('id', supplierIds);
 
         if (error) {
