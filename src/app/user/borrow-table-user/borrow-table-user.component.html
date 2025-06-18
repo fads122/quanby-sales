@@ -151,14 +151,16 @@
               <td class="table-cell actions-cell">
                 <div class="action-buttons">
                   <button class="action-button view-button" 
-                          (click)="openDetailsModal(getFullRequest(request.id)); $event.stopPropagation()"
+                          (click)="openDetailsModal(request); $event.stopPropagation()"
                           title="View Details">
                     <i class="pi pi-eye"></i>
                   </button>
-                  <button *ngIf="request.status !== 'Returned' && request.status !== 'returned'"
-                          class="action-button return-button" 
-                          (click)="markAsReturned(request.id); $event.stopPropagation()"
-                          title="Mark as Returned">
+                  <button
+                    *ngIf="request.status !== 'Returned' && request.status !== 'returned' && isCurrentUsersRequest(request)"
+                    class="action-button return-button"
+                    (click)="markAsReturned(request.id); $event.stopPropagation()"
+                    title="Mark as Returned"
+                  >
                     <i class="pi pi-undo"></i>
                   </button>
                 </div>
@@ -281,9 +283,9 @@
 
     <div class="modal-footer">
       <button class="secondary-button" (click)="closeDetailsModal()">Close</button>
-      <button *ngIf="isRequestActive"
-              class="primary-button" 
-              (click)="markAsReturned(selectedRequest.id); closeDetailsModal()">
+      <button *ngIf="isRequestActive && isCurrentUsersRequest(selectedRequest)"
+        class="primary-button" 
+        (click)="markAsReturned(selectedRequest.id); closeDetailsModal()">
         <i class="pi pi-undo"></i>
         <span>Mark as Returned</span>
       </button>

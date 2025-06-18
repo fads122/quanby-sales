@@ -39,12 +39,15 @@ export class SidebarComponent implements OnInit {
   commonMenuItems = [
     { path: '/dashboard', icon: 'pi pi-home', label: 'Home' },
     { path: '/equipment-list', icon: 'pi pi-list', label: 'Product List' },
-    { path: '/supplier-list', icon: 'pi pi-truck', label: 'Suppliers' },
     { path: '/project-materials', icon: 'pi pi-file-edit', label: 'Project Proposals' },
     { path: '/client-list', icon: 'pi pi-users', label: 'Client Directory' },
     { path: '/delivery-receipt', icon: 'pi pi-shopping-cart', label: 'Sales Order' },
     { path: '/parts-picker', icon: 'pi pi-box', label: 'Parts Picker' },
     { path: '/borrow-table-user', icon: 'pi pi-tags', label: 'Item' }
+  ];
+
+  userOnlyMenuItems = [
+    { path: '/supplier-list', icon: 'pi pi-truck', label: 'Suppliers' }
   ];
 
   adminMenuItems = [
@@ -53,9 +56,20 @@ export class SidebarComponent implements OnInit {
   ];
 
   get menuItems() {
-    return this.isAdmin
-      ? [...this.commonMenuItems, ...this.adminMenuItems]
-      : this.commonMenuItems;
+    if (this.isAdmin) {
+      // Admin: no Suppliers
+      return [...this.commonMenuItems, ...this.adminMenuItems];
+    } else {
+      // User: insert Suppliers after Product List
+      const items = [...this.commonMenuItems];
+      const productListIndex = items.findIndex(item => item.path === '/equipment-list');
+      if (productListIndex !== -1) {
+        items.splice(productListIndex + 1, 0, this.userOnlyMenuItems[0]);
+      } else {
+        items.push(this.userOnlyMenuItems[0]);
+      }
+      return items;
+    }
   }
 
   constructor(

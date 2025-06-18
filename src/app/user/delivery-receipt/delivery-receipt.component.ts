@@ -23,6 +23,7 @@ import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 
 interface DeliveryReceipt {
   id: string;
+  project_id?: string;
   project_name: string;
   client_name: string;
   delivery_date: string;
@@ -264,6 +265,19 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
         .eq('id', receipt.id);
 
       if (updateError) throw updateError;
+
+      // --- ADD THIS: Update the project status to 'delivered' ---
+      if (receipt.project_id) {
+        const { error: projectStatusError } = await this.supabase
+          .from('projects')
+          .update({ delivery_status: 'delivered' })
+          .eq('id', receipt.project_id);
+
+        if (projectStatusError) {
+          console.error('Error updating project delivery status:', projectStatusError);
+        }
+      }
+      // ----------------------------------------------------------
 
       this.snackBar.open('Delivery receipt updated successfully!', 'Close', { duration: 3000 });
       this.selectedUpdateFile = null;

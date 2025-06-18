@@ -89,13 +89,14 @@
             id="borrowerContact"
             [(ngModel)]="borrowerContact"
             (change)="onFormChange()"
+            (keypress)="allowOnlyNumbers($event)"
             placeholder="Enter contact number"
             name="borrowerContact"
             required
             class="form-control"
             #contact="ngModel"
             [ngClass]="{'invalid': contact.invalid && contact.touched}"
-            pattern="[0-9]{10,15}"
+            pattern="^[0-9]{10,15}$"
           />
           <div class="error-message" *ngIf="contact.invalid && contact.touched">
             Valid contact number is required (10-15 digits)
