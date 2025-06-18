@@ -73,14 +73,17 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
   selectedUpdateFile: File | null = null;
   isCollapsed = false;
 
+  // Modal state management
+  showReceiptModal = false;
+  showFileModal = false;
+  selectedFileUrl = '';
+
   displayedColumns: string[] = ['project', 'client', 'delivery_date', 'status', 'attachment', 'actions'];
   rows: number = 5;
   pageIndex = 0;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-  @ViewChild('receiptDetailsDialog') receiptDetailsDialog!: TemplateRef<any>;
-  @ViewChild('fileDialog') fileDialog!: TemplateRef<any>;
 
   // Computed properties for template
   get totalReceipts(): number {
@@ -89,6 +92,12 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
 
   get deliveredReceipts(): number {
     return this.dataSource.data.filter(r => r.status === 'Delivered').length;
+  }
+
+  get paginatedData(): DeliveryReceipt[] {
+    const startIndex = this.pageIndex * this.rows;
+    const endIndex = startIndex + this.rows;
+    return this.dataSource.data.slice(startIndex, endIndex);
   }
 
   constructor(
@@ -117,8 +126,12 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
+    // Set up paginator and sort after view is initialized
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+    
+    console.log('Paginator initialized:', this.paginator);
+    console.log('Data source paginator:', this.dataSource.paginator);
   }
 
   async loadReceipts(): Promise<void> {
@@ -138,6 +151,8 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
       }));
 
       this.dataSource.data = receipts;
+      console.log('Loaded receipts:', receipts.length);
+      console.log('Data source data length:', this.dataSource.data.length);
     } catch (error) {
       console.error('Error loading receipts:', error);
       this.snackBar.open('Failed to load delivery receipts', 'Close', { duration: 3000 });
@@ -148,6 +163,8 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
 
   filterReceipts(): void {
     this.dataSource.filter = this.searchQuery.trim().toLowerCase();
+    console.log('Filter applied:', this.searchQuery);
+    console.log('Filtered data length:', this.dataSource.filteredData.length);
 
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
@@ -157,16 +174,18 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
   pageChange(event: PageEvent): void {
     this.rows = event.pageSize;
     this.pageIndex = event.pageIndex;
+    console.log('Page changed:', event);
   }
 
   showReceiptDetails(receipt: DeliveryReceipt): void {
-    this.selectedReceipt = receipt;
-    this.dialog.open(this.receiptDetailsDialog, {
-      width: '600px',
-      maxHeight: '90vh',
-      panelClass: 'receipt-dialog',
-      autoFocus: false
-    });
+    this.selectedReceipt = { ...receipt }; // Create a copy to avoid direct modification
+    this.showReceiptModal = true;
+  }
+
+  closeReceiptModal(): void {
+    this.showReceiptModal = false;
+    this.selectedReceipt = null;
+    this.selectedUpdateFile = null;
   }
 
   isImage(url: string): boolean {
@@ -178,12 +197,13 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
   }
 
   openFileDialog(url: string): void {
-    this.dialog.open(this.fileDialog, {
-      data: { url } as FileDialogData,
-      panelClass: this.isPdf(url) ? ['pdf-dialog', 'file-dialog'] : ['image-dialog', 'file-dialog'],
-      maxHeight: '90vh',
-      maxWidth: '90vw'
-    });
+    this.selectedFileUrl = url;
+    this.showFileModal = true;
+  }
+
+  closeFileModal(): void {
+    this.showFileModal = false;
+    this.selectedFileUrl = '';
   }
 
   sanitizeUrl(url: string): SafeResourceUrl {
@@ -248,7 +268,7 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
       this.snackBar.open('Delivery receipt updated successfully!', 'Close', { duration: 3000 });
       this.selectedUpdateFile = null;
       await this.loadReceipts();
-      this.dialog.closeAll();
+      this.closeReceiptModal();
     } catch (error) {
       console.error('Error updating receipt:', error);
       this.snackBar.open('Failed to update delivery receipt', 'Close', { duration: 3000 });

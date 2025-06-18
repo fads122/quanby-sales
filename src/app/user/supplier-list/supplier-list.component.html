@@ -1,6 +1,3 @@
-<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
-<app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
-
 <div class="loading-overlay" *ngIf="isLoading">
   <div class="loading-content">
     <div class="logo-loader">
@@ -11,42 +8,49 @@
   </div>
 </div>
 
-<div class="supplier-management-container" [class.sidebar-collapsed]="isCollapsed" style="color: #2F2F2F;">
+<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
+
+<div class="supplier-list-container" [class.collapsed]="isCollapsed">
   <!-- Header Section -->
-  <div class="header">
-    <h1 class="page-title">Supplier Management</h1>
-    <p class="page-description">Manage and track your supplier relationships, view contact information, and monitor supplier performance across your organization.</p>
-    <div class="action-bar">
-      <div class="search-container">
-        <span class="search-icon">search</span>
-        <input
-          type="text"
-          [(ngModel)]="searchQuery"
-          placeholder="Search suppliers..."
-          class="search-input"
-          (input)="filterSuppliers()"
-        />
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-title">Supplier Directory</h1>
+        <p class="page-subtitle">Manage your supplier relationships and track contact information</p>
       </div>
-      <button class="add-button" (click)="openAddSupplierDialog()">
-        <span class="button-icon">add</span>
-        Add Supplier
-      </button>
+      <div class="header-actions">
+        <div class="search-container">
+          <span class="search-icon">search</span>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Search suppliers..."
+            class="search-input"
+            (input)="filterSuppliers()"
+          />
+        </div>
+        <button class="add-button" (click)="openAddSupplierDialog()">
+          <span class="button-icon">add</span>
+          Add Supplier
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Tab Navigation -->
   <div class="tab-navigation">
     <div class="tab-container">
-      <button 
-        class="tab-button" 
+      <button
+        class="tab-button"
         [class.active]="activeTab === 'current'"
         (click)="switchTab('current')">
         <span class="tab-icon">person</span>
         Current Supplier
         <span class="tab-count" *ngIf="getCurrentSupplierCount() > 0">({{ getCurrentSupplierCount() }})</span>
       </button>
-      <button 
-        class="tab-button" 
+      <button
+        class="tab-button"
         [class.active]="activeTab === 'all'"
         (click)="switchTab('all')">
         <span class="tab-icon">business</span>
@@ -56,249 +60,344 @@
     </div>
   </div>
 
-  <!-- Supplier Table Card -->
-  <div class="card">
-    <div class="table-responsive">
-      <!-- Replace the existing table section with this -->
-      <div class="table-container mat-elevation-z8">
-        <table mat-table [dataSource]="dataSource" matSort class="full-width-table">
-          <!-- Number Column -->
-          <ng-container matColumnDef="number">
-            <th mat-header-cell *matHeaderCellDef> # </th>
-            <td mat-cell *matCellDef="let i = index"> {{ i + 1 + (paginator.pageIndex * paginator.pageSize) }} </td>
-          </ng-container>
+  <!-- Table Section -->
+  <div class="table-section">
+    <div class="table-container">
+      <div class="table-header">
+        <h2 class="table-title">Suppliers</h2>
+        <div class="table-stats">
+          <span class="stat-item">
+            <i class="pi pi-users"></i>
+            <span>{{ dataSource.data.length }} Total Suppliers</span>
+          </span>
+          <span class="stat-item">
+            <i class="pi pi-check-circle"></i>
+            <span>{{ getActiveSupplierCount() }} Active</span>
+          </span>
+        </div>
+      </div>
 
-          <!-- Supplier Name Column -->
-          <ng-container matColumnDef="supplier_name">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Supplier Name </th>
-            <td mat-cell *matCellDef="let supplier"> {{supplier.supplier_name}} </td>
-          </ng-container>
-
-          <!-- Contact Person Column -->
-          <ng-container matColumnDef="contact_person">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Contact Person </th>
-            <td mat-cell *matCellDef="let supplier"> {{supplier.contact_person}} </td>
-          </ng-container>
-
-          <!-- Phone Column -->
-          <ng-container matColumnDef="phone">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Contact </th>
-            <td mat-cell *matCellDef="let supplier"> {{supplier.phone}} </td>
-          </ng-container>
-
-          <!-- Email Column -->
-          <ng-container matColumnDef="email">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
-            <td mat-cell *matCellDef="let supplier"> {{supplier.email}} </td>
-          </ng-container>
-
-          <!-- Actions Column -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef> Actions </th>
-            <td mat-cell *matCellDef="let supplier">
-              <div class="action-buttons">
-                <button mat-icon-button class="view-btn" [routerLink]="['/supplier-profile', supplier.id]">
-                  <span class="material-icons">visibility</span>
-                </button>
-                <button mat-icon-button class="edit-btn" (click)="editSupplier(supplier)">
-                  <span class="material-icons">edit</span>
-                </button>
-                <button mat-icon-button class="delete-btn" (click)="confirmDelete(supplier.id)">
-                  <span class="material-icons">delete</span>
-                </button>
-              </div>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-          <!-- Row shown when there is no matching data -->
-          <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" colspan="6">
-              <div class="empty-state">
-                <mat-icon class="empty-icon">inbox</mat-icon>
-                <p class="empty-text">
-                  <span *ngIf="activeTab === 'current'">No suppliers assigned to you</span>
-                  <span *ngIf="activeTab === 'all'">No suppliers found</span>
-                </p>
-                <!-- <button mat-raised-button color="primary" (click)="openAddSupplierDialog()">
-                  <mat-icon>add</mat-icon>
-                  Add New Supplier
-                </button> -->
-              </div>
-            </td>
-          </tr>
+      <!-- Modern Table -->
+      <div class="modern-table-container">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Supplier Information</span>
+                  <i class="pi pi-sort"></i>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Contact Person</span>
+                  <i class="pi pi-sort"></i>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Contact</span>
+                  <i class="pi pi-sort"></i>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Email</span>
+                  <i class="pi pi-sort"></i>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
+                  <span>Actions</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let supplier of dataSource.data" class="table-row">
+              <td class="table-cell supplier-cell">
+                <div class="supplier-info">
+                  <div class="supplier-avatar">
+                    <i class="pi pi-building"></i>
+                  </div>
+                  <div class="supplier-details">
+                    <span class="supplier-name">{{ supplier.supplier_name }}</span>
+                    <span class="supplier-address">{{ supplier.address || 'No address provided' }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="table-cell">
+                <div class="contact-info">
+                  <span class="contact-value">{{ supplier.contact_person }}</span>
+                  <span class="contact-label">Contact Person</span>
+                </div>
+              </td>
+              <td class="table-cell">
+                <div class="contact-info">
+                  <span class="contact-value">{{ supplier.phone || 'Not provided' }}</span>
+                  <span class="contact-label">Phone</span>
+                </div>
+              </td>
+              <td class="table-cell">
+                <div class="contact-info">
+                  <span class="contact-value">{{ supplier.email || 'Not provided' }}</span>
+                  <span class="contact-label">Email</span>
+                </div>
+              </td>
+              <td class="table-cell actions-cell">
+                <div class="action-buttons">
+                  <button class="action-button view-button"
+                          [routerLink]="['/supplier-profile', supplier.id]"
+                          title="View Details">
+                    <i class="pi pi-eye"></i>
+                  </button>
+                  <button class="action-button edit-button"
+                          (click)="editSupplier(supplier)"
+                          title="Edit Supplier">
+                    <i class="pi pi-pencil"></i>
+                  </button>
+                  <button class="action-button delete-button"
+                          (click)="confirmDelete(supplier.id)"
+                          title="Delete Supplier">
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
         </table>
 
-        <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"
-                       [pageSize]="10"
-                       showFirstLastButtons
-                       aria-label="Select page">
-        </mat-paginator>
+        <!-- Empty State -->
+        <div *ngIf="dataSource.data.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <i class="pi pi-inbox"></i>
+          </div>
+          <h3>No Suppliers Found</h3>
+          <p>
+            <span *ngIf="activeTab === 'current'">No suppliers assigned to you</span>
+            <span *ngIf="activeTab === 'all'">There are currently no suppliers to display.</span>
+          </p>
+        </div>
       </div>
+
+      <!-- Pagination -->
+      <mat-paginator
+        [length]="dataSource.data.length"
+        [pageSize]="10"
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        [showFirstLastButtons]="true"
+        aria-label="Select page">
+      </mat-paginator>
     </div>
   </div>
 </div>
 
 <!-- Add/Edit Supplier Dialog -->
-<ng-template #addSupplierDialog>
-  <div class="dialog-container">
-    <h2 class="dialog-title">{{ editingSupplier ? 'Edit' : 'Add' }} Supplier</h2>
-    <div class="dialog-divider"></div>
-    <form [formGroup]="supplierForm" (ngSubmit)="onSubmit()" class="dialog-form">
-      <!-- Row 1: Supplier Name and Contact Person -->
-      <div class="form-row">
-        <div class="form-field">
-          <label for="supplier_name">Supplier Name</label>
-          <input
-            id="supplier_name"
-            type="text"
-            formControlName="supplier_name"
-            placeholder="Enter supplier name"
-            [class.invalid]="supplierForm.get('supplier_name')?.invalid && supplierForm.get('supplier_name')?.touched"
-          >
-          <div class="error-message" *ngIf="supplierForm.get('supplier_name')?.invalid && supplierForm.get('supplier_name')?.touched">
-            Supplier name is required
-          </div>
-        </div>
+<p-dialog
+  [(visible)]="showAddDialog"
+  [modal]="true"
+  [style]="{width: '85%', maxWidth: '800px'}"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="supplier-dialog"
+  [showHeader]="false"
+  [dismissableMask]="true"
+  [closeOnEscape]="true"
+  [baseZIndex]="1000"
+  [blockScroll]="true"
+  [maskStyleClass]="'custom-overlay-mask'"
+  [transitionOptions]="'300ms cubic-bezier(0.4, 0, 0.2, 1)'">
 
-        <div class="form-field">
-          <label for="contact_person">Contact Person</label>
-          <input
-            id="contact_person"
-            type="text"
-            formControlName="contact_person"
-            placeholder="Enter contact person"
-            [class.invalid]="supplierForm.get('contact_person')?.invalid && supplierForm.get('contact_person')?.touched"
-          >
-          <div class="error-message" *ngIf="supplierForm.get('contact_person')?.invalid && supplierForm.get('contact_person')?.touched">
-            Contact person is required
-          </div>
-        </div>
-      </div>
-
-      <!-- Row 2: Phone and Email -->
-      <div class="form-row">
-        <div class="form-field">
-          <label for="phone">Phone Number</label>
-          <input
-            id="phone"
-            type="tel"
-            formControlName="phone"
-            placeholder="Enter phone number"
-            [class.invalid]="supplierForm.get('phone')?.invalid && supplierForm.get('phone')?.touched"
-          >
-          <div class="error-message" *ngIf="supplierForm.get('phone')?.invalid && supplierForm.get('phone')?.touched">
-            Valid phone number is required
-          </div>
-        </div>
-
-        <div class="form-field">
-          <label for="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            formControlName="email"
-            placeholder="Enter email address"
-            [class.invalid]="supplierForm.get('email')?.invalid && supplierForm.get('email')?.touched"
-          >
-          <div class="error-message" *ngIf="supplierForm.get('email')?.invalid && supplierForm.get('email')?.touched">
-            Valid email is required
-          </div>
-        </div>
-      </div>
-
-      <!-- Status and Address -->
-      <div class="form-row">
-        <div class="form-field">
-          <label for="status">Status</label>
-          <select id="status" formControlName="status">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-
-        <div class="form-field full-width">
-          <label for="address">Address</label>
-          <input
-            id="address"
-            type="text"
-            formControlName="address"
-            placeholder="Enter full address"
-            [class.invalid]="supplierForm.get('address')?.invalid && supplierForm.get('address')?.touched"
-          >
-          <div class="error-message" *ngIf="supplierForm.get('address')?.invalid && supplierForm.get('address')?.touched">
-            Address is required
-          </div>
-        </div>
-      </div>
-
-      <!-- Social Media Contacts -->
-      <div class="section-title">Social Media Contacts (Optional)</div>
-      <div class="form-row">
-        <div class="form-field">
-          <label for="facebook">Facebook Page</label>
-          <input
-            id="facebook"
-            type="text"
-            formControlName="facebook"
-            placeholder="Enter Facebook page"
-          >
-        </div>
-
-        <div class="form-field">
-          <label for="viber">Viber</label>
-          <input
-            id="viber"
-            type="text"
-            formControlName="viber"
-            placeholder="Enter Viber number"
-          >
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-field">
-          <label for="telegram">Telegram</label>
-          <input
-            id="telegram"
-            type="text"
-            formControlName="telegram"
-            placeholder="Enter Telegram username"
-          >
-        </div>
-
-        <div class="form-field">
-          <label for="instagram">Instagram</label>
-          <input
-            id="instagram"
-            type="text"
-            formControlName="instagram"
-            placeholder="Enter Instagram handle"
-          >
-        </div>
-      </div>
-
-      <!-- Dialog Actions -->
-      <div class="dialog-actions">
-        <button type="button" class="btn btn-outline" (click)="closeDialog()">Cancel</button>
-        <button type="submit" class="btn btn-primary" [disabled]="supplierForm.invalid">
-          {{ editingSupplier ? 'Update' : 'Save' }} Supplier
+  <div class="supplier-dialog-container">
+    <!-- Header Section -->
+    <div class="modal-header">
+      <div class="header-content">
+        <h2 class="modal-title">{{ editingSupplier ? 'Edit' : 'Add' }} Supplier</h2>
+        <button class="modal-close" (click)="closeDialog()">
+          <i class="pi pi-times"></i>
         </button>
       </div>
-    </form>
-  </div>
-</ng-template>
+    </div>
 
-<!-- Delete Confirmation Dialog -->
-<ng-template #deleteDialog>
-  <div class="confirmation-dialog">
-    <h3 class="dialog-title">Confirm Delete</h3>
-    <p>Are you sure you want to delete this supplier? This action cannot be undone.</p>
-    <div class="dialog-actions">
-      <button type="button" class="btn btn-outline" (click)="closeDeleteDialog()">Cancel</button>
-      <button type="button" class="btn btn-danger" (click)="deleteSupplier()">Delete</button>
+    <!-- Form Section -->
+    <div class="modal-body">
+      <form [formGroup]="supplierForm" (ngSubmit)="onSubmit()" class="dialog-form">
+        <!-- Row 1: Supplier Name and Contact Person -->
+        <div class="form-row">
+          <div class="form-field">
+            <label for="supplier_name">Supplier Name</label>
+            <input
+              id="supplier_name"
+              type="text"
+              formControlName="supplier_name"
+              placeholder="Enter supplier name"
+              [class.invalid]="supplierForm.get('supplier_name')?.invalid && supplierForm.get('supplier_name')?.touched"
+            >
+            <div class="error-message" *ngIf="supplierForm.get('supplier_name')?.invalid && supplierForm.get('supplier_name')?.touched">
+              Supplier name is required
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="contact_person">Contact Person</label>
+            <input
+              id="contact_person"
+              type="text"
+              formControlName="contact_person"
+              placeholder="Enter contact person"
+              [class.invalid]="supplierForm.get('contact_person')?.invalid && supplierForm.get('contact_person')?.touched"
+            >
+            <div class="error-message" *ngIf="supplierForm.get('contact_person')?.invalid && supplierForm.get('contact_person')?.touched">
+              Contact person is required
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Phone and Email -->
+        <div class="form-row">
+          <div class="form-field">
+            <label for="phone">Phone Number</label>
+            <input
+              id="phone"
+              type="tel"
+              formControlName="phone"
+              placeholder="Enter phone number"
+              [class.invalid]="supplierForm.get('phone')?.invalid && supplierForm.get('phone')?.touched"
+            >
+            <div class="error-message" *ngIf="supplierForm.get('phone')?.invalid && supplierForm.get('phone')?.touched">
+              Valid phone number is required
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="Enter email address"
+              [class.invalid]="supplierForm.get('email')?.invalid && supplierForm.get('email')?.touched"
+            >
+            <div class="error-message" *ngIf="supplierForm.get('email')?.invalid && supplierForm.get('email')?.touched">
+              Valid email is required
+            </div>
+          </div>
+        </div>
+
+        <!-- Status and Address -->
+        <div class="form-row">
+          <div class="form-field">
+            <label for="status">Status</label>
+            <select id="status" formControlName="status">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="address">Address</label>
+            <input
+              id="address"
+              type="text"
+              formControlName="address"
+              placeholder="Enter full address"
+              [class.invalid]="supplierForm.get('address')?.invalid && supplierForm.get('address')?.touched"
+            >
+            <div class="error-message" *ngIf="supplierForm.get('address')?.invalid && supplierForm.get('address')?.touched">
+              Address is required
+            </div>
+          </div>
+        </div>
+
+        <!-- Social Media Contacts -->
+        <div class="section-title">Social Media Contacts (Optional)</div>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="facebook">Facebook Page</label>
+            <input
+              id="facebook"
+              type="text"
+              formControlName="facebook"
+              placeholder="Enter Facebook page"
+            >
+          </div>
+
+          <div class="form-field">
+            <label for="viber">Viber</label>
+            <input
+              id="viber"
+              type="text"
+              formControlName="viber"
+              placeholder="Enter Viber number"
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="telegram">Telegram</label>
+            <input
+              id="telegram"
+              type="text"
+              formControlName="telegram"
+              placeholder="Enter Telegram username"
+            >
+          </div>
+
+          <div class="form-field">
+            <label for="instagram">Instagram</label>
+            <input
+              id="instagram"
+              type="text"
+              formControlName="instagram"
+              placeholder="Enter Instagram handle"
+            >
+          </div>
+        </div>
+
+        <!-- Dialog Actions -->
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-outline" (click)="closeDialog()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="supplierForm.invalid">
+            {{ editingSupplier ? 'Update' : 'Save' }} Supplier
+          </button>
+        </div>
+      </form>
     </div>
   </div>
-</ng-template>
+</p-dialog>
+
+<!-- Delete Confirmation Dialog -->
+<p-dialog
+  [(visible)]="showDeleteDialog"
+  [modal]="true"
+  [style]="{width: '400px'}"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="confirmation-dialog"
+  [showHeader]="false"
+  [dismissableMask]="true"
+  [closeOnEscape]="true"
+  [baseZIndex]="1000"
+  [blockScroll]="true"
+  [maskStyleClass]="'custom-overlay-mask'"
+  [transitionOptions]="'300ms cubic-bezier(0.4, 0, 0.2, 1)'">
+
+  <div class="confirmation-dialog-container">
+    <div class="modal-header">
+      <div class="header-content">
+        <h3 class="modal-title">Confirm Delete</h3>
+        <button class="modal-close" (click)="closeDeleteDialog()">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete this supplier? This action cannot be undone.</p>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-outline" (click)="closeDeleteDialog()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="deleteSupplier()">Delete</button>
+      </div>
+    </div>
+  </div>
+</p-dialog>

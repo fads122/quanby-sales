@@ -126,9 +126,9 @@ export class EquipmentListComponent implements OnInit {
   selectedQRCode: string | null = null;
   searchQuery: string = '';
   currentPage = 1;
-  pageSize = 5;
+  pageSize = 10; // Show 10 equipment groups per page
   totalPages = 1;
-  paginatedEquipmentList = [];
+  paginatedEquipmentList: any[] = [];
   selectedEquipment: any = null;
   showDetails: boolean = false;
   showQRCode: boolean = false;
@@ -154,7 +154,15 @@ export class EquipmentListComponent implements OnInit {
   allEquipment: any[] = [];
   selectedTable: 'inhouse' | 'equipments' = 'equipments';
   tableSwitchState = 0;
-  // Removed duplicate declaration to resolve type conflict
+
+  // Semantic Search Properties
+  searchMode: 'text' | 'semantic' = 'text';
+  semanticSearchResults: any[] = [];
+  isSemanticSearching = false;
+  isTesting = false; // Change this to false to use real semantic search
+
+  // Pagination properties
+  showPagination = false; // Only show pagination for For Sale table
 
   ownershipOptions = [
   { label: 'All Ownership Types', value: null },
@@ -162,7 +170,6 @@ export class EquipmentListComponent implements OnInit {
   { label: 'Private', value: 'private' },
   { label: 'Unspecified', value: '' } // For empty/null values
 ];
-
 
 dropdownOpen = false;
 selectedOwnership: string | null = null;
@@ -176,10 +183,14 @@ selectedOwnership: string | null = null;
   ) {}
 
   async ngOnInit() {
-    this.selectedTable = 'inhouse'; // Default to operational equipment
+    // Keep the default as 'equipments' for for-sale equipment
+    this.selectedTable = 'equipments'; // Default to for-sale equipment
     this.isLoading = true; // Set loading state to true
 
     try {
+      // Load the TensorFlow model when component initializes
+      await this.supabaseService.loadModel();
+
       // Fetch data
       this.equipmentList = await this.supabaseService.getEquipmentList() || [];
       console.log("📋 Loaded Equipment List:", this.equipmentList);
@@ -199,6 +210,103 @@ selectedOwnership: string | null = null;
         this.isLoading = false;
       }, 1000);
     }
+  }
+
+  // Semantic Search Methods
+  async onSearch() {
+    if (this.searchMode === 'semantic') {
+      await this.runSemanticSearch();
+    }
+    // Regular text search happens automatically through applyFilter()
+  }
+
+  async runSemanticSearch() {
+    console.log('🔍 Starting semantic search...');
+    console.log('📝 Search query:', this.searchQuery);
+
+    if (!this.searchQuery.trim()) {
+      console.log('❌ Empty search query - returning empty results');
+      this.semanticSearchResults = [];
+      return;
+    }
+
+    this.isSemanticSearching = true;
+    console.log('🔄 Search in progress...');
+
+    try {
+      console.log('🔎 Using semantic search with query:', this.searchQuery);
+      const results = await this.supabaseService.semanticSearch(
+        this.searchQuery,
+        0.2
+      );
+
+      // Map the results to match equipment format
+      this.semanticSearchResults = results.map(item => ({
+        id: item.id,
+        name: item.name || item.model || 'No Name',
+        model: item.model || 'No Model',
+        brand: item.brand || 'No Brand',
+        supplier: item.supplier || 'No Supplier',
+        supplier_cost: item.supplier_cost || 0,
+        srp: item.srp || 0,
+        quantity: item.quantity || 0,
+        similarity: item.similarity || 0,
+        description: item.description || '',
+        product_images: item.product_images || [],
+        ownership_type: item.ownership_type || null
+      }));
+
+      console.log('📊 Formatted search results:', this.semanticSearchResults);
+
+      if (this.semanticSearchResults.length === 0) {
+        console.log('⚠️ No matches found for query:', this.searchQuery);
+      } else {
+        console.log('✅ Found matches:', this.semanticSearchResults.length);
+      }
+
+    } catch (error: unknown) {
+      console.error('❌ Semantic search failed:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack
+        });
+      }
+      this.semanticSearchResults = [];
+    } finally {
+      this.isSemanticSearching = false;
+      console.log('🏁 Semantic search completed');
+      console.log('Final results:', this.semanticSearchResults);
+    }
+  }
+
+  toggleSearchMode() {
+    this.searchMode = this.searchMode === 'text' ? 'semantic' : 'text';
+    this.onSearch(); // Re-run search when mode changes
+  }
+
+  // Mock semantic search for testing
+  async mockSemanticSearch(query: string): Promise<any[]> {
+    // Simple mock search - in a real app this would use vector embeddings
+    const results = this.equipmentList.filter(equipment => {
+      const searchText = `${equipment.name} ${equipment.model} ${equipment.brand} ${equipment.description || ''}`.toLowerCase();
+      return searchText.includes(query.toLowerCase());
+    }).map(equipment => ({
+      ...equipment,
+      similarity: Math.random() * 0.5 + 0.5 // Random similarity score between 0.5-1.0
+    })).sort((a, b) => b.similarity - a.similarity);
+
+    return results;
+  }
+
+  // Get match quality label based on similarity score
+  getMatchQuality(similarity: number): string {
+    if (similarity >= 0.9) return 'Excellent';
+    if (similarity >= 0.8) return 'Very Good';
+    if (similarity >= 0.7) return 'Good';
+    if (similarity >= 0.6) return 'Fair';
+    if (similarity >= 0.5) return 'Poor';
+    return 'Very Poor';
   }
 
   // Add this method to your EquipmentListComponent class
@@ -620,6 +728,13 @@ async loadEquipment() {
       }));
     } else {
       equipmentData = await this.supabaseService.getEquipmentList();
+      console.log("📋 For Sale Equipment Data:", equipmentData);
+      // Log a sample item to see the data structure
+      if (equipmentData && equipmentData.length > 0) {
+        console.log("📋 Sample For Sale Item:", equipmentData[0]);
+        console.log("📋 Supplier field:", equipmentData[0]?.supplier);
+        console.log("📋 Supplier cost field:", equipmentData[0]?.supplier_cost);
+      }
     }
 
     if (!equipmentData) {
@@ -726,7 +841,18 @@ async loadEquipment() {
     }
 
     console.log("✅ Final Updated Equipment Status:", this.equipmentList);
-    this.groupEquipment();
+
+    // Group equipment based on current search mode
+    if (this.searchMode === 'semantic' && this.searchQuery.trim()) {
+      // For semantic search, group the semantic results
+      this.groupEquipment(this.semanticSearchResults);
+    } else {
+      // For text search, group the regular equipment list
+      this.groupEquipment();
+    }
+
+    // Debug the table structure
+    this.debugTableStructure();
 
   } catch (error) {
     console.error("❌ Error loading equipment:", error);
@@ -739,7 +865,23 @@ groupEquipment(list: any[] = this.equipmentList) {
   // Clear previous grouping
   this.groupedEquipment = {};
 
-  list.forEach(item => {
+  // Use the provided list or fall back to equipmentList
+  const itemsToGroup = list || this.equipmentList;
+
+  itemsToGroup.forEach(item => {
+    // Debug: Log the item structure
+    console.log("🔍 Processing item:", {
+      id: item.id,
+      name: item.name,
+      model: item.model,
+      brand: item.brand,
+      supplier: item.supplier,
+      supplier_cost: item.supplier_cost,
+      srp: item.srp,
+      quantity: item.quantity,
+      similarity: item.similarity
+    });
+
     // Use model as the primary grouping key, fallback to name if model doesn't exist
     const groupKey = item.model?.trim().toLowerCase() ||
                     `unnamed_${item.name?.trim().toLowerCase()}` ||
@@ -785,6 +927,9 @@ groupEquipment(list: any[] = this.equipmentList) {
   // Convert to array and sort by model name
   this.filteredEquipmentList = Object.values(this.groupedEquipment)
     .sort((a, b) => a.name.localeCompare(b.name));
+
+  // Update pagination after grouping
+  this.updatePagination();
 }
 
   getTotalQuantity(group: any[]): number {
@@ -821,15 +966,29 @@ groupEquipment(list: any[] = this.equipmentList) {
 async onTableChange(newTable: 'inhouse' | 'equipments') {
   this.tableSwitchState++;
   this.isLoading = true;
+
+  // Update the selected table immediately
+  this.selectedTable = newTable;
+
+  // Reset pagination when switching tables
+  this.currentPage = 1;
+
+  // Reset semantic search when switching tables
+  this.semanticSearchResults = [];
+  this.searchQuery = '';
+
+  // Trigger change detection to update the UI immediately
   this.cdRef.detectChanges();
 
   await new Promise(resolve => setTimeout(resolve, 50));
 
-  this.selectedTable = newTable;
   this.searchQuery = ''; // Reset search filter
   await this.loadEquipment();
 
   this.isLoading = false;
+
+  // Trigger change detection again after loading
+  this.cdRef.detectChanges();
 }
 
 
@@ -1181,38 +1340,6 @@ closeQRCodeModal() {
   }
 
 
-//   applyFilter() {
-//   const query = this.searchQuery.toLowerCase().trim();
-
-//   // Get all equipment items based on selected table (inhouse/equipments)
-//   let items = this.equipmentList.filter(equipment =>
-//     this.selectedTable === 'inhouse'
-//       ? equipment.product_type // Operational items
-//       : !equipment.product_type // For-sale items
-//   );
-
-
-//   // Apply search query if present
-//   if (query) {
-//     items = items.filter(equipment =>
-//       (equipment.model?.toLowerCase().includes(query)) ||
-//       (equipment.name?.toLowerCase().includes(query)) ||
-//       (equipment.brand?.toLowerCase().includes(query)) ||
-//       (equipment.serial_no?.toLowerCase().includes(query))
-//     );
-//   }
-
-//   // Apply ownership filter if selected
-//   if (this.selectedOwnership) {
-//     items = items.filter(equipment =>
-//       equipment.ownership_type === this.selectedOwnership
-//     );
-//   }
-
-//   // Group the filtered items
-//   this.groupEquipment(items);
-// }
-
 applyFilter() {
   console.log("Current ownership types in data:",
         this.equipmentList.map(e => e.ownership_type));
@@ -1265,6 +1392,163 @@ getOwnershipLabel(value: string | null): string {
   if (value === 'government') return 'Government';
   if (value === 'private') return 'Private';
   return 'Ownership';
+}
+
+// Add method to get available equipment count
+getAvailableEquipmentCount(): number {
+  const sourceList = this.searchMode === 'semantic' && this.searchQuery.trim()
+    ? this.semanticSearchResults
+    : this.filteredEquipmentList;
+  return sourceList.filter(item => item.status === 'Available').length;
+}
+
+// Add method to get search placeholder dynamically
+getSearchPlaceholder(): string {
+  return this.selectedTable === 'inhouse' ? 'Search operational items...' : 'Search for sale items...';
+}
+
+// Pagination methods
+updatePagination() {
+  // Only show pagination for For Sale table
+  this.showPagination = this.selectedTable === 'equipments';
+
+  if (this.showPagination) {
+    // Use the appropriate list for pagination based on search mode
+    const totalItems = this.searchMode === 'semantic' && this.searchQuery.trim()
+      ? this.semanticSearchResults.length
+      : this.filteredEquipmentList.length;
+
+    this.totalPages = Math.ceil(totalItems / this.pageSize);
+    this.currentPage = Math.min(this.currentPage, this.totalPages);
+    this.currentPage = Math.max(1, this.currentPage);
+
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+
+    // Use the appropriate list for pagination
+    const sourceList = this.searchMode === 'semantic' && this.searchQuery.trim()
+      ? this.semanticSearchResults
+      : this.filteredEquipmentList;
+
+    this.paginatedEquipmentList = sourceList.slice(startIndex, endIndex);
+  } else {
+    // For operational equipment, show all items
+    this.paginatedEquipmentList = this.filteredEquipmentList;
+  }
+}
+
+goToPage(page: number) {
+  if (page >= 1 && page <= this.totalPages) {
+    this.currentPage = page;
+    this.updatePagination();
+  }
+}
+
+nextPage() {
+  if (this.currentPage < this.totalPages) {
+    this.goToPage(this.currentPage + 1);
+  }
+}
+
+previousPage() {
+  if (this.currentPage > 1) {
+    this.goToPage(this.currentPage - 1);
+  }
+}
+
+getPageNumbers(): number[] {
+  const pages: number[] = [];
+  const maxVisiblePages = 5;
+
+  if (this.totalPages <= maxVisiblePages) {
+    // Show all pages if total is small
+    for (let i = 1; i <= this.totalPages; i++) {
+      pages.push(i);
+    }
+  } else {
+    // Show pages around current page
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
+    let end = Math.min(this.totalPages, start + maxVisiblePages - 1);
+
+    // Adjust start if we're near the end
+    if (end - start < maxVisiblePages - 1) {
+      start = Math.max(1, end - maxVisiblePages + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+  }
+
+  return pages;
+}
+
+// Method to get the end index for pagination display
+getPaginationEndIndex(): number {
+  const totalItems = this.searchMode === 'semantic' && this.searchQuery.trim()
+    ? this.semanticSearchResults.length
+    : this.filteredEquipmentList.length;
+  return Math.min(this.currentPage * this.pageSize, totalItems);
+}
+
+// Debug method to log table structure
+debugTableStructure() {
+  console.log("🔍 Table Structure Debug:");
+  console.log("Selected Table:", this.selectedTable);
+  console.log("Filtered Equipment List:", this.filteredEquipmentList);
+
+  if (this.filteredEquipmentList.length > 0) {
+    const firstGroup = this.filteredEquipmentList[0];
+    console.log("First Group:", firstGroup);
+
+    if (firstGroup.items && firstGroup.items.length > 0) {
+      const firstItem = firstGroup.items[0];
+      console.log("First Item Structure:", {
+        id: firstItem.id,
+        name: firstItem.name,
+        model: firstItem.model,
+        brand: firstItem.brand,
+        supplier: firstItem.supplier,
+        supplier_cost: firstItem.supplier_cost,
+        srp: firstItem.srp,
+        quantity: firstItem.quantity,
+        status: firstItem.status
+      });
+    }
+  }
+}
+
+// Get current search results based on search mode
+getCurrentSearchResults(): any[] {
+  if (this.searchMode === 'semantic' && this.searchQuery.trim()) {
+    return this.semanticSearchResults;
+  }
+  return this.equipmentList;
+}
+
+// Get filtered results for display
+getFilteredResults(): any[] {
+  if (this.searchMode === 'semantic' && this.searchQuery.trim()) {
+    // For semantic search, use the semantic results and apply ownership filter
+    let results = [...this.semanticSearchResults];
+
+    if (this.selectedOwnership !== null) {
+      if (this.selectedOwnership === '') {
+        results = results.filter(equipment =>
+          !equipment.ownership_type || equipment.ownership_type.trim() === ''
+        );
+      } else {
+        results = results.filter(equipment =>
+          equipment.ownership_type?.toLowerCase() === this.selectedOwnership?.toLowerCase()
+        );
+      }
+    }
+
+    return results;
+  } else {
+    // For text search, use the existing filtered equipment list
+    return this.equipmentList;
+  }
 }
 
 }

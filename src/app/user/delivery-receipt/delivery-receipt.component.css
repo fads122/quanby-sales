@@ -267,7 +267,7 @@
 
 .table-header-cell {
   background: #f8fafc;
-  padding: 16px 20px;
+  padding: 12px 16px;
   text-align: left;
   font-weight: 600;
   color: #374151;
@@ -290,6 +290,7 @@
 .table-row {
   border-bottom: 1px solid #f1f5f9;
   transition: background-color 0.2s ease;
+  height: 60px;
 }
 
 .table-row:hover {
@@ -297,8 +298,9 @@
 }
 
 .table-cell {
-  padding: 16px 20px;
+  padding: 8px 16px;
   vertical-align: middle;
+  height: 60px;
 }
 
 /* Project Cell */
@@ -382,6 +384,7 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
+  animation: badgePulse 0.6s ease-out;
 }
 
 .status-badge.delivered {
@@ -527,13 +530,14 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   backdrop-filter: blur(4px);
   padding: 20px;
+  animation: modalFadeIn 0.3s ease-out;
 }
 
 .modal-container {
@@ -546,6 +550,7 @@
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  animation: modalSlideIn 0.3s ease-out;
 }
 
 .modal-header {
@@ -555,6 +560,7 @@
   justify-content: space-between;
   align-items: center;
   background: #f8fafc;
+  flex-shrink: 0;
 }
 
 .modal-title {
@@ -573,26 +579,58 @@
   border-radius: 6px;
   transition: all 0.2s ease;
   font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-close:hover {
   background: #f1f5f9;
   color: #374151;
+  transform: scale(1.1);
 }
 
 .modal-body {
   padding: 24px;
   overflow-y: auto;
   flex: 1;
+  animation: contentFadeIn 0.4s ease-out 0.1s both;
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Detail Sections */
 .detail-section {
   margin-bottom: 32px;
+  animation: sectionSlideIn 0.4s ease-out;
 }
+
+.detail-section:nth-child(1) { animation-delay: 0.1s; }
+.detail-section:nth-child(2) { animation-delay: 0.2s; }
+.detail-section:nth-child(3) { animation-delay: 0.3s; }
 
 .detail-section:last-child {
   margin-bottom: 0;
+}
+
+@keyframes sectionSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .section-title {
@@ -621,6 +659,23 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  animation: itemFadeIn 0.4s ease-out;
+}
+
+.info-item:nth-child(1) { animation-delay: 0.1s; }
+.info-item:nth-child(2) { animation-delay: 0.15s; }
+.info-item:nth-child(3) { animation-delay: 0.2s; }
+.info-item:nth-child(4) { animation-delay: 0.25s; }
+
+@keyframes itemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .info-label {
@@ -642,6 +697,18 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  animation: formSlideIn 0.4s ease-out 0.2s both;
+}
+
+@keyframes formSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .form-row {
@@ -654,6 +721,21 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  animation: fieldFadeIn 0.4s ease-out;
+}
+
+.form-field:nth-child(1) { animation-delay: 0.1s; }
+.form-field:nth-child(2) { animation-delay: 0.15s; }
+
+@keyframes fieldFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .form-label {
@@ -688,11 +770,25 @@
   cursor: pointer;
   transition: all 0.2s ease;
   background: #fafafa;
+  animation: uploadAreaFadeIn 0.4s ease-out 0.3s both;
+}
+
+@keyframes uploadAreaFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .file-upload-area:hover {
   border-color: #242770;
   background: #f5f6ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(36, 39, 112, 0.1);
 }
 
 .upload-content {
@@ -743,6 +839,19 @@
   justify-content: flex-end;
   gap: 12px;
   background: #f8fafc;
+  flex-shrink: 0;
+  animation: footerSlideIn 0.4s ease-out 0.3s both;
+}
+
+@keyframes footerSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .secondary-button {
@@ -760,6 +869,7 @@
 .secondary-button:hover {
   background: #f9fafb;
   border-color: #9ca3af;
+  transform: translateY(-1px);
 }
 
 .primary-button {
@@ -794,6 +904,7 @@
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  animation: modalSlideIn 0.3s ease-out;
 }
 
 .file-preview-header {
@@ -803,6 +914,7 @@
   justify-content: space-between;
   align-items: center;
   background: #f8fafc;
+  flex-shrink: 0;
 }
 
 .file-preview-header h3 {
@@ -819,6 +931,18 @@
   align-items: center;
   flex: 1;
   overflow: auto;
+  animation: previewFadeIn 0.4s ease-out 0.2s both;
+}
+
+@keyframes previewFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .file-preview {
@@ -826,12 +950,36 @@
   max-height: calc(90vh - 120px);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.file-preview:hover {
+  transform: scale(1.02);
 }
 
 .file-preview.pdf {
   width: 100%;
   height: calc(90vh - 120px);
   border: none;
+}
+
+/* Status Badge Animation */
+.status-badge {
+  animation: badgePulse 0.6s ease-out;
+}
+
+@keyframes badgePulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* Paginator */

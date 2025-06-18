@@ -1,43 +1,55 @@
 <app-sidebar></app-sidebar>
 
 <div class="borrow-form-container">
-
- <!-- Borrowed Items Section -->
-  
-<div class="form-content-wrapper">
-<div class="equipment-container" *ngIf="borrowedItems.length > 0">
-  <div class="borrowed-items-grid">
-    <div *ngFor="let item of borrowedItems" class="borrowed-item-card">
-      <!-- Image -->
-      <img [src]="item.image" [alt]="item.name" class="borrowed-equipment-image" />
-
-      <!-- Details -->
-      <div class="borrowed-item-details">
-        <p class="borrowed-equipment-name">{{ item.name }}</p>
-        <p class="borrowed-equipment-brand">{{ item.brand }}</p>
-        <p class="borrowed-equipment-model">{{ item.model }}</p>
+  <div class="form-content-wrapper">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <div class="header-text">
+          <h1 class="page-title">New Borrow Request</h1>
+          <p class="page-subtitle">Create a new equipment borrowing request for your project needs</p>
+        </div>
       </div>
-
-      <!-- Remove Button -->
-      <button class="remove-borrowed-item-btn" (click)="removeFromBorrowList(item)">✖</button>
     </div>
-  </div>
-</div>
 
-<form #borrowForm="ngForm" (ngSubmit)="submitBorrowRequest()" class="supplier-form">
+    <!-- Borrowed Items Section -->
+    <div class="equipment-container" *ngIf="borrowedItems.length > 0">
+      <h3>Selected Equipment</h3>
+      <div class="borrowed-items-grid">
+        <div *ngFor="let item of borrowedItems" class="borrowed-item-card">
+          <!-- Image -->
+          <img [src]="item.image" [alt]="item.name" class="borrowed-equipment-image" />
 
-  <div class="form-section borrower-details">
-    <h3>Borrower Details</h3>
-    <div class="item-groups-container">
+          <!-- Details -->
+          <div class="borrowed-item-details">
+            <p class="borrowed-equipment-name">{{ item.name }}</p>
+            <p class="borrowed-equipment-brand">{{ item.brand }}</p>
+            <p class="borrowed-equipment-model">{{ item.model }}</p>
+          </div>
 
-      <div class="item-group">
+          <!-- Remove Button -->
+          <button class="remove-borrowed-item-btn" (click)="removeFromBorrowList(item)" title="Remove from list">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Form -->
+    <form #borrowForm="ngForm" (ngSubmit)="submitBorrowRequest()" class="supplier-form">
+      <!-- Borrower Details Section -->
+      <div class="form-section borrower-details">
+        <h3>Borrower Information</h3>
+
         <!-- Borrower's Name (Readonly) -->
         <div class="form-group">
+          <label for="borrowerName">Full Name</label>
           <input
             type="text"
+            id="borrowerName"
             [(ngModel)]="borrowerName"
             (change)="onFormChange()"
-            placeholder="Enter Borrower's Name"
+            placeholder="Enter borrower's full name"
             name="borrowerName"
             required
             readonly
@@ -45,17 +57,19 @@
             [ngClass]="{'invalid': borrowerName.trim() === ''}"
           />
           <div class="error-message" *ngIf="borrowForm.submitted && borrowerName.trim() === ''">
-            Borrower's Name is required.
+            Borrower's name is required
           </div>
         </div>
 
         <!-- Department/Location -->
         <div class="form-group">
+          <label for="borrowerDepartment">Department/Location</label>
           <input
             type="text"
+            id="borrowerDepartment"
             [(ngModel)]="borrowerDepartment"
             (change)="onFormChange()"
-            placeholder="Enter Department/Location"
+            placeholder="Enter department or location"
             name="borrowerDepartment"
             required
             class="form-control"
@@ -63,17 +77,19 @@
             [ngClass]="{'invalid': dept.invalid && dept.touched}"
           />
           <div class="error-message" *ngIf="dept.invalid && dept.touched">
-            Department/Location is required.
+            Department/location is required
           </div>
         </div>
 
         <!-- Contact Number -->
         <div class="form-group">
+          <label for="borrowerContact">Contact Number</label>
           <input
             type="tel"
+            id="borrowerContact"
             [(ngModel)]="borrowerContact"
             (change)="onFormChange()"
-            placeholder="Enter Contact Number"
+            placeholder="Enter contact number"
             name="borrowerContact"
             required
             class="form-control"
@@ -82,19 +98,19 @@
             pattern="[0-9]{10,15}"
           />
           <div class="error-message" *ngIf="contact.invalid && contact.touched">
-            Valid contact number is required (10-15 digits).
+            Valid contact number is required (10-15 digits)
           </div>
         </div>
-      </div>
 
-      <div class="item-group">
         <!-- Email -->
         <div class="form-group">
+          <label for="borrowerEmail">Email Address</label>
           <input
             type="email"
+            id="borrowerEmail"
             [(ngModel)]="borrowerEmail"
             (change)="onFormChange()"
-            placeholder="Enter Email Address"
+            placeholder="Enter email address"
             name="borrowerEmail"
             required
             class="form-control"
@@ -102,104 +118,132 @@
             [ngClass]="{'invalid': email.invalid && email.touched}"
           />
           <div class="error-message" *ngIf="email.invalid && email.touched">
-            Valid email address is required.
+            Valid email address is required
           </div>
         </div>
 
         <!-- Borrow Date -->
         <div class="form-group">
-          <label for="borrowDate">Borrow Date:</label>
+          <label for="borrowDate">Borrow Date</label>
           <input
             type="date"
+            id="borrowDate"
             [(ngModel)]="borrowDate"
-            (change)="onFormChange()"
+            (change)="onFormChange(); validateDates()"
             name="borrowDate"
             required
             class="form-control"
             #bDate="ngModel"
             [ngClass]="{'invalid': bDate.invalid && bDate.touched}"
-            (change)="validateDates()"
           />
           <div class="error-message" *ngIf="bDate.invalid && bDate.touched">
-            Borrow Date is required.
+            Borrow date is required
           </div>
         </div>
 
         <!-- Return Date -->
         <div class="form-group">
-          <label for="returnDate">Return Date:</label>
+          <label for="returnDate">Expected Return Date</label>
           <input
             type="date"
+            id="returnDate"
             [(ngModel)]="returnDate"
-            (change)="onFormChange()"
+            (change)="onFormChange(); validateDates()"
             name="returnDate"
             required
             class="form-control"
             #rDate="ngModel"
             [ngClass]="{'invalid': rDate.invalid && rDate.touched || dateError}"
-            (change)="validateDates()"
           />
           <div class="error-message" *ngIf="rDate.invalid && rDate.touched">
-            Return Date is required.
+            Return date is required
           </div>
           <div class="error-message" *ngIf="dateError">
-            Return Date must be after Borrow Date.
+            Return date must be after borrow date
           </div>
         </div>
-      </div>
 
-      <div class="item-group">
         <!-- Purpose of Borrowing -->
         <div class="form-group">
+          <label for="purpose">Purpose of Borrowing</label>
           <textarea
+            id="purpose"
             [(ngModel)]="purpose"
             (change)="onFormChange()"
-            placeholder="Purpose of Borrowing"
+            placeholder="Describe the purpose of borrowing this equipment..."
             name="purpose"
-            rows="3"
+            rows="4"
             required
             class="form-control"
             #purposeField="ngModel"
             [ngClass]="{'invalid': purposeField.invalid && purposeField.touched}"
           ></textarea>
           <div class="error-message" *ngIf="purposeField.invalid && purposeField.touched">
-            Purpose of borrowing is required.
+            Purpose of borrowing is required
           </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Rest of your form remains the same -->
-  <div class="card">
-    <div class="scrollable-table">
-      <table class="equipment-table">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Current Quantity</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of displayedItems"
-          [class.low-stock]="item.current_quantity <= 2"
-          [class.disabled-row]="item.current_quantity <= 2"
-          (click)="item.current_quantity > 2 ? viewEquipmentDetails(item) : null">
-            <td>{{ item.name }}</td>
-            <td>
-              <span *ngIf="item.current_quantity > 2">{{ item.current_quantity }}</span>
-              <span *ngIf="item.current_quantity <= 2" class="floating-warning">⚠ Low Stock</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+      <!-- Equipment Selection Section -->
+      <div class="form-section equipment-selection">
+        <h3>Available Equipment</h3>
 
-  <div class="submit-group">
-    <button type="submit" class="submit-button" [disabled]="borrowForm.invalid || dateError">
-      Submit Request
-    </button>
+        <div class="card">
+          <div class="scrollable-table">
+            <table class="equipment-table">
+              <thead>
+                <tr>
+                  <th>Equipment Name</th>
+                  <th>Available Quantity</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of displayedItems"
+                    [class.low-stock]="item.current_quantity <= 2"
+                    [class.disabled-row]="item.current_quantity <= 2"
+                    (click)="item.current_quantity > 2 ? viewEquipmentDetails(item) : null">
+                  <td>
+                    <div class="equipment-info">
+                      <span class="equipment-name">{{ item.name }}</span>
+                      <span class="equipment-details" *ngIf="item.brand || item.model">
+                        {{ item.brand }} {{ item.model }}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <span *ngIf="item.current_quantity > 2" class="quantity-badge available">
+                      {{ item.current_quantity }} available
+                    </span>
+                    <span *ngIf="item.current_quantity <= 2" class="quantity-badge low">
+                      <i class="pi pi-exclamation-triangle"></i>
+                      Low stock
+                    </span>
+                  </td>
+                  <td>
+                    <span *ngIf="item.current_quantity > 2" class="status-badge available">
+                      <i class="pi pi-check-circle"></i>
+                      Available
+                    </span>
+                    <span *ngIf="item.current_quantity <= 2" class="status-badge unavailable">
+                      <i class="pi pi-times-circle"></i>
+                      Unavailable
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="submit-group">
+        <button type="submit" class="submit-button" [disabled]="borrowForm.invalid || dateError || borrowedItems.length === 0">
+          <i class="pi pi-send"></i>
+          <span>Submit Borrow Request</span>
+        </button>
+      </div>
+    </form>
   </div>
-</form>
-  </div>
+</div>

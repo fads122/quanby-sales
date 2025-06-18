@@ -1,10 +1,32 @@
-<app-sidebar></app-sidebar>
+<div class="loading-overlay" *ngIf="loading">
+  <div class="loading-content">
+    <div class="logo-loader">
+      <div class="logo-glow"></div>
+      <img src="/images/quanby.png" alt="Quanby Logo">
+    </div>
+    <h3>Loading Supplier Profile...</h3>
+    <div class="loading-dots">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
+    <div class="loading-progress">
+      <div class="loading-progress-bar"></div>
+    </div>
+  </div>
+</div>
 
-<div class="supplier-profile-page">
+<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+
+<div class="supplier-profile-page" [class.collapsed]="isCollapsed">
   <!-- Page Header -->
   <div class="page-header">
-    <h1 class="page-title">Supplier Profile</h1>
-    <div class="breadcrumb">Suppliers / {{ supplier?.supplier_name || 'Loading...' }}</div>
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-title">Supplier Profile</h1>
+        <p class="page-subtitle">View detailed information about suppliers and their product offerings</p>
+      </div>
+    </div>
   </div>
 
   <div class="profile-container">
@@ -12,19 +34,19 @@
     <div class="profile-card" *ngIf="supplier">
       <div class="profile-header">
         <div class="supplier-avatar">
-          <span class="avatar-icon">business</span>
+          <i class="pi pi-building"></i>
         </div>
         <div class="supplier-info">
           <h2 class="supplier-name">{{ supplier.supplier_name }}</h2>
           <div class="supplier-meta">
-            <span class="meta-item">
-              <span class="meta-icon">location_on</span>
-              {{ supplier.address || 'No address provided' }}
-            </span>
-            <span class="meta-item">
-              <span class="meta-icon">star</span>
-              {{ supplier.rating || 'Not rated' }}
-            </span>
+            <div class="meta-item">
+              <i class="pi pi-map-marker"></i>
+              <span>{{ supplier.address || 'No address provided' }}</span>
+            </div>
+            <div class="meta-item">
+              <i class="pi pi-star-fill"></i>
+              <span>{{ supplier.rating || 'Not rated' }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -33,7 +55,7 @@
         <!-- Contact Information -->
         <div class="section">
           <h3 class="section-title">
-            <span class="section-icon">contact_mail</span>
+            <i class="pi pi-envelope"></i>
             Contact Information
           </h3>
           <div class="contact-grid">
@@ -55,25 +77,25 @@
         <!-- Social Media -->
         <div class="section" *ngIf="hasSocialMedia()">
           <h3 class="section-title">
-            <span class="section-icon">share</span>
+            <i class="pi pi-share-alt"></i>
             Social Media
           </h3>
           <div class="social-media-grid">
             <a *ngIf="supplier.facebook" href="{{supplier.facebook}}" target="_blank" class="social-item facebook">
-              <span class="social-icon">thumb_up</span>
-              Facebook
+              <i class="pi pi-facebook"></i>
+              <span>Facebook</span>
             </a>
             <a *ngIf="supplier.viber" href="viber://chat?number={{supplier.viber}}" class="social-item viber">
-              <span class="social-icon">chat</span>
-              Viber
+              <i class="pi pi-comments"></i>
+              <span>Viber</span>
             </a>
             <a *ngIf="supplier.telegram" href="https://t.me/{{supplier.telegram}}" target="_blank" class="social-item telegram">
-              <span class="social-icon">send</span>
-              Telegram
+              <i class="pi pi-send"></i>
+              <span>Telegram</span>
             </a>
             <a *ngIf="supplier.instagram" href="https://instagram.com/{{supplier.instagram}}" target="_blank" class="social-item instagram">
-              <span class="social-icon">camera_alt</span>
-              Instagram
+              <i class="pi pi-camera"></i>
+              <span>Instagram</span>
             </a>
           </div>
         </div>
@@ -81,7 +103,7 @@
         <!-- Brands Offered -->
         <div class="section">
           <h3 class="section-title">
-            <span class="section-icon">branding_watermark</span>
+            <i class="pi pi-tags"></i>
             Brands Offered
           </h3>
           <div class="brands-grid" *ngIf="uniqueBrands.length > 0">
@@ -90,14 +112,15 @@
               *ngFor="let brand of uniqueBrands"
               (click)="selectBrand(brand)"
               [class.selected]="selectedBrand === brand">
-              {{ brand || 'N/A' }}
+              <span class="brand-name">{{ brand || 'N/A' }}</span>
               <span class="brand-count" *ngIf="getBrandCount(brand) > 0">
                 {{ getBrandCount(brand) }}
               </span>
             </div>
           </div>
           <div class="empty-state" *ngIf="uniqueBrands.length === 0">
-            No brands registered for this supplier
+            <i class="pi pi-inbox"></i>
+            <span>No brands registered for this supplier</span>
           </div>
         </div>
       </div>
@@ -107,9 +130,19 @@
     <div class="products-table">
       <div class="table-header">
         <h3 class="table-title">Products</h3>
+        <div class="table-stats">
+          <span class="stat-item">
+            <i class="pi pi-box"></i>
+            <span>{{ filteredItems.length }} Products</span>
+          </span>
+          <span class="stat-item">
+            <i class="pi pi-tags"></i>
+            <span>{{ uniqueBrands.length }} Brands</span>
+          </span>
+        </div>
         <div class="table-controls">
           <div class="search-container">
-            <span class="search-icon">search</span>
+            <i class="pi pi-search search-icon"></i>
             <input
               type="text"
               [(ngModel)]="productSearchQuery"
@@ -120,8 +153,11 @@
           </div>
           <div class="brand-filter" *ngIf="selectedBrand">
             <span class="filter-badge">
-              {{ selectedBrand }}
-              <button class="clear-filter" (click)="clearBrandFilter()">×</button>
+              <i class="pi pi-tag"></i>
+              <span>{{ selectedBrand }}</span>
+              <button class="clear-filter" (click)="clearBrandFilter()">
+                <i class="pi pi-times"></i>
+              </button>
             </span>
           </div>
         </div>
@@ -137,15 +173,45 @@
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
         [globalFilterFields]="['brand','model','category']"
         styleClass="elegant-table"
+        [loading]="loading"
       >
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="brand" style="width:18%">BRAND <p-sortIcon field="brand"></p-sortIcon></th>
-            <th pSortableColumn="model" style="width:22%">MODEL <p-sortIcon field="model"></p-sortIcon></th>
-            <th pSortableColumn="category" style="width:15%">CATEGORY <p-sortIcon field="category"></p-sortIcon></th>
-            <th pSortableColumn="supplier_cost" style="width:15%">COST <p-sortIcon field="supplier_cost"></p-sortIcon></th>
-            <th pSortableColumn="stock" style="width:10%">STOCK <p-sortIcon field="stock"></p-sortIcon></th>
-            <th style="width:20%">IMAGES</th>
+            <th pSortableColumn="brand" style="width:18%">
+              <div class="header-content">
+                <span>BRAND</span>
+                <p-sortIcon field="brand"></p-sortIcon>
+              </div>
+            </th>
+            <th pSortableColumn="model" style="width:22%">
+              <div class="header-content">
+                <span>MODEL</span>
+                <p-sortIcon field="model"></p-sortIcon>
+              </div>
+            </th>
+            <th pSortableColumn="category" style="width:15%">
+              <div class="header-content">
+                <span>CATEGORY</span>
+                <p-sortIcon field="category"></p-sortIcon>
+              </div>
+            </th>
+            <th pSortableColumn="supplier_cost" style="width:15%">
+              <div class="header-content">
+                <span>COST</span>
+                <p-sortIcon field="supplier_cost"></p-sortIcon>
+              </div>
+            </th>
+            <th pSortableColumn="stock" style="width:10%">
+              <div class="header-content">
+                <span>STOCK</span>
+                <p-sortIcon field="stock"></p-sortIcon>
+              </div>
+            </th>
+            <th style="width:20%">
+              <div class="header-content">
+                <span>IMAGES</span>
+              </div>
+            </th>
           </tr>
         </ng-template>
 
@@ -174,7 +240,8 @@
                 </span>
               </div>
               <span class="no-images" *ngIf="!item.product_images || item.product_images.length === 0">
-                -
+                <i class="pi pi-image"></i>
+                <span>No images</span>
               </span>
             </td>
           </tr>
@@ -184,9 +251,10 @@
           <tr>
             <td colspan="6" class="empty-message">
               <div class="empty-content">
-                <span class="empty-icon">inventory_2</span>
+                <i class="pi pi-inbox empty-icon"></i>
                 <h4>No products available</h4>
                 <p *ngIf="selectedBrand">Clear brand filter to see all products</p>
+                <p *ngIf="!selectedBrand">This supplier has no products registered yet</p>
               </div>
             </td>
           </tr>

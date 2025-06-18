@@ -18,6 +18,7 @@ import { SupabaseService } from '../../services/supabase.service';
 import { Router, RouterLink } from '@angular/router';
 import { MatDividerModule } from '@angular/material/divider';
 import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
+import { DialogModule } from 'primeng/dialog';
 
 @Component({
   selector: 'app-supplier-list',
@@ -41,7 +42,8 @@ import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
     MatIconModule,
     MatMenuModule,
     MatTooltipModule,
-    RouterLink
+    RouterLink,
+    DialogModule
   ],
 })
 export class SupplierListComponent implements OnInit {
@@ -59,6 +61,8 @@ export class SupplierListComponent implements OnInit {
   isCollapsed = false;
   currentUser: any = null;
   activeTab: 'current' | 'all' = 'current'; // Track which tab is active
+  showAddDialog: boolean = false;
+  showDeleteDialog: boolean = false;
 
   displayedColumns: string[] = ['number', 'supplier_name', 'contact_person', 'phone', 'email', 'actions'];
   dataSource!: MatTableDataSource<any>;
@@ -115,16 +119,16 @@ export class SupplierListComponent implements OnInit {
   async fetchCurrentUserSuppliers(): Promise<void> {
     try {
       const relationships = await this.mainSupabaseService.getUserSupplierRelationships(undefined, this.currentUser.id);
-      
+
       // Extract supplier IDs from relationships
       const supplierIds = relationships.map(rel => rel.supplier_id);
-      
+
       if (supplierIds.length > 0) {
         // Fetch supplier details for each ID
         const { data, error } = await this.supabaseService.from('suppliers')
           .select('id, supplier_name, contact_person, phone, email, address')
           .in('id', supplierIds);
-        
+
         if (error) {
           console.error('Error fetching current user suppliers:', error);
           this.currentUserSuppliers = [];
@@ -157,7 +161,7 @@ export class SupplierListComponent implements OnInit {
     } else {
       this.suppliers = this.allSuppliers;
     }
-    
+
     this.dataSource = new MatTableDataSource(this.suppliers);
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
@@ -176,7 +180,7 @@ export class SupplierListComponent implements OnInit {
       this.activeTab = tab;
       this.updateDataSource();
       this.filterSuppliers(); // Reapply current filter
-      
+
       // Trigger re-render of data source to ensure proper animation
       this.dataSource.data = [...this.dataSource.data];
     }, 100);
@@ -194,6 +198,11 @@ export class SupplierListComponent implements OnInit {
 
   getAllSupplierCount(): number {
     return this.allSuppliers.length;
+  }
+
+  // Get active supplier count
+  getActiveSupplierCount(): number {
+    return this.dataSource.data.filter(supplier => supplier.status === 'active').length;
   }
 
   async fetchSuppliers(): Promise<void> {
@@ -228,16 +237,16 @@ export class SupplierListComponent implements OnInit {
   editSupplier(supplier: any): void {
     this.editingSupplier = supplier;
     this.supplierForm.patchValue(supplier);
-    // this.dialog.open(this.addSupplierDialog);
+    this.showAddDialog = true;
   }
 
   confirmDelete(id: number): void {
     this.supplierToDelete = id;
-    // this.dialog.open(this.deleteDialog);
+    this.showDeleteDialog = true;
   }
 
   closeDeleteDialog(): void {
-    // this.dialog.closeAll();
+    this.showDeleteDialog = false;
     this.supplierToDelete = null;
   }
 
@@ -249,6 +258,7 @@ export class SupplierListComponent implements OnInit {
     try {
       await this.supabaseService.deleteSupplier(this.supplierToDelete);
       await this.fetchSuppliers();
+      this.showDeleteDialog = false;
     } catch (error) {
       alert('Failed to delete supplier. Please try again.');
     } finally {
@@ -273,11 +283,11 @@ export class SupplierListComponent implements OnInit {
     this.supplierForm.reset({
       status: 'active'
     });
-    // this.dialog.open(this.addSupplierDialog);
+    this.showAddDialog = true;
   }
 
   closeDialog(): void {
-    // this.dialog.closeAll();
+    this.showAddDialog = false;
   }
 
   async onSubmit(): Promise<void> {
@@ -292,7 +302,7 @@ export class SupplierListComponent implements OnInit {
       } else {
         await this.supabaseService.addSupplier(this.supplierForm.value);
       }
-      // this.dialog.closeAll();
+      this.showAddDialog = false;
       await this.fetchSuppliers();
     } catch (error) {
       alert(`Failed to ${this.editingSupplier ? 'update' : 'add'} supplier. Please try again.`);

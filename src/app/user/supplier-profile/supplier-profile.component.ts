@@ -47,7 +47,8 @@ export class SupplierProfileComponent implements OnInit {
   uniqueBrands: string[] = [];
   selectedBrand: string | null = null;
   productSearchQuery: string = '';
-
+  isCollapsed = false;
+  loading: boolean = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -69,6 +70,7 @@ export class SupplierProfileComponent implements OnInit {
   }
 
   async fetchSupplierData(): Promise<void> {
+    this.loading = true;
     try {
       let supplierId = this.route.snapshot.paramMap.get('id')?.trim();
       if (!supplierId || isNaN(Number(supplierId))) {
@@ -106,6 +108,8 @@ export class SupplierProfileComponent implements OnInit {
 
     } catch (error) {
       alert('Failed to load supplier profile.');
+    } finally {
+      this.loading = false;
     }
   }
 
@@ -143,13 +147,18 @@ export class SupplierProfileComponent implements OnInit {
     );
   }
 
-    getBrandCount(brand: string): number {
+  getBrandCount(brand: string): number {
     return this.supplierItems.filter(item => item.brand === brand).length;
   }
+
   openImageDialog(imageUrl: unknown): void {
     if (typeof imageUrl === 'string') {
       window.open(imageUrl, '_blank');
     }
   }
 
+  // Add method to handle sidebar collapse
+  onSidebarCollapsed(collapsed: boolean) {
+    this.isCollapsed = collapsed;
+  }
 }

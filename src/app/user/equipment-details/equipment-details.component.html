@@ -1,345 +1,367 @@
-<app-sidebar></app-sidebar>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.bundle.min.js"></script>
+<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
 
-<div class="main-content">
-  <div class="container-fluid p-4" *ngIf="equipmentData">
-    <!-- Header Section -->
-    <div class="header-section mb-4">
-      <div class="d-flex justify-content-between align-items-center">
-        <h2 class="page-title">
-          <i class="fas fa-tools mr-2"></i>Equipment Details
-          <span class="badge ml-2" [ngClass]="isOperationalEquipment ? 'badge-info' : 'badge-primary'">
-            {{ isOperationalEquipment ? 'Operational' : 'For Sale' }}
-          </span>
-        </h2>
-        <button (click)="goBack()" class="btn btn-outline-secondary">
-          <i class="fas fa-arrow-left mr-2"></i>Back to List
+<div class="equipment-details-container" [class.collapsed]="isCollapsed" *ngIf="equipmentData">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-title">
+          <i class="pi pi-tools"></i>
+          Equipment Details
+        </h1>
+        <p class="page-subtitle">
+          {{ isOperationalEquipment ? 'Operational Equipment Management' : 'For Sale Equipment Management' }}
+        </p>
+      </div>
+      <div class="header-actions">
+        <button (click)="goBack()" class="btn-back">
+          <i class="pi pi-arrow-left"></i>
+          Back to List
         </button>
       </div>
-      <hr class="header-divider">
     </div>
+  </div>
 
-    <div class="row">
-      <!-- Left Panel -->
-      <div class="col-md-4">
-        <!-- Product Card -->
-        <div class="card product-card mb-4">
-          <div class="card-body text-center">
-            <div class="product-image-container mb-3">
-              <img [src]="equipmentData.images?.[0] || equipmentData.product_images?.[0] || 'assets/default-image.png'"
-                   alt="Product Image" class="product-image">
-              <div class="product-badge" [ngClass]="'badge-' + (equipmentData.condition || 'good').toLowerCase()">
-                {{ equipmentData.condition || 'Good' }}
-              </div>
-              <div *ngIf="equipmentData.damaged" class="damage-badge">
-                <i class="fas fa-exclamation-triangle"></i> Damaged
-              </div>
+  <div class="content-grid">
+    <!-- Left Panel - Equipment Overview -->
+    <div class="left-panel">
+      <!-- Equipment Card -->
+      <div class="equipment-card">
+        <div class="equipment-image-container">
+          <img [src]="equipmentData.images?.[0] || equipmentData.product_images?.[0] || 'assets/default-image.png'"
+               alt="Equipment Image" class="equipment-image">
+          <div class="equipment-badges">
+            <span class="status-badge" [ngClass]="'status-' + (equipmentData.status || 'available').toLowerCase()">
+              {{ equipmentData.status || 'Available' }}
+            </span>
+            <span class="condition-badge" [ngClass]="'condition-' + (equipmentData.condition || 'good').toLowerCase()">
+              {{ equipmentData.condition || 'Good' }}
+            </span>
+            <span *ngIf="equipmentData.damaged" class="damage-badge">
+              <i class="pi pi-exclamation-triangle"></i>
+              Damaged
+            </span>
+          </div>
+        </div>
+        
+        <div class="equipment-info">
+          <h2 class="equipment-title">{{ equipmentData.name }}</h2>
+          <p class="equipment-subtitle">
+            <i class="pi pi-tag"></i>
+            {{ equipmentData.brand }} - {{ equipmentData.model }}
+          </p>
+          
+          <!-- Quick Stats -->
+          <div class="quick-stats">
+            <div class="stat-item">
+              <div class="stat-value">{{ equipmentData.quantity }}</div>
+              <div class="stat-label">In Stock</div>
             </div>
-            <h3 class="product-title">{{ equipmentData.name }}</h3>
-            <p class="product-subtitle text-muted">
-              <i class="fas fa-tag mr-1"></i>{{ equipmentData.brand }} - {{ equipmentData.model }}
-            </p>
-
-            <!-- Quick Stats -->
-            <div class="quick-stats mt-4">
-              <div class="stat-item">
-                <div class="stat-value">{{ equipmentData.quantity }}</div>
-                <div class="stat-label">In Stock</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-value">{{ equipmentData.date_acquired | date:'yyyy' }}</div>
-                <div class="stat-label">Acquired</div>
-              </div>
-              <div *ngIf="!isOperationalEquipment" class="stat-item">
-                <div class="stat-value">{{ calculateMargin(equipmentData.srp, equipmentData.supplier_cost) }}%</div>
-                <div class="stat-label">Margin</div>
-              </div>
-              <div *ngIf="isOperationalEquipment" class="stat-item">
-                <div class="stat-value">{{ equipmentMovements.length }}</div>
-                <div class="stat-label">Movements</div>
-              </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ equipmentData.date_acquired | date:'yyyy' }}</div>
+              <div class="stat-label">Acquired</div>
+            </div>
+            <div *ngIf="!isOperationalEquipment" class="stat-item">
+              <div class="stat-value">{{ calculateMargin(equipmentData.srp, equipmentData.supplier_cost) }}%</div>
+              <div class="stat-label">Margin</div>
+            </div>
+            <div *ngIf="isOperationalEquipment" class="stat-item">
+              <div class="stat-value">{{ equipmentMovements.length }}</div>
+              <div class="stat-label">Movements</div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Details Card -->
-        <div class="card details-card">
-          <div class="card-header">
-            <h5 class="card-title"><i class="fas fa-info-circle mr-2"></i>Details</h5>
+      <!-- Equipment Details Card -->
+      <div class="detail-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="pi pi-info-circle"></i>
+            Equipment Details
+          </h3>
+        </div>
+        <div class="card-content">
+          <div class="detail-row">
+            <span class="label">Quantity</span>
+            <span class="value">
+              {{ equipmentData.quantity }}
+              <span *ngIf="!isOperationalEquipment" class="text-muted small">
+                ({{ equipmentData.stocks_on_hand }} available)
+              </span>
+            </span>
           </div>
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <div class="detail-item">
-                <span class="detail-label"><i class="fas fa-boxes mr-2"></i>Quantity</span>
-                <span class="detail-value">
-                  {{ equipmentData.quantity }}
-                  <span *ngIf="!isOperationalEquipment" class="text-muted small ml-2">
-                    ({{ equipmentData.stocks_on_hand }} available)
-                  </span>
+
+          <!-- For Sale specific fields -->
+          <ng-container *ngIf="!isOperationalEquipment">
+            <div class="detail-row">
+              <span class="label">Supplier Cost</span>
+              <span class="value">
+                <span *ngIf="!editing.supplier_cost">{{ equipmentData.supplier_cost | currency:'PHP':'symbol' }}</span>
+                <input *ngIf="editing.supplier_cost" type="number" class="form-control-sm"
+                       [(ngModel)]="equipmentData.supplier_cost">
+                <button class="btn-link" (click)="toggleEdit('supplier_cost')">
+                  <i class="pi" [class.pi-pencil]="!editing.supplier_cost" [class.pi-check]="editing.supplier_cost"></i>
+                </button>
+              </span>
+            </div>
+            <div class="detail-row">
+              <span class="label">SRP</span>
+              <span class="value">
+                <span *ngIf="!editing.srp">{{ equipmentData.srp | currency:'PHP':'symbol' }}</span>
+                <input *ngIf="editing.srp" type="number" class="form-control-sm"
+                       [(ngModel)]="equipmentData.srp">
+                <button class="btn-link" (click)="toggleEdit('srp')">
+                  <i class="pi" [class.pi-pencil]="!editing.srp" [class.pi-check]="editing.srp"></i>
+                </button>
+              </span>
+            </div>
+          </ng-container>
+
+          <!-- Operational specific fields -->
+          <ng-container *ngIf="isOperationalEquipment">
+            <div class="detail-row" *ngIf="equipmentData.product_type">
+              <span class="label">Type</span>
+              <span class="value">{{ equipmentData.product_type }}</span>
+            </div>
+            <div class="detail-row" *ngIf="equipmentData.qr_code">
+              <span class="label">QR Code</span>
+              <span class="value">
+                <button class="btn-link" (click)="openQRCodeModal(equipmentData.qr_code)">
+                  <i class="pi pi-qrcode"></i>
+                  View QR Code
+                </button>
+              </span>
+            </div>
+            <div class="detail-row" *ngIf="equipmentData.serial_number">
+              <span class="label">Serial Number</span>
+              <span class="value">{{ equipmentData.serial_number }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Status</span>
+              <span class="value">
+                <span class="status-badge" [ngClass]="'status-' + (equipmentData.status || 'available').toLowerCase()">
+                  {{ equipmentData.status || 'Available' }}
                 </span>
-              </div>
-            </li>
+              </span>
+            </div>
+          </ng-container>
 
-            <!-- For Sale specific fields -->
-            <ng-container *ngIf="!isOperationalEquipment">
-              <li class="list-group-item">
-                <div class="detail-item">
-                  <span class="detail-label"><i class="fas fa-money-bill-wave mr-2"></i>Supplier Cost</span>
-                  <span class="detail-value">
-                    <span *ngIf="!editing.supplier_cost">{{ equipmentData.supplier_cost | currency:'PHP':'symbol' }}</span>
-                    <input *ngIf="editing.supplier_cost" type="number" class="form-control form-control-sm"
-                           [(ngModel)]="equipmentData.supplier_cost">
-                    <button class="btn btn-sm btn-link ml-2" (click)="toggleEdit('supplier_cost')">
-                      <i class="fas" [class.fa-edit]="!editing.supplier_cost" [class.fa-save]="editing.supplier_cost"></i>
-                    </button>
-                  </span>
-                </div>
-              </li>
-              <li class="list-group-item">
-                <div class="detail-item">
-                  <span class="detail-label"><i class="fas fa-tag mr-2"></i>SRP</span>
-                  <span class="detail-value">
-                    <span *ngIf="!editing.srp">{{ equipmentData.srp | currency:'PHP':'symbol' }}</span>
-                    <input *ngIf="editing.srp" type="number" class="form-control form-control-sm"
-                           [(ngModel)]="equipmentData.srp">
-                    <button class="btn btn-sm btn-link ml-2" (click)="toggleEdit('srp')">
-                      <i class="fas" [class.fa-edit]="!editing.srp" [class.fa-save]="editing.srp"></i>
-                    </button>
-                  </span>
-                </div>
-              </li>
-            </ng-container>
+          <!-- Common fields -->
+          <div class="detail-row">
+            <span class="label">Date Acquired</span>
+            <span class="value">{{ equipmentData.date_acquired | date }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Item Type</span>
+            <span class="value">
+              <span *ngIf="!editing.item_type">{{ equipmentData.item_type || 'N/A' }}</span>
+              <select *ngIf="editing.item_type" class="form-control-sm" [(ngModel)]="equipmentData.item_type">
+                <option value="Semi-Expendable">Semi-Expendable</option>
+                <option value="Non-Expendable">Non-Expendable</option>
+              </select>
+              <button class="btn-link" (click)="toggleEdit('item_type')">
+                <i class="pi" [class.pi-pencil]="!editing.item_type" [class.pi-check]="editing.item_type"></i>
+              </button>
+            </span>
+          </div>
+          <div class="detail-row" *ngIf="equipmentData.brochure_url">
+            <span class="label">Brochure</span>
+            <span class="value">
+              <button class="btn-link" (click)="openBrochure(equipmentData.brochure_url, $event)">
+                <i class="pi pi-file-pdf"></i>
+                View Brochure
+              </button>
+            </span>
+          </div>
+          <div class="detail-row" *ngIf="equipmentData.return_slip">
+            <span class="label">Return Slip</span>
+            <span class="value">
+              <button class="btn-link" (click)="openReturnSlip(equipmentData.return_slip); $event.preventDefault()">
+                <i class="pi pi-file-pdf"></i>
+                View Document
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
 
-            <!-- Operational specific fields -->
-            <ng-container *ngIf="isOperationalEquipment">
-              <li class="list-group-item">
-                <div class="detail-item">
-                  <span class="detail-label"><i class="fas fa-microchip mr-2"></i>Type</span>
-                  <span class="detail-value">{{ equipmentData.product_type || 'N/A' }}</span>
-                </div>
-              </li>
-              <li class="list-group-item">
-                <div class="detail-item">
-                  <span class="detail-label"><i class="fas fa-qrcode mr-2"></i>QR Code</span>
-                  <span class="detail-value">
-                    <button class="btn btn-sm btn-outline-primary" (click)="openQRCodeModal(equipmentData.qr_code)">
-                      View QR Code
-                    </button>
-                  </span>
-                </div>
-              </li>
-              <li class="list-group-item" *ngIf="equipmentData.serial_number">
-                <div class="detail-item">
-                  <span class="detail-label"><i class="fas fa-barcode mr-2"></i>Serial Number</span>
-                  <span class="detail-value">{{ equipmentData.serial_number }}</span>
-                </div>
-              </li>
-              <li class="list-group-item">
-                <div class="detail-item">
-                  <span class="detail-label"><i class="fas fa-heartbeat mr-2"></i>Status</span>
-                  <span class="detail-value">
-                    <span class="badge" [ngClass]="'badge-' + (equipmentData.status || 'available').toLowerCase()">
-                      {{ equipmentData.status || 'Available' }}
+      <!-- Repair/Maintenance Logs Card -->
+      <div class="detail-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="pi pi-wrench"></i>
+            {{ isOperationalEquipment ? 'Maintenance Logs' : 'Repair Logs' }}
+          </h3>
+        </div>
+        <div class="card-content">
+          <div *ngIf="equipmentData.repair_logs?.length > 0; else noLogs">
+            <div class="timeline">
+              <div *ngFor="let log of equipmentData.repair_logs" class="timeline-item">
+                <div class="timeline-badge" [ngClass]="'status-' + (log.repair_status || 'completed').toLowerCase()"></div>
+                <div class="timeline-content">
+                  <div class="timeline-date">{{ log.repair_date | date:'shortDate' }}</div>
+                  <h6 class="timeline-title">{{ log.repair_details }}</h6>
+                  <div class="timeline-status">
+                    <span class="status-badge" [ngClass]="'status-' + (log.repair_status || 'completed').toLowerCase()">
+                      {{ log.repair_status || 'Completed' }}
                     </span>
-                  </span>
-                </div>
-              </li>
-            </ng-container>
-
-            <!-- Common fields -->
-            <li class="list-group-item">
-              <div class="detail-item">
-                <span class="detail-label"><i class="far fa-calendar-alt mr-2"></i>Date Acquired</span>
-                <span class="detail-value">{{ equipmentData.date_acquired | date }}</span>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <div class="detail-item">
-                <span class="detail-label"><i class="fas fa-cubes mr-2"></i>Item Type</span>
-                <span class="detail-value">
-                  <span *ngIf="!editing.item_type">{{ equipmentData.item_type || 'N/A' }}</span>
-                  <select *ngIf="editing.item_type" class="form-control form-control-sm" [(ngModel)]="equipmentData.item_type">
-                    <option value="Semi-Expendable">Semi-Expendable</option>
-                    <option value="Non-Expendable">Non-Expendable</option>
-                  </select>
-                  <button class="btn btn-sm btn-link ml-2" (click)="toggleEdit('item_type')">
-                    <i class="fas" [class.fa-edit]="!editing.item_type" [class.fa-save]="editing.item_type"></i>
-                  </button>
-                </span>
-              </div>
-            </li>
-
-            <li class="list-group-item" *ngIf="equipmentData.brochure_url">
-              <div class="detail-item">
-                <span class="detail-label"><i class="fas fa-book mr-2"></i>Brochure</span>
-                <span class="detail-value">
-                  <a href="#" (click)="openBrochure(equipmentData.brochure_url, $event)" class="text-primary">
-                    View Brochure
-                  </a>
-                </span>
-              </div>
-            </li>
-            <li class="list-group-item" *ngIf="equipmentData.return_slip">
-              <div class="detail-item">
-                <span class="detail-label"><i class="fas fa-file-signature mr-2"></i>Return Slip</span>
-                <span class="detail-value">
-                 <a href="#" (click)="openReturnSlip(equipmentData.return_slip); $event.preventDefault()">View Document</a>
-                </span>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Repair/Maintenance Logs Card -->
-        <div class="card repair-logs-card mt-4">
-          <div class="card-header">
-            <h5 class="card-title">
-              <i class="fas fa-wrench mr-2"></i>
-              {{ isOperationalEquipment ? 'Maintenance Logs' : 'Repair Logs' }}
-            </h5>
-          </div>
-          <div class="card-body">
-            <div *ngIf="equipmentData.repair_logs?.length > 0; else noLogs">
-              <div class="timeline">
-                <div *ngFor="let log of equipmentData.repair_logs" class="timeline-item">
-                  <div class="timeline-badge" [ngClass]="'status-' + (log.repair_status || 'completed').toLowerCase()"></div>
-                  <div class="timeline-content">
-                    <div class="timeline-date">
-                      <strong>Date:</strong> {{ log.repair_date | date:'shortDate' }}
-                    </div>
-                    <div>
-                      <strong>Status:</strong>
-                      <span class="badge" [ngClass]="'badge-' + (log.repair_status || 'completed').toLowerCase()">
-                        {{ log.repair_status || 'Completed' }}
-                      </span>
-                    </div>
-                    <div>
-                      <strong>Details:</strong> {{ log.repair_details }}
-                    </div>
-                    <!-- If you have more fields, add them here -->
                   </div>
                 </div>
               </div>
             </div>
-            <ng-template #noLogs>
-              <div class="empty-state">
-                <i class="fas fa-clipboard-list empty-icon"></i>
-                <p class="empty-text">No {{ isOperationalEquipment ? 'maintenance' : 'repair' }} logs available</p>
-              </div>
-            </ng-template>
           </div>
+          <ng-template #noLogs>
+            <div class="empty-state">
+              <i class="pi pi-clipboard empty-icon"></i>
+              <p class="empty-text">No {{ isOperationalEquipment ? 'maintenance' : 'repair' }} logs available</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Equipment Information -->
+    <div class="right-panel">
+      <!-- Description Card -->
+      <div class="detail-card">
+        <div class="card-header">
+          <div class="header-content">
+            <h3 class="card-title">
+              <i class="pi pi-align-left"></i>
+              Description
+            </h3>
+            <button class="btn-link" (click)="toggleEdit('description')">
+              <i class="pi" [class.pi-pencil]="!editing.description" [class.pi-check]="editing.description"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-content">
+          <div *ngIf="!editing.description; else editDescription">
+            <p class="description-text" [class.text-muted]="!equipmentData.description">
+              {{ equipmentData.description || 'No description available for this equipment.' }}
+            </p>
+          </div>
+          <ng-template #editDescription>
+            <textarea class="form-control" rows="4" [(ngModel)]="equipmentData.description"></textarea>
+          </ng-template>
         </div>
       </div>
 
-      <!-- Right Panel -->
-      <div class="col-md-8">
-        <!-- Description Card -->
-        <div class="card description-card mb-4">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title"><i class="fas fa-align-left mr-2"></i>Description</h5>
-            <button class="btn btn-sm btn-link" (click)="toggleEdit('description')">
-              <i class="fas" [class.fa-edit]="!editing.description" [class.fa-save]="editing.description"></i>
-            </button>
-          </div>
-          <div class="card-body">
-            <div *ngIf="!editing.description; else editDescription">
-              <p class="description-text" [class.text-muted]="!equipmentData.description">
-                {{ equipmentData.description || 'No description available for this equipment.' }}
-              </p>
+      <!-- For Sale Equipment View -->
+      <ng-container *ngIf="!isOperationalEquipment">
+        <!-- Suppliers Table Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <div class="header-content">
+              <h3 class="card-title">
+                <i class="pi pi-truck"></i>
+                Suppliers
+              </h3>
+              <span class="badge-pill">
+                {{ matchedSuppliers.length }} {{ matchedSuppliers.length === 1 ? 'Supplier' : 'Suppliers' }}
+              </span>
             </div>
-            <ng-template #editDescription>
-              <textarea class="form-control" rows="4" [(ngModel)]="equipmentData.description"></textarea>
+          </div>
+          <div class="card-content">
+            <div *ngIf="matchedSuppliers.length > 0; else noSuppliers">
+              <div class="table-container suppliers-table">
+                <table class="modern-table">
+                  <thead>
+                    <tr>
+                      <th>Supplier</th>
+                      <th>Cost</th>
+                      <th>SRP</th>
+                      <th>Margin</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let supplier of matchedSuppliers" class="supplier-row">
+                      <td>
+                        <span class="supplier-name">{{ supplier.supplier }}</span>
+                      </td>
+                      <td>
+                        <span *ngIf="!supplier.editing?.supplier_cost" class="supplier-cost">
+                          {{ supplier.supplier_cost | currency:'PHP':'symbol':'1.2-2' }}
+                        </span>
+                        <input *ngIf="supplier.editing?.supplier_cost" 
+                               type="number" 
+                               class="supplier-input cost"
+                               [(ngModel)]="supplier.supplier_cost"
+                               step="0.01">
+                      </td>
+                      <td>
+                        <span *ngIf="!supplier.editing?.srp" class="supplier-srp">
+                          {{ supplier.srp | currency:'PHP':'symbol':'1.2-2' }}
+                        </span>
+                        <input *ngIf="supplier.editing?.srp" 
+                               type="number" 
+                               class="supplier-input srp"
+                               [(ngModel)]="supplier.srp"
+                               step="0.01">
+                      </td>
+                      <td>
+                        <span class="margin-badge" [ngClass]="getMarginClass(supplier.srp, supplier.supplier_cost)">
+                          {{ calculateMargin(supplier.srp, supplier.supplier_cost) }}%
+                        </span>
+                      </td>
+                      <td>
+                        <div class="supplier-actions">
+                          <div *ngIf="!supplier.editing?.supplier_cost && !supplier.editing?.srp">
+                            <button class="action-btn action-btn-edit" (click)="startEditSupplierCost(supplier, 'supplier_cost')">
+                              <i class="pi pi-pencil"></i>
+                              Cost
+                            </button>
+                            <button class="action-btn action-btn-edit" (click)="startEditSupplierCost(supplier, 'srp')">
+                              <i class="pi pi-pencil"></i>
+                              SRP
+                            </button>
+                          </div>
+                          <div *ngIf="supplier.editing?.supplier_cost || supplier.editing?.srp">
+                            <button class="action-btn action-btn-save" 
+                                    (click)="saveSupplierCost(supplier, supplier.editing?.supplier_cost ? 'supplier_cost' : 'srp')">
+                              <i class="pi pi-check"></i>
+                              Save
+                            </button>
+                            <button class="action-btn action-btn-cancel"
+                              (click)="supplier.editing = {};
+                                      supplier.supplier_cost = supplier.originalValues?.supplier_cost ?? supplier.supplier_cost;
+                                      supplier.srp = supplier.originalValues?.srp ?? supplier.srp">
+                              <i class="pi pi-times"></i>
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <ng-template #noSuppliers>
+              <div class="suppliers-empty">
+                <i class="pi pi-exclamation-circle suppliers-empty-icon"></i>
+                <p class="suppliers-empty-text">No suppliers found for this equipment</p>
+              </div>
             </ng-template>
           </div>
         </div>
 
-        <!-- For Sale Equipment View -->
-        <ng-container *ngIf="!isOperationalEquipment">
-          <!-- Suppliers Table Card -->
-          <div class="card suppliers-card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <h5 class="card-title"><i class="fas fa-truck mr-2"></i>Suppliers</h5>
-              <span class="badge badge-pill badge-primary">
-                {{ matchedSuppliers.length }} {{ matchedSuppliers.length === 1 ? 'Supplier' : 'Suppliers' }}
-              </span>
-            </div>
-            <div class="card-body">
-              <div *ngIf="matchedSuppliers.length > 0; else noSuppliers">
-                <div class="table-responsive">
-                  <table class="table table-hover">
-                    <thead class="thead-light">
-                      <tr>
-                        <th><i class="fas fa-building mr-1"></i>Supplier</th>
-                        <th><i class="fas fa-money-bill-wave mr-1"></i>Cost</th>
-                        <th><i class="fas fa-tags mr-1"></i>SRP</th>
-                        <th><i class="fas fa-percentage mr-1"></i>Margin</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let supplier of matchedSuppliers">
-                        <td>{{ supplier.supplier }}</td>
-                        <td>
-                          <span *ngIf="!supplier.editing?.supplier_cost">{{ supplier.supplier_cost | currency:'PHP':'symbol':'1.2-2' }}</span>
-                          <input *ngIf="supplier.editing?.supplier_cost" type="number" class="form-control form-control-sm"
-                                 [(ngModel)]="supplier.supplier_cost">
-                        </td>
-                        <td>
-                          <span *ngIf="!supplier.editing?.srp">{{ supplier.srp | currency:'PHP':'symbol':'1.2-2' }}</span>
-                          <input *ngIf="supplier.editing?.srp" type="number" class="form-control form-control-sm"
-                                 [(ngModel)]="supplier.srp">
-                        </td>
-                        <td>
-                          <span class="margin-badge" [ngClass]="getMarginClass(supplier.srp, supplier.supplier_cost)">
-                            {{ calculateMargin(supplier.srp, supplier.supplier_cost) }}%
-                          </span>
-                        </td>
-                        <td>
-                          <div *ngIf="!supplier.editing?.supplier_cost && !supplier.editing?.srp">
-                            <button class="btn btn-sm btn-link" (click)="startEditSupplierCost(supplier, 'supplier_cost')">
-                              <i class="fas fa-edit"></i> Cost
-                            </button>
-                            <button class="btn btn-sm btn-link" (click)="startEditSupplierCost(supplier, 'srp')">
-                              <i class="fas fa-edit"></i> SRP
-                            </button>
-                          </div>
-                          <div *ngIf="supplier.editing?.supplier_cost || supplier.editing?.srp">
-                            <button class="btn btn-sm btn-success" (click)="saveSupplierCost(supplier, supplier.editing?.supplier_cost ? 'supplier_cost' : 'srp')">
-                              <i class="fas fa-save"></i> Save
-                            </button>
-                            <button class="btn btn-sm btn-secondary ml-1"
-                              (click)="supplier.editing = {};
-                                      supplier.supplier_cost = supplier.originalValues?.supplier_cost ?? supplier.supplier_cost;
-                                      supplier.srp = supplier.originalValues?.srp ?? supplier.srp">
-                              <i class="fas fa-times"></i> Cancel
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <ng-template #noSuppliers>
-                <div class="empty-state">
-                  <i class="fas fa-exclamation-circle empty-icon"></i>
-                  <p class="empty-text">No suppliers found for this equipment</p>
-                </div>
-              </ng-template>
-            </div>
-          </div>
-
-          <!-- Cost History Chart Section -->
-          <div class="card chart-card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <h5 class="card-title"><i class="fas fa-chart-line mr-2"></i>Cost History</h5>
-              <div class="d-flex align-items-center">
+        <!-- Cost History Chart Section -->
+        <div class="detail-card">
+          <div class="card-header">
+            <div class="header-content">
+              <h3 class="card-title">
+                <i class="pi pi-chart-line"></i>
+                Cost History
+              </h3>
+              <div class="chart-controls">
                 <!-- Supplier dropdown -->
-                <div class="form-group mb-0 mr-3" *ngIf="availableSuppliers.length > 0">
+                <div class="supplier-filter" *ngIf="availableSuppliers.length > 0">
                   <select
-                    class="form-control form-control-sm"
+                    class="form-control-sm"
                     [(ngModel)]="selectedSupplier"
                     (change)="onSupplierChange()"
                   >
@@ -349,194 +371,215 @@
                   </select>
                 </div>
 
-                <div class="chart-legend d-flex">
-                  <div class="legend-item mr-3 d-flex align-items-center">
-                    <span class="legend-color mr-2" style="background-color: #3C28CC"></span>
+                <div class="chart-legend">
+                  <div class="legend-item">
+                    <span class="legend-color" style="background-color: #3C28CC"></span>
                     <span>Supplier Cost</span>
                   </div>
-                  <div class="legend-item d-flex align-items-center">
-                    <span class="legend-color mr-2" style="background-color: #DA5B96"></span>
+                  <div class="legend-item">
+                    <span class="legend-color" style="background-color: #DA5B96"></span>
                     <span>SRP</span>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="card-body">
-              <div class="chart-container">
-                <canvas id="costChart"></canvas>
-              </div>
-              <div *ngIf="isSupplierFiltered && filteredCostHistory.length === 0" class="text-center mt-3">
-                <p class="text-muted">No cost history available for this supplier.</p>
-              </div>
+          </div>
+          <div class="card-content">
+            <div class="chart-container">
+              <canvas id="costChart"></canvas>
+            </div>
+            <div *ngIf="isSupplierFiltered && filteredCostHistory.length === 0" class="empty-state">
+              <p class="empty-text">No cost history available for this supplier.</p>
             </div>
           </div>
-        </ng-container>
+        </div>
+      </ng-container>
 
-        <!-- Operational Equipment View -->
-        <ng-container *ngIf="isOperationalEquipment">
-          <!-- Operational Status Card -->
-          <div class="card operational-status-card mb-4">
-            <div class="card-header">
-              <h5 class="card-title"><i class="fas fa-heartbeat mr-2"></i>Equipment Health</h5>
-            </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-4">
-                  <div class="status-indicator">
-                    <div class="status-label">Current Status</div>
-                    <div class="status-value" [ngClass]="'status-' + (equipmentData.status || 'available').toLowerCase()">
-                      {{ equipmentData.status || 'Available' }}
-                    </div>
-                  </div>
+      <!-- Operational Equipment View -->
+      <ng-container *ngIf="isOperationalEquipment">
+        <!-- Equipment Health Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="pi pi-heartbeat"></i>
+              Equipment Health
+            </h3>
+          </div>
+          <div class="card-content">
+            <div class="health-grid">
+              <div class="health-item">
+                <div class="health-label">Current Status</div>
+                <div class="health-value" [ngClass]="'status-' + (equipmentData.status || 'available').toLowerCase()">
+                  {{ equipmentData.status || 'Available' }}
                 </div>
-                <div class="col-md-4">
-                  <div class="status-indicator">
-                    <div class="status-label">Physical Condition</div>
-                    <div class="status-value" [ngClass]="'condition-' + (equipmentData.condition || 'good').toLowerCase()">
-                      {{ equipmentData.condition || 'Good' }}
-                    </div>
-                  </div>
+              </div>
+              <div class="health-item">
+                <div class="health-label">Physical Condition</div>
+                <div class="health-value" [ngClass]="'condition-' + (equipmentData.condition || 'good').toLowerCase()">
+                  {{ equipmentData.condition || 'Good' }}
                 </div>
-                <div class="col-md-4">
-                  <div class="status-indicator">
-                    <div class="status-label">Damage Status</div>
-                    <div class="status-value" [ngClass]="equipmentData.damaged ? 'text-danger' : 'text-success'">
-                      {{ equipmentData.damaged ? 'Damaged' : 'No Damage' }}
-                    </div>
-                  </div>
+              </div>
+              <div class="health-item">
+                <div class="health-label">Damage Status</div>
+                <div class="health-value" [ngClass]="equipmentData.damaged ? 'text-danger' : 'text-success'">
+                  {{ equipmentData.damaged ? 'Damaged' : 'No Damage' }}
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Identification Section -->
-          <div class="card identification-card mb-4">
-            <div class="card-header">
-              <h5 class="card-title"><i class="fas fa-fingerprint mr-2"></i>Identification</h5>
-            </div>
-            <div class="card-body">
-              <div class="row text-center">
-                <div class="col-md-6" *ngIf="equipmentData.qr_code">
-                  <h5>QR Code</h5>
-                  <img [src]="equipmentData.qr_code" alt="QR Code" class="img-fluid identification-image mb-2">
-                  <div>
-                    <button class="btn btn-sm btn-primary mr-2" (click)="openQRCodeModal(equipmentData.qr_code)">
-                      <i class="fas fa-expand mr-1"></i> View Fullscreen
-                    </button>
-                    <button class="btn btn-sm btn-success" (click)="printQRCode()">
-                      <i class="fas fa-print mr-1"></i> Print
-                    </button>
-                  </div>
+        <!-- Identification Card -->
+        <div class="detail-card" *ngIf="equipmentData.qr_code || equipmentData.barcode">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="pi pi-qrcode"></i>
+              Identification
+            </h3>
+          </div>
+          <div class="card-content">
+            <div class="identification-grid">
+              <div class="identification-item" *ngIf="equipmentData.qr_code">
+                <div class="identification-header">
+                  <i class="pi pi-qrcode"></i>
+                  <span>QR Code</span>
                 </div>
-                <div class="col-md-6" *ngIf="equipmentData.barcode">
-                  <h5>Barcode</h5>
-                  <img [src]="equipmentData.barcode" alt="Barcode" class="img-fluid identification-image mb-2">
-                  <div>
-                    <button class="btn btn-sm btn-primary mr-2" (click)="openBarcodeModal(equipmentData.barcode)">
-                      <i class="fas fa-expand mr-1"></i> View Fullscreen
-                    </button>
-                    <button class="btn btn-sm btn-success" (click)="printBarcode()">
-                      <i class="fas fa-print mr-1"></i> Print
-                    </button>
-                  </div>
+                <div class="identification-image-container">
+                  <img [src]="equipmentData.qr_code" alt="QR Code" class="identification-image">
+                </div>
+                <div class="identification-actions">
+                  <button class="btn-primary" (click)="openQRCodeModal(equipmentData.qr_code)">
+                    <i class="pi pi-external-link"></i>
+                    View Fullscreen
+                  </button>
+                  <button class="btn-secondary" (click)="printQRCode()">
+                    <i class="pi pi-print"></i>
+                    Print
+                  </button>
+                </div>
+              </div>
+              <div class="identification-item" *ngIf="equipmentData.barcode">
+                <div class="identification-header">
+                  <i class="pi pi-barcode"></i>
+                  <span>Barcode</span>
+                </div>
+                <div class="identification-image-container">
+                  <img [src]="equipmentData.barcode" alt="Barcode" class="identification-image">
+                </div>
+                <div class="identification-actions">
+                  <button class="btn-primary" (click)="openBarcodeModal(equipmentData.barcode)">
+                    <i class="pi pi-external-link"></i>
+                    View Fullscreen
+                  </button>
+                  <button class="btn-secondary" (click)="printBarcode()">
+                    <i class="pi pi-print"></i>
+                    Print
+                  </button>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Assignment History -->
-          <div class="card assignment-card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <h5 class="card-title"><i class="fas fa-exchange-alt mr-2"></i>Assignment History</h5>
-              <span class="badge badge-pill badge-info">
+        <!-- Assignment History Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <div class="header-content">
+              <h3 class="card-title">
+                <i class="pi pi-exchange"></i>
+                Assignment History
+              </h3>
+              <span class="badge-pill">
                 {{ equipmentMovements.length }} Records
               </span>
             </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-hover">
-                  <thead class="thead-light">
-                    <tr>
-                      <th>Date</th>
-                      <th>Type</th>
-                      <th>Assigned To</th>
-                      <th>Project</th>
-                      <th>Duration</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let movement of equipmentMovements">
-                      <td>{{ movement.movement_date | date:'shortDate' }}</td>
-                      <td>
-                        <span class="badge" [ngClass]="'badge-' + movement.movement_type.toLowerCase()">
-                          {{ movement.movement_type }}
-                        </span>
-                      </td>
-                      <td>{{ movement.borrower_name || 'N/A' }}</td>
-                      <td>{{ movement.project_name || 'N/A' }}</td>
-                      <td>{{ movement.duration || 'N/A' }}</td>
-                      <td>
-                        <span class="badge" [ngClass]="'badge-' + (movement.status || 'completed').toLowerCase()">
-                          {{ movement.status || 'Completed' }}
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div *ngIf="equipmentMovements.length === 0" class="empty-state">
-                <i class="fas fa-box-open empty-icon"></i>
-                <p class="empty-text">No assignment records found</p>
-              </div>
-            </div>
           </div>
-        </ng-container>
-
-        <!-- Movements Table Card (Common) -->
-        <div class="card movements-card">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title">
-              <i class="fas fa-history mr-2"></i>
-              {{ isOperationalEquipment ? 'Usage History' : 'Inventory Movements' }}
-            </h5>
-            <span class="badge badge-pill badge-secondary">
-              {{ equipmentMovements.length }} Records
-            </span>
-          </div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead class="thead-light">
+          <div class="card-content">
+            <div class="table-container">
+              <table class="modern-table">
+                <thead>
                   <tr>
                     <th>Date</th>
                     <th>Type</th>
-                    <th>Quantity</th>
-                    <th *ngIf="!isOperationalEquipment">From/To</th>
-                    <th *ngIf="isOperationalEquipment">Location</th>
-                    <th>Notes</th>
+                    <th>Assigned To</th>
+                    <th>Project</th>
+                    <th>Duration</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let movement of equipmentMovements">
-                    <td>{{ movement.movement_date | date:'short' }}</td>
+                    <td>{{ movement.movement_date | date:'shortDate' }}</td>
                     <td>
-                      <span class="badge" [ngClass]="'badge-' + movement.movement_type.toLowerCase()">
+                      <span class="status-badge" [ngClass]="'status-' + movement.movement_type.toLowerCase()">
                         {{ movement.movement_type }}
                       </span>
                     </td>
-                    <td>{{ movement.used_quantity || movement.quantity || 0 }}</td>
-                    <td *ngIf="!isOperationalEquipment">{{ movement.location || 'N/A' }}</td>
-                    <td *ngIf="isOperationalEquipment">{{ movement.project_name || movement.location || 'N/A' }}</td>
-                    <td>{{ movement.notes || 'N/A' }}</td>
+                    <td>{{ movement.borrower_name || 'N/A' }}</td>
+                    <td>{{ movement.project_name || 'N/A' }}</td>
+                    <td>{{ movement.duration || 'N/A' }}</td>
+                    <td>
+                      <span class="status-badge" [ngClass]="'status-' + (movement.status || 'completed').toLowerCase()">
+                        {{ movement.status || 'Completed' }}
+                      </span>
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <div *ngIf="equipmentMovements.length === 0" class="empty-state">
-              <i class="fas fa-box-open empty-icon"></i>
-              <p class="empty-text">No movement records found</p>
+              <i class="pi pi-box empty-icon"></i>
+              <p class="empty-text">No assignment records found</p>
             </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Movements Table Card (Common) -->
+      <div class="detail-card">
+        <div class="card-header">
+          <div class="header-content">
+            <h3 class="card-title">
+              <i class="pi pi-history"></i>
+              {{ isOperationalEquipment ? 'Usage History' : 'Inventory Movements' }}
+            </h3>
+            <span class="badge-pill">
+              {{ equipmentMovements.length }} Records
+            </span>
+          </div>
+        </div>
+        <div class="card-content">
+          <div class="table-container">
+            <table class="modern-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Quantity</th>
+                  <th *ngIf="!isOperationalEquipment">From/To</th>
+                  <th *ngIf="isOperationalEquipment">Location</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let movement of equipmentMovements">
+                  <td>{{ movement.movement_date | date:'short' }}</td>
+                  <td>
+                    <span class="status-badge" [ngClass]="'status-' + movement.movement_type.toLowerCase()">
+                      {{ movement.movement_type }}
+                    </span>
+                  </td>
+                  <td>{{ movement.used_quantity || movement.quantity || 0 }}</td>
+                  <td *ngIf="!isOperationalEquipment">{{ movement.location || 'N/A' }}</td>
+                  <td *ngIf="isOperationalEquipment">{{ movement.project_name || movement.location || 'N/A' }}</td>
+                  <td>{{ movement.notes || 'N/A' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div *ngIf="equipmentMovements.length === 0" class="empty-state">
+            <i class="pi pi-box empty-icon"></i>
+            <p class="empty-text">No movement records found</p>
           </div>
         </div>
       </div>
@@ -545,95 +588,87 @@
 </div>
 
 <!-- QR Code Modal -->
-<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">QR Code</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="closeQRCodeModal()">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body text-center">
-        <img *ngIf="selectedQRCode" [src]="selectedQRCode" alt="QR Code" class="img-fluid">
-        <p *ngIf="!selectedQRCode" class="text-muted">No QR Code available</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeQRCodeModal()">Close</button>
-        <button type="button" class="btn btn-primary" (click)="printQRCode()" *ngIf="selectedQRCode">
-          <i class="fas fa-print mr-1"></i> Print
-        </button>
-      </div>
+<div class="modal-overlay" *ngIf="isQRCodeModalOpen" (click)="closeQRCodeModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">QR Code</h3>
+      <button class="modal-close" (click)="closeQRCodeModal()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <img *ngIf="selectedQRCode" [src]="selectedQRCode" alt="QR Code" class="modal-image">
+      <p *ngIf="!selectedQRCode" class="empty-text">No QR Code available</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeQRCodeModal()">Close</button>
+      <button class="btn-primary" (click)="printQRCode()" *ngIf="selectedQRCode">
+        <i class="pi pi-print"></i> Print
+      </button>
     </div>
   </div>
 </div>
 
 <!-- Barcode Modal -->
-<div class="modal fade" id="barcodeModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Barcode</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="closeBarcodeModal()">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body text-center">
-        <img *ngIf="selectedBarcode" [src]="selectedBarcode" alt="Barcode" class="img-fluid">
-        <p *ngIf="!selectedBarcode" class="text-muted">No Barcode available</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeBarcodeModal()">Close</button>
-        <button type="button" class="btn btn-primary" (click)="printBarcode()" *ngIf="selectedBarcode">
-          <i class="fas fa-print mr-1"></i> Print
-        </button>
-      </div>
+<div class="modal-overlay" *ngIf="isBarcodeModalOpen" (click)="closeBarcodeModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">Barcode</h3>
+      <button class="modal-close" (click)="closeBarcodeModal()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <img *ngIf="selectedBarcode" [src]="selectedBarcode" alt="Barcode" class="modal-image">
+      <p *ngIf="!selectedBarcode" class="empty-text">No Barcode available</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeBarcodeModal()">Close</button>
+      <button class="btn-primary" (click)="printBarcode()" *ngIf="selectedBarcode">
+        <i class="pi pi-print"></i> Print
+      </button>
     </div>
   </div>
 </div>
 
 <!-- Return Slip Modal -->
-<div class="modal fade" id="returnSlipModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Return Slip</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="closeModal()">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <iframe *ngIf="returnSlipUrl" [attr.src]="returnSlipUrl" width="100%" height="500px"></iframe>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeModal()">Close</button>
-        <a *ngIf="originalReturnSlipUrl" [href]="originalReturnSlipUrl" download target="_blank" class="btn btn-primary">
-          Download Document
-        </a>
-      </div>
+<div class="modal-overlay" *ngIf="returnSlipUrl" (click)="closeModal()">
+  <div class="modal-container modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">Return Slip</h3>
+      <button class="modal-close" (click)="closeModal()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <iframe *ngIf="returnSlipUrl" [attr.src]="returnSlipUrl" width="100%" height="500px"></iframe>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">Close</button>
+      <a *ngIf="originalReturnSlipUrl" [href]="originalReturnSlipUrl" download target="_blank" class="btn-primary">
+        Download Document
+      </a>
     </div>
   </div>
 </div>
 
 <!-- Brochure Modal -->
-<div class="modal fade" id="brochureModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Brochure</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="closeBrochureModal()">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <iframe *ngIf="brochureUrl" [src]="brochureUrl" width="100%" height="500px"></iframe>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeBrochureModal()">Close</button>
-        <a *ngIf="originalBrochureUrl" [href]="originalBrochureUrl" download target="_blank" class="btn btn-primary">
-          Download Brochure
-        </a>
-      </div>
+<div class="modal-overlay" *ngIf="brochureUrl" (click)="closeBrochureModal()">
+  <div class="modal-container modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">Brochure</h3>
+      <button class="modal-close" (click)="closeBrochureModal()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <iframe *ngIf="brochureUrl" [src]="brochureUrl" width="100%" height="500px"></iframe>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeBrochureModal()">Close</button>
+      <a *ngIf="originalBrochureUrl" [href]="originalBrochureUrl" download target="_blank" class="btn-primary">
+        Download Brochure
+      </a>
     </div>
   </div>
 </div>
