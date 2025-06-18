@@ -1,12 +1,53 @@
+/* CSS Variables for theming */
+:host {
+  --primary-color: #242770;
+  --primary-dark: #1e1f5c;
+  --primary-light: #f0f9ff;
+  --text-color: #1a1a1a;
+  --text-secondary: #64748b;
+  --bg-color: #FFFAFA;
+  --card-bg: white;
+  --border-color: #e2e8f0;
+  --hover-bg: #f8fafc;
+  --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* Dark mode variables */
+  --dark-bg: #0f172a;
+  --dark-surface: #1e293b;
+  --dark-surface-hover: #334155;
+  --dark-border: #334155;
+  --dark-text: #f1f5f9;
+  --dark-text-secondary: #94a3b8;
+  --dark-card-bg: #1e293b;
+  --dark-hover-bg: #334155;
+  --dark-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode styles */
+:host-context([data-theme="dark"]) {
+  --bg-color: var(--dark-bg);
+  --card-bg: var(--dark-surface);
+  --text-color: var(--dark-text);
+  --text-secondary: var(--dark-text-secondary);
+  --border-color: var(--dark-border);
+  --hover-bg: var(--dark-surface-hover);
+  --shadow-light: var(--dark-shadow);
+  --shadow-medium: var(--dark-shadow);
+}
+
 .breadcrumb-nav {
   padding: 12px 24px;
-  background-color: #FFFAFA;
+  background-color: var(--bg-color);
   margin-left: 240px; /* Default expanded state */
   width: calc(100% - 240px); /* Default expanded state */
   position: fixed;
   top: 0;
   z-index: 10;
-  transition: margin-left 0.3s ease, width 0.3s ease; /* Add smooth transition */
+  transition: margin-left 0.3s ease, width 0.3s ease, background-color 0.3s ease; /* Add smooth transition */
+  /* border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-light);
+} */
 }
 
 /* Add collapsed state */
@@ -27,38 +68,47 @@
 .breadcrumb-item {
   display: flex;
   align-items: center;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-secondary);
   font-size: 14px;
+  transition: color 0.3s ease;
 
   .divider {
-    color: rgba(0, 0, 0, 0.3);
+    color: var(--text-secondary);
     font-size: 18px;
     height: 18px;
     width: 18px;
     margin: 0 4px;
+    opacity: 0.6;
   }
 }
 
 .breadcrumb-link {
   text-decoration: none;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
-  transition: color 0.2s;
+  transition: color 0.2s ease, background-color 0.2s ease;
   font-weight: 400;
+  padding: 4px 8px;
+  border-radius: 4px;
 
   &:hover {
-    color: #3f51b5;
+    color: #66BBDE;
+    background-color: var(--hover-bg);
   }
 
   mat-icon {
     margin-right: 4px;
+    color: inherit;
   }
 }
 
 .current-item {
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.87);
+  color: var(--text-color);
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: var(--hover-bg);
 }
 
 /* Responsive adjustments */

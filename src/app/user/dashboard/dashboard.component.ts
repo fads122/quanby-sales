@@ -142,6 +142,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   async ngOnInit() {
     try {
       this.isLoading = true;
+
+      // Initialize theme state
+      this.initializeTheme();
+
       await this.loadUserEmail();
       const rawEquipmentList = await this.supabaseService.getEquipmentList() || [];
 
@@ -258,14 +262,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   getLatestSupplierPrice(supplierId: string): number | null {
     if (!this.costHistory.length) return null;
-    
+
     if (this.isShowingAggregateData) {
       // For aggregate data, get the latest supplier cost
       const sorted = [...this.costHistory].sort((a, b) =>
         new Date(b.date_updated).getTime() - new Date(a.date_updated).getTime());
       return sorted[0]?.supplier_cost || null;
     }
-    
+
     const supplierName = this.selectedEquipmentSuppliers.find(s => s.id === supplierId)?.name;
     if (!supplierName) return null;
 
@@ -845,7 +849,7 @@ updateChart() {
             spanGaps: true
           };
         })
-      : this.isShowingAggregateData 
+      : this.isShowingAggregateData
         ? [{
             // For aggregate data, create a supplier cost dataset
             label: 'Monthly Total Cost',
@@ -1358,7 +1362,7 @@ async exportRankingPDF() {
     // Set up fonts
     const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    
+
     // Add title
     page.drawText('Supplier Ranking Report', {
       x: 50,
@@ -1427,16 +1431,16 @@ private async createPDFTable(pdfDoc: PDFDocument, page: any) {
   const headerHeight = 25;
   const columnWidths = [30, 80, 50, 50, 50, 50, 70, 80, 100]; // Adjust as needed
   const tableTop = 700;
-  
+
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
   // Draw table headers
   const headers = [
-    "Rank", "Supplier", "Avg Price", "Inventory", 
+    "Rank", "Supplier", "Avg Price", "Inventory",
     "Reliability", "Overall", "Contact", "Phone", "Email"
   ];
-  
+
   let x = margin;
   headers.forEach((header, i) => {
     // Draw header background
@@ -1449,7 +1453,7 @@ private async createPDFTable(pdfDoc: PDFDocument, page: any) {
       borderColor: rgb(0.8, 0.8, 0.8),
       borderWidth: 0.5,
     });
-    
+
     // Draw header text
     page.drawText(header, {
       x: x + 5,
@@ -1459,13 +1463,13 @@ private async createPDFTable(pdfDoc: PDFDocument, page: any) {
       color: rgb(1, 1, 1),
       maxWidth: columnWidths[i] - 10,
     });
-    
+
     x += columnWidths[i];
   });
 
   // Draw table rows
   let currentY = tableTop - headerHeight - rowHeight;
-  
+
   this.rankedSuppliers.forEach((supplier, index) => {
     x = margin;
     const rowData = [
@@ -1479,10 +1483,10 @@ private async createPDFTable(pdfDoc: PDFDocument, page: any) {
       supplier.phone || 'N/A',
       supplier.email || 'N/A'
     ];
-    
+
     // Alternate row colors
     const rowColor = index % 2 === 0 ? rgb(0.95, 0.95, 0.95) : rgb(1, 1, 1);
-    
+
     // Draw row background
     page.drawRectangle({
       x,
@@ -1493,13 +1497,13 @@ private async createPDFTable(pdfDoc: PDFDocument, page: any) {
       borderColor: rgb(0.8, 0.8, 0.8),
       borderWidth: 0.5,
     });
-    
+
     // Draw cell content
     rowData.forEach((cell, i) => {
       // Highlight overall score
       const isOverall = i === 5;
       const cellColor = isOverall ? rgb(0.8, 0, 0) : rgb(0, 0, 0);
-      
+
       page.drawText(cell, {
         x: x + 5,
         y: currentY + 5,
@@ -1508,17 +1512,17 @@ private async createPDFTable(pdfDoc: PDFDocument, page: any) {
         color: cellColor,
         maxWidth: columnWidths[i] - 10,
       });
-      
+
       x += columnWidths[i];
     });
-    
+
     currentY -= rowHeight;
-    
+
     // Add new page if we run out of space
     if (currentY < margin) {
       page = pdfDoc.addPage([595, 842]);
       currentY = height - margin - headerHeight;
-      
+
       // Redraw headers on new page
       x = margin;
       headers.forEach((header, i) => {
@@ -1531,7 +1535,7 @@ private async createPDFTable(pdfDoc: PDFDocument, page: any) {
           borderColor: rgb(0.8, 0.8, 0.8),
           borderWidth: 0.5,
         });
-        
+
         page.drawText(header, {
           x: x + 5,
           y: currentY + 5,
@@ -1540,10 +1544,10 @@ private async createPDFTable(pdfDoc: PDFDocument, page: any) {
           color: rgb(1, 1, 1),
           maxWidth: columnWidths[i] - 10,
         });
-        
+
         x += columnWidths[i];
       });
-      
+
       currentY -= rowHeight;
     }
   });
@@ -1558,7 +1562,7 @@ onSidebarCollapsed(collapsed: boolean) {
   async loadAggregateCostData() {
     try {
       console.log('🔄 Loading aggregate cost data...');
-      
+
       // Get all equipment with cost data
       const { data: equipmentData, error: equipmentError } = await this.supabaseService
         .from('equipments')
@@ -1579,15 +1583,15 @@ onSidebarCollapsed(collapsed: boolean) {
 
       // Create aggregate data points by month
       const monthlyData = new Map<string, { totalCost: number, totalSrp: number, count: number }>();
-      
+
       equipmentData.forEach(equipment => {
         const date = new Date(equipment.date_acquired);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        
+
         if (!monthlyData.has(monthKey)) {
           monthlyData.set(monthKey, { totalCost: 0, totalSrp: 0, count: 0 });
         }
-        
+
         const monthData = monthlyData.get(monthKey)!;
         monthData.totalCost += equipment.supplier_cost || 0;
         monthData.totalSrp += equipment.srp || 0;
@@ -1654,6 +1658,25 @@ onSidebarCollapsed(collapsed: boolean) {
       console.error('Error in getRecentCostHistory:', error);
       return [];
     }
+  }
+
+  onThemeChange(theme: string) {
+    // Handle theme changes from sidebar
+    this.cdr.detectChanges();
+  }
+
+  // Add method to handle theme changes from sidebar
+  onSidebarThemeChange(theme: string) {
+    // Update the document attribute to trigger CSS variable changes
+    document.documentElement.setAttribute('data-theme', theme);
+    this.cdr.detectChanges();
+  }
+
+  // Add method to initialize theme
+  private initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const currentTheme = savedTheme || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
   }
 
 }

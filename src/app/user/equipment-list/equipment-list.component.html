@@ -1,4 +1,4 @@
-<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<app-sidebar (collapsedChange)="isCollapsed = $event"></app-sidebar>
 <app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
 
 <div class="equipment-list-container" [class.collapsed]="isCollapsed">

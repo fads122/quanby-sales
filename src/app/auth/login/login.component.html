@@ -1,73 +1,82 @@
-
 <div class="login-wrapper">
-  <!-- Company logo in top left corner -->
+  <!-- Company Logo -->
   <div class="company-logo">
-    <img class="responsive-logo" src="/images/quanby.png" alt="Quanby Solutions Inc.">
+    <img src="/images/quanby.png" alt="Quanby Solutions Inc.">
     <span>Quanby Solutions Inc.</span>
   </div>
 
   <div class="login-container">
-    <!-- Partial blurred logo in background -->
-    <div class="logo-background">
-      <div class="blurred-logo"></div>
+    <!-- Background Pattern -->
+    <div class="background-pattern">
+      <div class="pattern-grid"></div>
+      <div class="gradient-overlay"></div>
     </div>
 
+    <!-- Large Background Logo -->
+    <div class="background-logo">
+      <img src="/images/quanby.png" alt="Quanby Background Logo">
+    </div>
+
+    <!-- Login Card -->
     <div class="login-card">
       <div class="login-header">
-        <h2>Quantify</h2>
-        <p class="subtitle">Your IT Solutions Partner</p>
+        <div class="logo-section">
+          <img src="/images/quanby.png" alt="Quanby Logo" class="header-logo">
+        </div>
+        <h1 class="login-title">Quantify</h1>
+        <p class="login-subtitle">Sign in to your account to continue</p>
       </div>
 
-      <!-- FORM FIX: Add (ngSubmit)="login()" and #form="ngForm" -->
       <form class="login-form" (ngSubmit)="login()" #form="ngForm">
-        <div class="form-group floating">
-          <input
-            id="email"
-            name="email"
-            type="email"
-            [(ngModel)]="email"
-            required
-          />
-          <label for="email">Email Address</label>
-          <i class="pi pi-envelope"></i>
+        <div class="form-group">
+          <div class="input-wrapper">
+            <i class="input-icon pi pi-envelope"></i>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              [(ngModel)]="email"
+              placeholder="Enter your email"
+              required
+              class="form-input"
+            />
+          </div>
         </div>
 
-        <div class="form-group floating">
-          <input
-            id="password"
-            name="password"
-            type="password"
-            [(ngModel)]="password"
-            required
-          />
-          <label for="password">Password</label>
-          <i class="pi pi-lock"></i>
-          <button type="button" class="toggle-password">
-            <!-- You can add JS or Angular toggle logic here -->
-          </button>
+        <div class="form-group">
+          <div class="input-wrapper">
+            <i class="input-icon pi pi-lock"></i>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              [(ngModel)]="password"
+              placeholder="Enter your password"
+              required
+              class="form-input"
+            />
+          </div>
         </div>
-
-        <!-- Optional Features -->
-        <!--
-        <div class="form-options">
-          <label class="remember-me">
-            <input type="checkbox">
-            <span class="checkmark"></span>
-            Remember me
-          </label>
-          <a href="#" class="forgot-password">Forgot password?</a>
-        </div>
-        -->
 
         <button type="submit" class="login-button">
           <span>Sign In</span>
           <i class="pi pi-arrow-right"></i>
         </button>
       </form>
+
+      <div class="login-footer">
+        <p class="footer-text">
+          Protected by enterprise-grade security
+        </p>
+      </div>
     </div>
   </div>
 
+  <!-- Website Link -->
   <div class="website-link">
-    <a href="https://quanbyit.com/" target="_blank">quanbyit.com</a>
+    <a href="https://quanbyit.com/" target="_blank" rel="noopener">
+      quanbyit.com
+      <i class="pi pi-external-link"></i>
+    </a>
   </div>
 </div>

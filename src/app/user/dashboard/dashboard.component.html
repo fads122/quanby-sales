@@ -16,7 +16,7 @@
   </div>
 </div>
 
-<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<app-sidebar (collapsedChange)="onSidebarCollapsed($event)" (themeChange)="onSidebarThemeChange($event)"></app-sidebar>
 <app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
 <div class="dashboard-container" [class.sidebar-collapsed]="isCollapsed">
   <!-- Summary Cards -->

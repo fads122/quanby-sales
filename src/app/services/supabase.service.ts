@@ -2948,7 +2948,7 @@ async getImageUrl(filename: string): Promise<string> {
       .storage
       .from('equipment-images')
       .createSignedUrl(filename, 3600); // 1 hour expiry
-    
+
     if (error) throw error;
     return data.signedUrl;
   } catch (error) {

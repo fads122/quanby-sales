@@ -2,6 +2,7 @@
   class="sidebar"
   [class.collapsed]="isCollapsed"
   [class.mobile]="isMobile"
+  [class.dark-mode]="isDarkMode"
 >
   <div class="sidebar-header">
     <div class="app-logo" *ngIf="!isCollapsed">
@@ -10,8 +11,16 @@
       </div>
       <h1>Quantify</h1>
     </div>
-    <button class="toggle-btn" (click)="toggleSidebar()">
-      <i class="pi" [class.pi-chevron-left]="!isCollapsed" [class.pi-chevron-right]="isCollapsed"></i>
+    <div class="header-controls" *ngIf="!isCollapsed">
+      <button class="theme-toggle-btn" (click)="toggleDarkMode()" [attr.data-tooltip]="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+        <i class="pi" [class.pi-sun]="isDarkMode" [class.pi-moon]="!isDarkMode"></i>
+      </button>
+      <button class="toggle-btn" (click)="toggleSidebar()">
+        <i class="pi pi-chevron-left"></i>
+      </button>
+    </div>
+    <button class="toggle-btn" (click)="toggleSidebar()" *ngIf="isCollapsed">
+      <i class="pi pi-chevron-right"></i>
     </button>
   </div>
 

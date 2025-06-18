@@ -30,11 +30,14 @@ export const appConfig: ApplicationConfig = {
 })
 export class SidebarComponent implements OnInit {
   @Output() collapsedState = new EventEmitter<boolean>();
+  @Output() themeChange = new EventEmitter<string>();
+
   isCollapsed = false;
   isMobile = false;
   isAdmin = false;
   currentUser: any = null;
   userInitials: string = '';
+  isDarkMode = false;
 
   commonMenuItems = [
     { path: '/dashboard', icon: 'pi pi-home', label: 'Home' },
@@ -69,6 +72,7 @@ export class SidebarComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.checkScreenSize();
       this.subscribeToAuthChanges();
+      this.initializeTheme();
     }
   }
 
@@ -80,6 +84,34 @@ export class SidebarComponent implements OnInit {
       // Refresh user data when auth state changes
       await this.loadCurrentUser();
     });
+  }
+
+  private initializeTheme() {
+    // Check for saved theme preference or default to light mode
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      this.isDarkMode = savedTheme === 'dark';
+    } else {
+      // Check system preference
+      this.isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    this.applyTheme();
+    // Emit initial theme state
+    this.themeChange.emit(this.isDarkMode ? 'dark' : 'light');
+  }
+
+  private applyTheme() {
+    const theme = this.isDarkMode ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    this.themeChange.emit(theme);
+  }
+
+  toggleDarkMode() {
+    this.isDarkMode = !this.isDarkMode;
+    this.applyTheme();
+    // Emit theme change to parent components
+    this.themeChange.emit(this.isDarkMode ? 'dark' : 'light');
   }
 
   private async loadCurrentUser() {
@@ -159,7 +191,7 @@ export class SidebarComponent implements OnInit {
     this.isCollapsed = !this.isCollapsed;
     this.collapsedState.emit(this.isCollapsed);
   }
-  
+
   confirmLogout(): void {
     const dialogRef = this.dialog.open(DialogOverview, {
       width: '300px',
@@ -182,17 +214,17 @@ async logout(): Promise<void> {
     // Reset layout state before logout
     this.isCollapsed = false;
     this.collapsedState.emit(false);
-    
+
     // Reset body styles
     document.body.classList.remove('collapsed');
     document.body.style.marginLeft = '';
     document.body.style.width = '';
-    
+
     // Then proceed with logout
     const signOutResult = await this.authService.signOut();
     localStorage.clear();
     localStorage.setItem('logoutMessage', 'You have been logged out successfully');
-    
+
     // Force full page reload to ensure clean state
     window.location.href = '/login';
   } catch (error) {
@@ -203,19 +235,19 @@ async logout(): Promise<void> {
 private resetLayoutBeforeLogout(): void {
   // Add transition-disabling class
   document.body.classList.add('logout-transition');
-  
+
   // Reset all possible affecting styles
   document.body.style.margin = '0';
   document.body.style.padding = '0';
   document.body.style.width = '100vw';
   document.body.style.minWidth = '100vw';
   document.body.style.overflowX = 'hidden';
-  
+
   // Reset HTML element
   document.documentElement.style.width = '100vw';
   document.documentElement.style.minWidth = '100vw';
   document.documentElement.style.overflowX = 'hidden';
-  
+
   // Force reset of login container
   const loginContainers = document.querySelectorAll('.login-container, app-login');
   loginContainers.forEach(container => {
@@ -228,7 +260,7 @@ private resetLayoutBeforeLogout(): void {
     el.style.position = 'relative';
     el.style.left = '0';
   });
-  
+
   // Remove any sidebar-related classes
   document.body.classList.remove('sidebar-collapsed', 'sidebar-expanded');
 }
