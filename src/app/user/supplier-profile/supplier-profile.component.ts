@@ -60,9 +60,9 @@ export class SupplierProfileComponent implements OnInit {
   ngOnInit(): void {
     const supplierId = this.route.snapshot.paramMap.get('id')?.trim();
 
-    if (!supplierId || isNaN(Number(supplierId))) {
+    if (!supplierId) {
       alert('Invalid supplier ID. Please check the URL.');
-      this.router.navigate(['/suppliers']);
+      this.router.navigate(['/supplier-list']);
       return;
     }
 
@@ -73,17 +73,15 @@ export class SupplierProfileComponent implements OnInit {
     this.loading = true;
     try {
       let supplierId = this.route.snapshot.paramMap.get('id')?.trim();
-      if (!supplierId || isNaN(Number(supplierId))) {
+      if (!supplierId) {
         throw new Error('Invalid supplier ID');
       }
-
-      const numericSupplierId = Number(supplierId);
 
       // Fetch supplier details
       const { data: supplierData, error: supplierError } = await this.supabaseService
         .from('suppliers')
         .select('*')
-        .eq('id', numericSupplierId)
+        .eq('id', supplierId)
         .maybeSingle();
 
       if (supplierError || !supplierData) {

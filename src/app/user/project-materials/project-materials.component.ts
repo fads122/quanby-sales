@@ -65,6 +65,7 @@ interface Project {
   subtotal?: number;  // Add this
   vat?: number;      // Add this
   total?: number;    // Add this
+  delivery_status?: string; // <-- Added to fix compile error
 }
 
 const SUPABASE_URL = 'https://xvcgubrtandfivlqcmww.supabase.co';
@@ -2364,19 +2365,46 @@ calculateTotalWithVAT(): number {
   return subtotal * 1.2; // Subtotal + 20% VAT
 }
 
-  markAsDelivered(project: Project) {
+//   markAsDelivered(project: Project) {
+//   console.log(`🚚 Delivering project: ${project.name}`);
+
+//   const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+//   const clientName = project.client_name;
+
+//   // Pass project.id here to ensure project_id is saved
+//   this.addDeliveryReceipt(project.id, project.name, clientName, currentDate);
+
+//   project.delivered = true;
+
+//   this.showSuccessToast('Marked as Delivered!');
+//   this.closeProjectDetailsModal();
+// }
+async markAsDelivered(project: Project) {
   console.log(`🚚 Delivering project: ${project.name}`);
 
-  const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  const clientName = project.client_name;
+  // Update the delivery_status in the database
+  const { error } = await this.supabase
+    .from('projects')
+    .update({ delivery_status: 'delivering' })
+    .eq('id', project.id);
 
-  // Pass project.id here to ensure project_id is saved
+  if (error) {
+    console.error('❌ Error updating delivery status:', error);
+    this.showSuccessToast('Failed to update delivery status!');
+    return;
+  }
+
+  // Update the local project object
+  project.delivery_status = 'delivering';
+
+  // Add a delivery receipt as before
+  const currentDate = new Date().toISOString().split('T')[0];
+  const clientName = project.client_name;
   this.addDeliveryReceipt(project.id, project.name, clientName, currentDate);
 
-  project.delivered = true;
-
-  this.showSuccessToast('Marked as Delivered!');
+  this.showSuccessToast('Marked as Delivering!');
   this.closeProjectDetailsModal();
+  await this.fetchProjects(); // Refresh the list
 }
 
 addDeliveryReceipt(projectId: string, projectName: string, clientName: string, deliveryDate: string) {

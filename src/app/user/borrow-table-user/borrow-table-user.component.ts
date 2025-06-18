@@ -79,6 +79,7 @@ export class BorrowTableUserComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   userEmail: string | null = null;
+  userId: string | null = null; // <-- Add this line
   filteredBorrowRequests: any[] = [];
   searchTerm: string = "";
   selectedRequest: any | null = null;
@@ -121,11 +122,20 @@ export class BorrowTableUserComponent implements OnInit, AfterViewInit {
   }
 
   async ngOnInit() {
+    this.isLoading = true;
+    const user = await this.supabaseService.getCurrentUser();
+    this.userEmail = user?.email?.toLowerCase().trim() || '';
+    this.userId = user?.id || ''; // <-- Add this line
+
     try {
       this.isLoading = true; // Show loader
+
+      // Get the current user's email
+      const user = await this.supabaseService.getCurrentUser();
+      this.userEmail = user?.email?.toLowerCase().trim() || '';
+
       await this.fetchBorrowRequests();
     } finally {
-      // Add a slight delay to ensure smooth animation
       setTimeout(() => {
         this.isLoading = false; // Hide loader
       }, 1000);
@@ -287,33 +297,8 @@ export class BorrowTableUserComponent implements OnInit, AfterViewInit {
   }
 
   openDetailsModal(request: any) {
-    console.log("🟢 Opening details for:", request);
-     console.log("Equipment List:", request.equipmentList);
-
-    if (!request) {
-      console.error("❌ No request data provided.");
-      return;
-    }
-
-    // ✅ Ensure equipmentList exists and has data
-    if (!request.equipmentList || request.equipmentList.length === 0) {
-      console.warn("⚠ No equipment data found for this borrower.");
-      request.equipmentList = []; // Set an empty array to avoid errors
-    }
-
-    // ✅ Ensure split() is not called on undefined values
-    const safeEquipmentNames = request.equipment_names ? request.equipment_names.split(', ') : [];
-    const safeQuantities = request.quantities ? request.quantities.split(', ') : [];
-
-    // ✅ Assign selected borrower details
-    this.selectedBorrower = {
-      ...request,
-      equipmentList: request.equipmentList, // ✅ Use preprocessed equipment list
-      equipmentNamesArray: safeEquipmentNames,
-      quantitiesArray: safeQuantities
-    };
-
-    this.showDetailsModal = true; // ✅ Show the modal
+    this.selectedRequest = request;
+    this.showDetailsModal = true;
   }
 
   async markAsReturned(requestId: string): Promise<void> {
@@ -395,7 +380,7 @@ export class BorrowTableUserComponent implements OnInit, AfterViewInit {
         status: 'completed',
         borrow_request_id: requestId,
         movement_date: returnDate.toISOString(),
-        employee_id: this.userEmail,
+        employee_id: this.userId, // <-- Use UUID, not email
       };
 
       const { data, error } = await this.supabaseService
@@ -437,4 +422,17 @@ export class BorrowTableUserComponent implements OnInit, AfterViewInit {
   async refreshEquipmentList() {
     this.equipmentList = await this.supabaseService.getAvailableEquipment();
   }
+
+  // Update the isCurrentUsersRequest method (or add it if you don't have it)
+isCurrentUsersRequest(request: BorrowRequest): boolean {
+
+
+  if (!this.userEmail || !request.borrower_email) return false;
+  
+  // Normalize both emails - trim and lowercase
+  const currentEmail = this.userEmail.trim().toLowerCase();
+  const requestEmail = request.borrower_email.trim().toLowerCase();
+  
+  return currentEmail === requestEmail;
+}
 }

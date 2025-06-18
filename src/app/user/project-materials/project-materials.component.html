@@ -1082,12 +1082,13 @@
         <!-- Action Buttons -->
         <div class="modal-actions">
           <button
-            class="deliver-btn"
-            (click)="markAsDelivered(selectedProject)"
-            [disabled]="selectedProject?.delivered">
-            <i class="pi pi-truck"></i>
-            Deliver Project
-          </button>
+          class="deliver-btn"
+          (click)="markAsDelivered(selectedProject)"
+          [disabled]="selectedProject?.delivery_status === 'delivering' || selectedProject?.delivery_status === 'delivered'"
+        >
+          <i class="pi pi-truck"></i>
+          Deliver Project
+        </button>
         </div>
       </div>
     </div>

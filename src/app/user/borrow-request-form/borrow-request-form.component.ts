@@ -65,52 +65,7 @@ export class BorrowRequestComponent {
     private cdr: ChangeDetectorRef
   ) {}
 
-  // async ngOnInit(): Promise<void> {
-  //   try {
-  //     // ✅ Load all form data from localStorage
-  //     const savedFormData = localStorage.getItem('borrowFormData');
-  //     if (savedFormData) {
-  //       const formData = JSON.parse(savedFormData);
-  //       this.borrowerName = formData.borrowerName || '';
-  //       this.borrowerDepartment = formData.borrowerDepartment || '';
-  //       this.borrowerContact = formData.borrowerContact || '';
-  //       this.borrowerEmail = formData.borrowerEmail || '';
-  //       this.borrowDate = formData.borrowDate || '';
-  //       this.returnDate = formData.returnDate || '';
-  //       this.purpose = formData.purpose || '';
-  //     }
 
-  //     // ✅ Load borrowed items from localStorage
-  //     const savedItems = localStorage.getItem('borrowedItems');
-  //     this.borrowedItems = savedItems ? JSON.parse(savedItems) : [];
-  //     console.log("✅ Loaded Borrowed Items from localStorage:", JSON.stringify(this.borrowedItems, null, 2));
-
-  //     // ✅ Fetch available equipment from Supabase
-  //     const rawEquipmentList = await this.supabaseService.getAvailableEquipment();
-
-  //     // ✅ Merge borrowed items with `equipmentList`
-  //     this.equipmentList = rawEquipmentList.map((item: any) => {
-  //       const borrowedItem = this.borrowedItems.find(b => b.id === item.id);
-  //       return {
-  //         ...item,
-  //         current_quantity: borrowedItem ? item.quantity - borrowedItem.quantity : item.quantity, // Preserve quantity
-  //         quantity: borrowedItem ? borrowedItem.quantity : 0, // Restore borrowed amount if exists
-  //         borrowed: borrowedItem ? true : false, // Mark as borrowed if needed
-  //         selected: borrowedItem ? true : false // Keep selected items
-  //       };
-  //     });
-
-  //     console.log("✅ Updated Equipment List:", this.equipmentList);
-
-  //     this.updateDisplayedItems();
-  //     // Load in-house equipment
-  //     await this.loadInHouseEquipment();
-  //     await this.loadUserDetails();
-  //   } catch (error) {
-  //     console.error('❌ Error during initialization:', error);
-  //     alert('Failed to load data. Please try again.');
-  //   }
-  // }
 
   async ngOnInit(): Promise<void> {
   try {
@@ -571,103 +526,6 @@ async addToBorrowedList(equipmentId: string) {
   }
 }
 
-
-
-
-
-
-
-// async removeFromBorrowList(equipment: any) {
-//   console.log("❌ Removing Equipment ID:", equipment.id);
-
-//   try {
-//     // ✅ Increase stock in Supabase
-//     await this.supabaseService.incrementEquipmentQuantity(equipment.id, 1);
-
-//     // ✅ Restore stock in UI
-//     const equipmentInList = this.equipmentList.find(item => item.id === equipment.id);
-//     if (equipmentInList) {
-//       equipmentInList.current_quantity += 1;
-//       equipmentInList.borrowed = false; // Mark as available
-//     } else {
-//       // If it's not in the list, add it back
-//       this.equipmentList.push({ ...equipment, current_quantity: 1, borrowed: false });
-//     }
-
-//     // ✅ Remove from Borrowed Items List
-//     this.borrowedItems = this.borrowedItems.filter(item => item.id !== equipment.id);
-
-//     // ✅ Save updated lists
-//     localStorage.setItem('borrowedItems', JSON.stringify(this.borrowedItems));
-
-//     console.log("✅ Borrowed Items After Removal (Updated localStorage):", JSON.stringify(this.borrowedItems, null, 2));
-
-//     this.updateDisplayedItems();
-//     this.cdr.detectChanges();
-//   } catch (error) {
-//     console.error("❌ Error restoring quantity in Supabase:", error);
-//     alert("Failed to restore equipment stock.");
-//   }
-// }
-// async removeFromBorrowList(equipment: any) {
-//   console.log("❌ Removing Equipment ID:", equipment.id);
-
-//   try {
-//     // Get the quantity to restore (default to 1 if not specified)
-//     const quantityToRestore = equipment.quantity || 1;
-
-//     // ✅ Increase stock in Supabase
-//     await this.supabaseService.incrementEquipmentQuantity(equipment.id, quantityToRestore);
-
-//     // ✅ Restore stock in UI
-//     const equipmentInList = this.equipmentList.find(item => item.id === equipment.id);
-//     if (equipmentInList) {
-//       equipmentInList.current_quantity += quantityToRestore;
-//       equipmentInList.borrowed = false;
-
-//       // Update status if needed
-//       if (equipmentInList.current_quantity > 0) {
-//         equipmentInList.status = 'Available';
-//       }
-//     } else {
-//       // If it's not in the list, add it back
-//       this.equipmentList.push({
-//         ...equipment,
-//         current_quantity: quantityToRestore,
-//         borrowed: false,
-//         status: 'Available'
-//       });
-//     }
-
-//     // ✅ Remove from Borrowed Items List
-//     this.borrowedItems = this.borrowedItems.filter(item => item.id !== equipment.id);
-
-//     // ✅ Save updated lists
-//     localStorage.setItem('borrowedItems', JSON.stringify(this.borrowedItems));
-
-//     console.log("✅ Equipment restored successfully. New state:", {
-//       equipmentList: this.equipmentList,
-//       borrowedItems: this.borrowedItems
-//     });
-
-//     this.updateDisplayedItems();
-//     this.cdr.detectChanges();
-
-//   } catch (error) {
-//     console.error("❌ Error restoring equipment:", error);
-//     alert(`Failed to restore equipment: ${error instanceof Error ? error.message : 'Unknown error'}`);
-
-//     // Revert UI changes if the server update failed
-//     if (equipment) {
-//       const equipmentInList = this.equipmentList.find(item => item.id === equipment.id);
-//       if (equipmentInList) {
-//         equipmentInList.current_quantity -= (equipment.quantity || 1);
-//         equipmentInList.borrowed = true;
-//       }
-//       this.cdr.detectChanges();
-//     }
-//   }
-// }
 async removeFromBorrowList(equipment: any) {
   console.log("❌ Removing Equipment ID:", equipment.id);
 
@@ -755,6 +613,13 @@ async refreshEquipmentList(): Promise<void> {
 
 
 
+  allowOnlyNumbers(event: KeyboardEvent) {
+    const charCode = event.which ? event.which : event.keyCode;
+    // Allow only numbers (0-9)
+    if (charCode < 48 || charCode > 57) {
+      event.preventDefault();
+    }
+  }
 }
 function firstValueFrom(queryParams: any) {
   return rxFirstValueFrom(queryParams);
