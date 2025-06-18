@@ -13,7 +13,7 @@
 </div>
 
 <div class="equipment-container" [class.sidebar-collapsed]="isSidebarCollapsed">
-  <!-- Modern Search Bar -->
+  <!-- Page Header -->
   <div class="search-container">
     <div class="search-header">
       <h2 class="search-title">Parts Picker</h2>
@@ -94,7 +94,7 @@
   <div class="results-container">
     <!-- Semantic Search Results -->
     <div *ngIf="searchMode === 'semantic' && semanticSearchResults.length > 0" class="parts-grid">
-      <div *ngFor="let product of semanticSearchResults" class="part-card modern-card">
+      <div *ngFor="let product of semanticSearchResults" class="modern-card">
         <div class="card-image-section">
           <div class="image-container">
             <img [src]="product.image" [alt]="product.name" class="product-image">
@@ -151,7 +151,7 @@
 
     <!-- Regular Search Results -->
     <div *ngIf="searchMode === 'text' || (searchMode === 'semantic' && semanticSearchResults.length === 0)" class="parts-grid">
-      <div *ngFor="let product of filteredProducts()" class="part-card modern-card">
+      <div *ngFor="let product of filteredProducts()" class="modern-card">
         <div class="card-image-section">
           <div class="image-container">
             <img [src]="product.image" alt="{{ product.name }}" class="product-image"/>
@@ -241,32 +241,36 @@
   <!-- Modal for Selected Equipment -->
   <div class="modal-overlay" *ngIf="showModal">
     <div class="modal">
-      <button class="modal-close-button" (click)="closeModal()">
-        <i class="pi pi-times"></i>
-      </button>
-      <h2>Selected Equipment</h2>
-
-      <!-- Display message if no items are selected -->
-      <div *ngIf="selectedProducts.length === 0" class="empty-message">
-        <i class="pi pi-info-circle"></i> No items selected yet
+      <div class="modal-header">
+        <h2>Selected Equipment</h2>
+        <button class="modal-close-button" (click)="closeModal()">
+          <i class="pi pi-times"></i>
+        </button>
       </div>
 
-      <!-- List Selected Items -->
-      <div *ngFor="let product of selectedProducts" class="modal-item">
-        <div class="modal-item-content">
-          <span class="modal-item-name">{{ product.name }}</span>
-          <span class="modal-item-details">
-            Qty: {{ product.quantity }} × {{ product.supplier_cost | currency: 'PHP' }}
-          </span>
-          <span class="modal-item-total">
-            {{ (product.quantity * product.supplier_cost) | currency: 'PHP' }}
-          </span>
+      <div class="modal-body">
+        <!-- Display message if no items are selected -->
+        <div *ngIf="selectedProducts.length === 0" class="empty-message">
+          <i class="pi pi-info-circle"></i> No items selected yet
         </div>
-      </div>
 
-      <!-- Total Price in Modal -->
-      <div class="modal-total">
-        <strong>Total: <span class="total-price">{{ getTotalPrice() | currency: 'PHP' }}</span></strong>
+        <!-- List Selected Items -->
+        <div *ngFor="let product of selectedProducts" class="modal-item">
+          <div class="modal-item-content">
+            <span class="modal-item-name">{{ product.name }}</span>
+            <span class="modal-item-details">
+              Qty: {{ product.quantity }} × {{ product.supplier_cost | currency: 'PHP' }}
+            </span>
+            <span class="modal-item-total">
+              {{ (product.quantity * product.supplier_cost) | currency: 'PHP' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Total Price in Modal -->
+        <div class="modal-total">
+          <strong>Total: <span class="total-price">{{ getTotalPrice() | currency: 'PHP' }}</span></strong>
+        </div>
       </div>
 
       <div class="modal-buttons">
@@ -294,16 +298,22 @@
   <!-- Second Modal for Title Input -->
   <div class="modal-overlay" *ngIf="showTitleModal">
     <div class="modal">
-      <button class="modal-close-button" (click)="closeTitleModal()">
-        <i class="pi pi-times"></i>
-      </button>
-      <h2>Save Equipment List</h2>
-      <input
-        type="text"
-        [(ngModel)]="equipmentTitle"
-        placeholder="Enter title for saved equipment"
-        class="title-input"
-      />
+      <div class="modal-header">
+        <h2>Save Equipment List</h2>
+        <button class="modal-close-button" (click)="closeTitleModal()">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <input
+          type="text"
+          [(ngModel)]="equipmentTitle"
+          placeholder="Enter title for saved equipment"
+          class="title-input"
+        />
+      </div>
+
       <div class="modal-buttons">
         <button class="save-button" (click)="saveSelectedEquipment()">
           <i class="pi pi-check"></i> Confirm Save

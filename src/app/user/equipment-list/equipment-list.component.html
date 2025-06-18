@@ -1,6 +1,7 @@
 <app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
 <app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
-<body class="body-equip-list" [class.sidebar-collapsed]="isCollapsed">
+
+<div class="equipment-list-container" [class.collapsed]="isCollapsed">
   <!-- Loading Overlay -->
   <div *ngIf="isLoading" class="loading-overlay">
     <div class="loading-content">
@@ -8,103 +9,190 @@
         <div class="logo-glow"></div>
         <img src="/images/quanby.png" alt="Quanby Logo">
       </div>
-      <h3>Loading Products List...</h3>
+      <h3>Loading Equipment List...</h3>
     </div>
   </div>
 
-  <div class="equipment-list-container" [@tableSwitch]="tableSwitchState">
-    <!-- Table Controls -->
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-title">Equipment Management</h1>
+        <p class="page-subtitle">Manage and track all equipment across your organization</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls Section -->
+  <div class="controls-section">
     <div class="table-controls">
+      <!-- Table Selector -->
       <div class="table-selector">
         <button
           [class.active]="selectedTable === 'equipments'"
           (click)="onTableChange('equipments')">
-          <i class="fas fa-tag"></i> For Sale
+          <i class="fas fa-tag"></i>
+          <span>For Sale</span>
         </button>
         <button
           [class.active]="selectedTable === 'inhouse'"
           (click)="onTableChange('inhouse')">
-          <i class="fas fa-warehouse"></i> Operational
+          <i class="fas fa-warehouse"></i>
+          <span>Operational</span>
         </button>
       </div>
 
+      <!-- Search Mode Toggle -->
+      <div class="search-mode-toggle">
+        <div class="toggle-container">
+          <button
+            class="toggle-option"
+            [class.active]="searchMode === 'text'"
+            (click)="searchMode = 'text'; onSearch()">
+            <i class="pi pi-search"></i>
+            <span>Text Search</span>
+          </button>
+          <button
+            class="toggle-option"
+            [class.active]="searchMode === 'semantic'"
+            (click)="searchMode = 'semantic'; onSearch()">
+            <i class="pi pi-brain"></i>
+            <span>AI Search</span>
+          </button>
+        </div>
+      </div>
 
+      <!-- Search Bar -->
       <div class="search-bar">
         <i class="fas fa-search"></i>
         <input
           type="text"
           [(ngModel)]="searchQuery"
-          (input)="applyFilter()"
-          [placeholder]="selectedTable === 'inhouse' ? 'Search operational items...' : 'Search for sale items...'"
+          (input)="onSearch()"
+          [placeholder]="searchMode === 'text' ? getSearchPlaceholder() : 'Describe what you need in natural language...'"
         />
       </div>
 
-      <div class="custom-select" *ngIf="selectedTable === 'equipments'">
-  <div class="select-header" (click)="toggleDropdown()">
-    <span class="filter-icon">
-      <i class="fas fa-building"></i>
-    </span>
-    <span class="filter-label">{{ selectedOwnership ? getOwnershipLabel(selectedOwnership) : 'Ownership' }}</span>
-    <i class="fas fa-chevron-down dropdown-arrow"></i>
-  </div>
+      <!-- Ownership Filter (For Sale) or Spacer (Operational) -->
+      <div class="filter-section">
+        <div class="custom-select" *ngIf="selectedTable === 'equipments'">
+          <div class="select-header" (click)="toggleDropdown()">
+            <span class="filter-icon">
+              <i class="fas fa-building"></i>
+            </span>
+            <span class="filter-label">{{ selectedOwnership ? getOwnershipLabel(selectedOwnership) : 'Ownership' }}</span>
+            <i class="fas fa-chevron-down dropdown-arrow"></i>
+          </div>
 
-  <div class="select-dropdown" *ngIf="dropdownOpen">
-    <div class="dropdown-option" (click)="selectOption(null)">
-      <i class="fas fa-layer-group option-icon"></i>
-      <span>All Ownerships</span>
-    </div>
-    <div class="dropdown-option" (click)="selectOption('government')">
-      <i class="fas fa-landmark option-icon"></i>
-      <span>Government</span>
-    </div>
-    <div class="dropdown-option" (click)="selectOption('private')">
-      <i class="fas fa-briefcase option-icon"></i>
-      <span>Private</span>
-    </div>
-  </div>
-</div>
+          <div class="select-dropdown" *ngIf="dropdownOpen">
+            <div class="dropdown-option" (click)="selectOption(null)">
+              <i class="fas fa-layer-group option-icon"></i>
+              <span>All Ownerships</span>
+            </div>
+            <div class="dropdown-option" (click)="selectOption('government')">
+              <i class="fas fa-landmark option-icon"></i>
+              <span>Government</span>
+            </div>
+            <div class="dropdown-option" (click)="selectOption('private')">
+              <i class="fas fa-briefcase option-icon"></i>
+              <span>Private</span>
+            </div>
+          </div>
+        </div>
 
-      <button class="add" (click)="openEquipmentModal()">
-        <i class="fas fa-plus"></i> Add Equipment
-      </button>
-    </div>
-
-    <!-- Main Content -->
-    <div *ngIf="!isLoading" @fadeInOut>
-      <!-- Table Header -->
-      <div class="table-header">
-        <h3>
-          {{ selectedTable === 'inhouse' ? 'Operational Equipment' : 'Equipment For Sale' }}
-          <span class="item-count">{{ filteredEquipmentList.length }} items</span>
-        </h3>
+        <!-- Spacer for Operational table to maintain consistent layout -->
+        <div class="filter-spacer" *ngIf="selectedTable === 'inhouse'"></div>
       </div>
 
-      <!-- Equipment Table -->
-      <div class="table-container">
-        <p-table [value]="filteredEquipmentList" [paginator]="true" [rows]="6" responsiveLayout="scroll">
-          <ng-template pTemplate="header">
-            <tr>
-              <th>Equipment Group</th>
-            </tr>
-          </ng-template>
+      <!-- Add Button -->
+      <button class="add" (click)="openEquipmentModal()">
+        <i class="fas fa-plus"></i>
+        <span>Add Equipment</span>
+      </button>
+    </div>
+  </div>
 
-          <ng-template pTemplate="body" let-equipmentGroup>
-            <tr class="group-header" (click)="toggleGroupExpansion(equipmentGroup)">
-              <td class="group-name">
+  <!-- Test Buttons (Hidden in production) -->
+  <div class="test-buttons" *ngIf="isTesting">
+    <button (click)="searchQuery = 'computer'; runSemanticSearch()">Test Computer</button>
+    <button (click)="searchQuery = 'audio'; runSemanticSearch()">Test Audio</button>
+    <button (click)="searchQuery = 'video'; runSemanticSearch()">Test Video</button>
+  </div>
+
+  <!-- Table Section -->
+  <div class="table-section" *ngIf="!isLoading">
+    <div class="table-header">
+      <h2 class="table-title">
+        {{ selectedTable === 'inhouse' ? 'Operational Equipment' : 'Equipment For Sale' }}
+        <span *ngIf="searchMode === 'semantic' && searchQuery" class="search-mode-indicator">
+          (AI Search Results)
+        </span>
+      </h2>
+      <div class="table-stats">
+        <span class="stat-item">
+          <i class="pi pi-box"></i>
+          <span>{{ paginatedEquipmentList.length }} Total Items</span>
+        </span>
+        <span class="stat-item">
+          <i class="pi pi-check-circle"></i>
+          <span>{{ getAvailableEquipmentCount() }} Available</span>
+        </span>
+        <span *ngIf="searchMode === 'semantic' && isSemanticSearching" class="stat-item">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Searching...</span>
+        </span>
+        <span *ngIf="searchMode === 'semantic' && searchQuery && !isSemanticSearching" class="stat-item">
+          <i class="pi pi-brain"></i>
+          <span>{{ semanticSearchResults.length }} AI Matches</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Modern Table -->
+    <div class="modern-table-container">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th class="table-header-cell">
+              <div class="header-content">
+                <span>Equipment Group</span>
+                <i class="pi pi-sort"></i>
+                <span *ngIf="searchMode === 'semantic' && searchQuery" class="ai-search-badge">
+                  <i class="pi pi-brain"></i> AI Search
+                </span>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let equipmentGroup of paginatedEquipmentList">
+            <tr class="table-row group-header"
+                [class.ai-search-result]="searchMode === 'semantic' && searchQuery"
+                (click)="toggleGroupExpansion(equipmentGroup)">
+              <td class="table-cell group-name">
                 <div class="group-name-content">
                   <i class="fas"
-                    [class.fa-chevron-right]="!equipmentGroup.expanded"
-                    [class.fa-chevron-down]="equipmentGroup.expanded"></i>
+                     [class.fa-chevron-right]="!equipmentGroup.expanded"
+                     [class.fa-chevron-down]="equipmentGroup.expanded"></i>
                   <div class="equipment-icon">
                     <i class="fas"
-                      [class.fa-desktop]="selectedEquipmentType !== 'pc_parts'"
-                      [class.fa-microchip]="selectedEquipmentType === 'pc_parts'"></i>
+                       [class.fa-desktop]="selectedTable !== 'inhouse'"
+                       [class.fa-warehouse]="selectedTable === 'inhouse'"></i>
                   </div>
-                  <div>
+                  <div class="group-info">
                     <div class="primary-text">{{ equipmentGroup.name }}</div>
                     <div class="secondary-text">
                       {{ equipmentGroup.items.length }} variants •
                       Last updated: {{ equipmentGroup.lastUpdated | date:'shortDate' }}
+                    </div>
+                  </div>
+                  <div class="group-metrics">
+                    <span class="item-count">{{ equipmentGroup.quantity }} total</span>
+                    <!-- AI Match Indicator -->
+                    <div *ngIf="searchMode === 'semantic' && searchQuery && equipmentGroup.items[0]?.similarity"
+                         class="ai-match-indicator">
+                      <div class="match-percentage">{{ (equipmentGroup.items[0].similarity * 100).toFixed(0) }}%</div>
+                      <div class="match-label">Match</div>
                     </div>
                   </div>
                 </div>
@@ -114,35 +202,38 @@
             <!-- Expanded Sub-Table -->
             <tr [@expandCollapse]="equipmentGroup.expanded ? 'expanded' : 'collapsed'"
                 [class.expanded-row]="equipmentGroup.expanded">
-              <td colspan="6" class="sub-table-container">
+              <td colspan="1" class="sub-table-container">
                 <div class="inner-table-wrapper" *ngIf="equipmentGroup.expanded">
                   <table class="inner-table">
                     <thead>
                       <tr>
-                        <th>Specifications</th>
-                        <th *ngIf="selectedTable === 'equipments'">Supplier Info</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th class="specs-header">Specifications</th>
+                        <th *ngIf="selectedTable === 'equipments'" class="supplier-header">Supplier Info</th>
+                        <th class="status-header">Status</th>
+                        <th *ngIf="searchMode === 'semantic' && searchQuery" class="match-header">AI Match</th>
+                        <th class="actions-header">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr *ngFor="let item of equipmentGroup.items" [class.low-stock-row]="item.quantity <= 5">
-                        <td class="specs">
-                          <div><strong>Model:</strong> {{ item.model || '-' }}</div>
-                          <div *ngIf="selectedTable === 'equipments'"><strong>Brand:</strong> {{ item.brand || '-' }}</div>
-                          <div *ngIf="selectedTable === 'inhouse'"><strong>Type:</strong> {{ item.product_type || '-' }}</div>
-                          <div *ngIf="selectedTable === 'inhouse' && item.serial_number">
+                      <tr *ngFor="let item of equipmentGroup.items"
+                          [class.low-stock-row]="item.quantity <= 5"
+                          [class.ai-search-row]="searchMode === 'semantic' && searchQuery">
+                        <td class="specs-cell">
+                          <div class="spec-item"><strong>Model:</strong> {{ item.model || '-' }}</div>
+                          <div *ngIf="selectedTable === 'equipments'" class="spec-item"><strong>Brand:</strong> {{ item.brand || '-' }}</div>
+                          <div *ngIf="selectedTable === 'inhouse'" class="spec-item"><strong>Type:</strong> {{ item.product_type || '-' }}</div>
+                          <div *ngIf="selectedTable === 'inhouse' && item.serial_number" class="spec-item">
                             <strong>Serial:</strong> {{ item.serial_number }}
                           </div>
                         </td>
-                        <td *ngIf="selectedTable === 'equipments'" class="supplier">
-                          <div>{{ item.supplier || '-' }}</div>
-                          <div class="cost" *ngIf="item.supplier_cost">
+                        <td *ngIf="selectedTable === 'equipments'" class="supplier-cell">
+                          <div class="supplier-name">{{ item.supplier || '-' }}</div>
+                          <div class="supplier-cost" *ngIf="item.supplier_cost">
                             {{ item.supplier_cost | currency }}
                           </div>
                         </td>
-                        <td>
-                          <div class="status-cell">
+                        <td class="status-cell">
+                          <div class="status-content">
                             <span class="status-badge" [ngClass]="'status-' + (item.status?.toLowerCase() || 'available')">
                               {{ item.status || 'Available' }}
                             </span>
@@ -151,37 +242,47 @@
                             </div>
                           </div>
                         </td>
+                        <!-- AI Match Column -->
+                        <td *ngIf="searchMode === 'semantic' && searchQuery" class="match-cell">
+                          <div *ngIf="item.similarity" class="match-display">
+                            <div class="match-circle">
+                              <span class="match-number">{{ (item.similarity * 100).toFixed(0) }}%</span>
+                            </div>
+                            <div class="match-quality">
+                              <span class="quality-label">{{ getMatchQuality(item.similarity) }}</span>
+                            </div>
+                          </div>
+                          <div *ngIf="!item.similarity" class="no-match">
+                            <span class="no-match-text">No match data</span>
+                          </div>
+                        </td>
                         <td class="actions-cell">
                           <div class="action-buttons">
                             <!-- QR Code and Barcode buttons for operational equipment -->
                             <button *ngIf="selectedTable === 'inhouse' && item.qr_code"
-                                    mat-icon-button
+                                    class="action-button qr-btn"
                                     (click)="openQRCodeModal(item.qr_code)"
-                                    class="action-btn qr-btn"
-                                    matTooltip="View QR Code">
-                              <mat-icon>qr_code_2</mat-icon>
+                                    title="View QR Code">
+                              <i class="fas fa-qrcode"></i>
                             </button>
 
                             <button *ngIf="item.barcode"
-                                    mat-icon-button
+                                    class="action-button barcode-btn"
                                     (click)="openBarcodeModal(item.barcode)"
-                                    class="action-btn barcode-btn"
-                                    matTooltip="View Barcode">
+                                    title="View Barcode">
                               <i class="fas fa-barcode"></i>
                             </button>
 
-                            <button mat-icon-button
+                            <button class="action-button view-btn"
                                     (click)="viewEquipmentDetails(item.id)"
-                                    class="action-btn view-btn"
-                                    matTooltip="View Details">
-                              <mat-icon>visibility</mat-icon>
+                                    title="View Details">
+                              <i class="fas fa-eye"></i>
                             </button>
 
-                            <button mat-icon-button
+                            <button class="action-button edit-btn"
                                     (click)="editEquipment(item)"
-                                    class="action-btn edit-btn"
-                                    matTooltip="Edit">
-                              <mat-icon>edit</mat-icon>
+                                    title="Edit">
+                              <i class="fas fa-edit"></i>
                             </button>
                           </div>
                         </td>
@@ -191,146 +292,178 @@
                 </div>
               </td>
             </tr>
-          </ng-template>
+          </ng-container>
+        </tbody>
+      </table>
 
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td colspan="3" class="empty-table">
-                <div class="empty-state">
-                  <i class="fas fa-box-open empty-icon"></i>
-                  <h3>No Equipment Found</h3>
-                  <p>Try adjusting your search or add new equipment</p>
-                  <button class="add" (click)="openEquipmentModal()">
-                    <i class="fas fa-plus"></i> Add Product
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
-    </div>
+      <!-- Pagination Controls -->
+      <div *ngIf="showPagination && totalPages > 1" class="pagination-container">
+        <div class="pagination-info">
+          <span>Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ getPaginationEndIndex() }} of {{ filteredEquipmentList.length }} items</span>
+        </div>
+        <div class="pagination-controls">
+          <button
+            class="pagination-btn"
+            [disabled]="currentPage === 1"
+            (click)="previousPage()"
+            title="Previous Page">
+            <i class="fas fa-chevron-left"></i>
+          </button>
 
-    <!-- QR Code Modal -->
-    <div class="modal-overlay" *ngIf="isQRCodeModalOpen" (click)="closeQRCodeModal()">
-      <div class="modal-content qr-modal" (click)="$event.stopPropagation()">
-        <h2 class="modal-title">QR Code</h2>
-        <img *ngIf="selectedQRCode" [src]="selectedQRCode" alt="QR Code" class="qr-image">
-        <p *ngIf="!selectedQRCode">No QR Code available</p>
-        <div class="modal-actions">
-          <button class="close-btn" (click)="closeQRCodeModal()">Close</button>
-          <button class="print-btn" *ngIf="selectedQRCode" (click)="printQRCode()">Print</button>
+          <div class="page-numbers">
+            <button
+              *ngFor="let page of getPageNumbers()"
+              class="page-number"
+              [class.active]="page === currentPage"
+              (click)="goToPage(page)">
+              {{ page }}
+            </button>
+          </div>
+
+          <button
+            class="pagination-btn"
+            [disabled]="currentPage === totalPages"
+            (click)="nextPage()"
+            title="Next Page">
+            <i class="fas fa-chevron-right"></i>
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- Barcode Modal -->
-    <div class="modal-overlay" *ngIf="isBarcodeModalOpen" (click)="closeBarcodeModal()">
-      <div class="modal-content barcode-modal" (click)="$event.stopPropagation()">
-        <h2 class="modal-title">Barcode</h2>
-        <div class="barcode-container">
+      <!-- Empty State -->
+      <div *ngIf="paginatedEquipmentList.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <i class="fas fa-box-open"></i>
+        </div>
+        <h3>No Equipment Found</h3>
+        <p *ngIf="searchMode === 'text'">Try adjusting your search or add new equipment</p>
+        <p *ngIf="searchMode === 'semantic'">Try rephrasing your search query or switch to text search</p>
+        <button class="add" (click)="openEquipmentModal()">
+          <i class="fas fa-plus"></i>
+          <span>Add Equipment</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal-overlay" *ngIf="isQRCodeModalOpen" (click)="closeQRCodeModal()">
+  <div class="modal-content qr-modal" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">QR Code</h2>
+    <img *ngIf="selectedQRCode" [src]="selectedQRCode" alt="QR Code" class="qr-image">
+    <p *ngIf="!selectedQRCode">No QR Code available</p>
+    <div class="modal-actions">
+      <button class="close-btn" (click)="closeQRCodeModal()">Close</button>
+      <button class="print-btn" *ngIf="selectedQRCode" (click)="printQRCode()">Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- Barcode Modal -->
+<div class="modal-overlay" *ngIf="isBarcodeModalOpen" (click)="closeBarcodeModal()">
+  <div class="modal-content barcode-modal" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">Barcode</h2>
+    <div class="barcode-container">
       <img *ngIf="selectedBarcode"
            [src]="selectedBarcode"
            alt="Barcode"
            class="barcode-image"
-           (error)="onBarcodeError($event)"
-           style="max-width: 300px; width: 100%; background: white; padding: 15px;">
+           (error)="onBarcodeError($event)">
       <p *ngIf="!selectedBarcode">No Barcode available</p>
     </div>
     <div class="modal-actions">
       <button class="close-btn" (click)="closeBarcodeModal()">Close</button>
       <button class="print-btn" *ngIf="selectedBarcode" (click)="printBarcode()">Print</button>
     </div>
+  </div>
+</div>
+
+<!-- Scanned Equipment Modal -->
+<div class="scanned-equipment-modal-overlay" *ngIf="isScannedEquipmentModalOpen" (click)="closeScannedEquipmentModal()">
+  <div class="scanned-equipment-modal" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">Scanned Equipment Details</h2>
+    <div *ngIf="scannedData" class="scanned-details">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>Name:</label>
+          <span>{{ scannedData.name }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Model:</label>
+          <span>{{ scannedData.model || scannedData.product_type || '-' }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Brand:</label>
+          <span>{{ scannedData.brand || '-' }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Serial Number:</label>
+          <span>{{ scannedData.serial_no || scannedData.serial_number || '-' }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Lifespan:</label>
+          <span>{{ scannedData.lifespan_months || '-' }} months</span>
+        </div>
+        <div class="detail-item">
+          <label>Condition:</label>
+          <span>{{ scannedData.condition || '-' }}</span>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <h4>Additional Information</h4>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>Supplier:</label>
+          <span>{{ scannedData.supplier || '-' }}</span>
+        </div>
+        <div *ngIf="selectedTable === 'equipments'" class="detail-item">
+          <label>Supplier Cost:</label>
+          <span>{{ scannedData.supplier_cost | currency }}</span>
+        </div>
+        <div *ngIf="selectedTable === 'equipments'" class="detail-item">
+          <label>SRP:</label>
+          <span>{{ scannedData.srp | currency }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Quantity:</label>
+          <span [class.low-stock]="scannedData.quantity <= 5">{{ scannedData.quantity }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Date Acquired:</label>
+          <span>{{ scannedData.date_acquired | date }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="scannedData.repair_logs?.length > 0" class="repair-section">
+        <h4>Repair History</h4>
+        <div class="repair-log" *ngFor="let log of scannedData.repair_logs">
+          <div class="log-date">{{ log.repair_date | date }}</div>
+          <div class="log-details">{{ log.repair_details }}</div>
+          <div class="log-status" [ngClass]="'status-' + log.repair_status?.toLowerCase()">
+            {{ log.repair_status }}
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="scannedData.product_images?.length" class="image-section">
+        <h4>Product Images</h4>
+        <div class="image-gallery">
+          <img *ngFor="let image of scannedData.product_images"
+               [src]="image"
+               alt="Product Image"
+               class="product-image"
+               (click)="openImagePreview(image)">
+        </div>
       </div>
     </div>
 
-    <!-- Scanned Equipment Modal -->
-    <div class="scanned-equipment-modal-overlay" *ngIf="isScannedEquipmentModalOpen" (click)="closeScannedEquipmentModal()">
-      <div class="scanned-equipment-modal" (click)="$event.stopPropagation()">
-        <h2 class="modal-title">Scanned Equipment Details</h2>
-        <div *ngIf="scannedData" class="scanned-details">
-          <div class="detail-grid">
-            <div class="detail-item">
-              <label>Name:</label>
-              <span>{{ scannedData.name }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Model:</label>
-              <span>{{ scannedData.model || scannedData.product_type || '-' }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Brand:</label>
-              <span>{{ scannedData.brand || '-' }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Serial Number:</label>
-              <span>{{ scannedData.serial_no || scannedData.serial_number || '-' }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Lifespan:</label>
-              <span>{{ scannedData.lifespan_months || '-' }} months</span>
-            </div>
-            <div class="detail-item">
-              <label>Condition:</label>
-              <span>{{ scannedData.condition || '-' }}</span>
-            </div>
-          </div>
-
-          <div class="section-divider"></div>
-
-          <h4>Additional Information</h4>
-          <div class="detail-grid">
-            <div class="detail-item">
-              <label>Supplier:</label>
-              <span>{{ scannedData.supplier || '-' }}</span>
-            </div>
-            <div *ngIf="selectedTable === 'equipments'" class="detail-item">
-              <label>Supplier Cost:</label>
-              <span>{{ scannedData.supplier_cost | currency }}</span>
-            </div>
-            <div *ngIf="selectedTable === 'equipments'" class="detail-item">
-              <label>SRP:</label>
-              <span>{{ scannedData.srp | currency }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Quantity:</label>
-              <span [class.low-stock]="scannedData.quantity <= 5">{{ scannedData.quantity }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Date Acquired:</label>
-              <span>{{ scannedData.date_acquired | date }}</span>
-            </div>
-          </div>
-
-          <div *ngIf="scannedData.repair_logs?.length > 0" class="repair-section">
-            <h4>Repair History</h4>
-            <div class="repair-log" *ngFor="let log of scannedData.repair_logs">
-              <div class="log-date">{{ log.repair_date | date }}</div>
-              <div class="log-details">{{ log.repair_details }}</div>
-              <div class="log-status" [ngClass]="'status-' + log.repair_status?.toLowerCase()">
-                {{ log.repair_status }}
-              </div>
-            </div>
-          </div>
-
-          <div *ngIf="scannedData.product_images?.length" class="image-section">
-            <h4>Product Images</h4>
-            <div class="image-gallery">
-              <img *ngFor="let image of scannedData.product_images"
-                  [src]="image"
-                  alt="Product Image"
-                  class="product-image"
-                  (click)="openImagePreview(image)">
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button class="close-btn" (click)="closeScannedEquipmentModal()">
-            <i class="fas fa-times"></i> Close
-          </button>
-        </div>
-      </div>
+    <div class="modal-actions">
+      <button class="close-btn" (click)="closeScannedEquipmentModal()">
+        <i class="fas fa-times"></i> Close
+      </button>
     </div>
   </div>
-</body>
+</div>

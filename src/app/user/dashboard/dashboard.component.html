@@ -5,6 +5,14 @@
       <img src="/images/quanby.png" alt="Quanby Logo">
     </div>
     <h3>Loading Dashboard...</h3>
+    <div class="loading-dots">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
+    <div class="loading-progress">
+      <div class="loading-progress-bar"></div>
+    </div>
   </div>
 </div>
 
@@ -109,14 +117,26 @@
 <div class="chart-section modern-card">
   <div class="section-header">
     <div class="header-content">
-      <h2>Cost History Analysis</h2>
-      <p class="subtitle">Track price trends and supplier comparisons</p>
+      <h2>
+        {{ isShowingAggregateData ? 'Overall Cost Trends' : 'Cost History Analysis' }}
+        <span *ngIf="isShowingAggregateData" class="aggregate-indicator">
+          {{ costHistory.length > 0 && costHistory[0]?.entry_type === 'sample' ? 'Sample Data' : 'Aggregate View' }}
+        </span>
+      </h2>
+      <p class="subtitle">
+        {{ isShowingAggregateData
+           ? (costHistory.length > 0 && costHistory[0]?.entry_type === 'sample'
+              ? 'Sample cost trends for demonstration purposes'
+              : 'Monthly aggregate cost trends across all equipment')
+           : 'Track price trends and supplier comparisons'
+        }}
+      </p>
     </div>
-    <div class="chart-controls">
+    <div class="chart-controls" [class.aggregate-view]="isShowingAggregateData">
       <div class="select-wrapper">
         <i class="fas fa-filter"></i>
         <select (change)="onEquipmentChange($event)" class="form-select">
-          <option value="">Select Model</option>
+          <option value="">All Equipment (Aggregate)</option>
           <option *ngFor="let equipment of equipmentList" [value]="equipment.model">
             {{ equipment.model }}
             <span *ngIf="equipment.model !== equipment.name">({{ equipment.name }})</span>
@@ -131,26 +151,56 @@
 
   <div class="chart-container">
     <div class="chart-legend">
-      <div *ngFor="let supplier of selectedEquipmentSuppliers; let i = index"
-           class="legend-item"
-           [class.active]="selectedSuppliers.includes(supplier.id)"
-           (click)="toggleSupplierSelection(supplier.id)">
-        <span class="legend-color" [style.background]="supplierColors[i]"></span>
-        <span class="legend-label">{{ supplier.name }}</span>
-        <span class="legend-value" *ngIf="getLatestSupplierPrice(supplier.id)">
-          <!-- ₱{{ getLatestSupplierPrice(supplier.id) | number }} -->
+      <ng-container *ngIf="!isShowingAggregateData">
+        <!-- Supplier selection controls -->
+        <div class="legend-controls" *ngIf="selectedEquipmentSuppliers.length > 1">
+          <button class="legend-btn" (click)="selectAllSuppliers()"
+                  [class.active]="selectedSuppliers.length === selectedEquipmentSuppliers.length">
+            <i class="fas fa-check-double"></i> Select All
+          </button>
+          <button class="legend-btn" (click)="clearSupplierSelection()"
+                  [class.active]="selectedSuppliers.length === 0">
+            <i class="fas fa-times"></i> Clear All
+          </button>
+        </div>
+
+        <!-- Individual supplier items -->
+        <div *ngFor="let supplier of selectedEquipmentSuppliers; let i = index"
+             class="legend-item"
+             [class.active]="selectedSuppliers.includes(supplier.id)"
+             (click)="toggleSupplierSelection(supplier.id)">
+          <div class="legend-color-wrapper">
+            <span class="legend-color" [style.background]="supplierColors[i]"></span>
+            <i class="fas fa-eye" *ngIf="selectedSuppliers.includes(supplier.id)"></i>
+            <i class="fas fa-eye-slash" *ngIf="!selectedSuppliers.includes(supplier.id)"></i>
+          </div>
+          <div class="legend-content">
+            <span class="legend-label">{{ supplier.name }}</span>
+            <span class="legend-value" *ngIf="getLatestSupplierPrice(supplier.id)">
+              ₱{{ getLatestSupplierPrice(supplier.id) | number }}
+            </span>
+          </div>
+        </div>
+      </ng-container>
+
+      <div *ngIf="isShowingAggregateData" class="legend-item active aggregate">
+        <span class="legend-color" style="background: #66BBDE"></span>
+        <span class="legend-label">Monthly Total Cost</span>
+        <span class="legend-value">
+          ₱{{ getLatestSupplierPrice('aggregate') | number }}
         </span>
       </div>
+
       <div class="legend-item srp-legend">
         <span class="legend-color" style="background: #DA5B96"></span>
-        <span class="legend-label">Your Retail Price (SRP)</span>
+        <span class="legend-label">{{ isShowingAggregateData ? 'Monthly Total SRP' : 'Your Retail Price (SRP)' }}</span>
         <span class="legend-value" *ngIf="getLatestSrpPrice()">
           ₱{{ getLatestSrpPrice() | number }}
         </span>
       </div>
     </div>
 
-    <div class="chart-wrapper">
+    <div class="chart-wrapper" [class.empty-state]="!costHistory.length">
       <canvas id="costChart"></canvas>
     </div>
   </div>

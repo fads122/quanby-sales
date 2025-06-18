@@ -5,8 +5,10 @@
 >
   <div class="sidebar-header">
     <div class="app-logo" *ngIf="!isCollapsed">
-      <img src="/images/quanby.png" style="width: 50px; position: absolute; ">
-      <h1 style="margin-left: 65px;">Quantify</h1>
+      <div class="logo-icon">
+        <img src="/images/quanby.png" alt="Quanby Logo" style="width: 24px; height: 24px; object-fit: contain;">
+      </div>
+      <h1>Quantify</h1>
     </div>
     <button class="toggle-btn" (click)="toggleSidebar()">
       <i class="pi" [class.pi-chevron-left]="!isCollapsed" [class.pi-chevron-right]="isCollapsed"></i>

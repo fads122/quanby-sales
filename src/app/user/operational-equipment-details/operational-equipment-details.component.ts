@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { SupabaseService } from '../../services/supabase.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SidebarComponent } from "../../nav/sidebar/sidebar.component";
+import { BreadcrumbComponent } from "../../breadcrumb/breadcrumb.component";
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
@@ -44,6 +45,7 @@ interface OperationalEquipment {
     CommonModule,
     FormsModule,
     SidebarComponent,
+    BreadcrumbComponent,
     MatSnackBarModule,
   ],
 })
@@ -59,6 +61,7 @@ export class OperationalEquipmentDetailsComponent implements OnInit {
   showReturnSlipModal = false;
   isLoading = true;
   error: string | null = null;
+  isCollapsed = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -214,4 +217,9 @@ openReturnSlipModal(url: string) {
   // Replace with your actual Supabase project ref
   return `https://xvcgubrtandfivlqcmww.supabase.co/storage/v1/object/public/equipment-images/${filename}`;
 }
+
+  // Add method to handle sidebar collapse
+  onSidebarCollapsed(collapsed: boolean) {
+    this.isCollapsed = collapsed;
+  }
 }

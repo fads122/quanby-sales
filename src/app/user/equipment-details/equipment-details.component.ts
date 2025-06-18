@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import Chart from 'chart.js/auto';
 import { CommonModule } from '@angular/common';
 import { SidebarComponent } from '../../nav/sidebar/sidebar.component';
+import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as bootstrap from 'bootstrap';
 import { FormsModule } from '@angular/forms';
@@ -83,7 +84,7 @@ interface EquipmentData {
 @Component({
   selector: 'app-equipment-details',
   standalone: true,
-  imports: [CommonModule, SidebarComponent, FormsModule, MatSnackBarModule],
+  imports: [CommonModule, SidebarComponent, BreadcrumbComponent, FormsModule, MatSnackBarModule],
   templateUrl: './equipment-details.component.html',
   styleUrls: ['./equipment-details.component.css'],
 })
@@ -111,6 +112,9 @@ export class EquipmentDetailsComponent implements OnInit {
   selectedBarcode: string | null = null;
   isQRCodeModalOpen: boolean = false;
   isBarcodeModalOpen: boolean = false;
+
+  // Sidebar collapse properties
+  isCollapsed: boolean = false;
 
   editing: EditingState = {
     serial_no: false,
@@ -833,6 +837,9 @@ export class EquipmentDetailsComponent implements OnInit {
     });
   }
 
+  onSidebarCollapsed(collapsed: boolean) {
+    this.isCollapsed = collapsed;
+  }
 openBrochure(url: string, event: Event) {
   event.preventDefault();
   if (!url) {

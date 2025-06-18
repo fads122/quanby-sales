@@ -128,7 +128,7 @@ export class ProjectMaterialsComponent implements OnInit {
   rawEquipmentList: Equipment[] = [];
   selectedEquipmentDetails: Equipment | null = null;
   selectedMaterials: any[] = [];
-  editProject: { id: string; name: string; description: string; client_address?: string; client_email?: string; client_phone?: string; materials: ProjectMaterial[] } | null = null;
+  editProject: { id: string; name: string; description: string; client_name?: string; client_address?: string; client_email?: string; client_phone?: string; materials: ProjectMaterial[] } | null = null;
   showProjectDetailsModal: boolean = false;
   selectedProject: any = null;
   selectedEquipments: ProjectMaterial[] = [];
@@ -725,6 +725,7 @@ openModal() {
             id: project.id,
             name: project.name,
             description: project.description,
+            client_name: project.client_name,
             client_address: project.client_address,
             client_email: project.client_email,
             client_phone: project.client_phone,

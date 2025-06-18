@@ -102,7 +102,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let receipt of dataSource.data" class="table-row">
+            <tr *ngFor="let receipt of paginatedData" class="table-row">
               <td class="table-cell project-cell">
                 <div class="project-info">
                   <div class="project-avatar">
@@ -181,18 +181,19 @@
         [pageSize]="rows"
         [pageSizeOptions]="[5, 10, 25, 100]"
         [showFirstLastButtons]="true"
-        (page)="pageChange($event)">
+        (page)="pageChange($event)"
+        aria-label="Select page">
       </mat-paginator>
     </div>
   </div>
 </div>
 
 <!-- Modern Details Modal -->
-<div *ngIf="selectedReceipt" class="modal-overlay" (click)="dialog.closeAll()">
+<div *ngIf="showReceiptModal" class="modal-overlay" (click)="closeReceiptModal()">
   <div class="modal-container" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">Delivery Receipt Details</h2>
-      <button class="modal-close" (click)="dialog.closeAll()">
+      <button class="modal-close" (click)="closeReceiptModal()">
         <i class="pi pi-times"></i>
       </button>
     </div>
@@ -207,19 +208,19 @@
         <div class="info-grid">
           <div class="info-item">
             <label class="info-label">Project Name</label>
-            <span class="info-value">{{ selectedReceipt.project_name }}</span>
+            <span class="info-value">{{ selectedReceipt?.project_name }}</span>
           </div>
           <div class="info-item">
             <label class="info-label">Client</label>
-            <span class="info-value">{{ selectedReceipt.client_name }}</span>
+            <span class="info-value">{{ selectedReceipt?.client_name }}</span>
           </div>
           <div class="info-item">
             <label class="info-label">Status</label>
             <span class="status-badge" 
-                  [class.delivered]="selectedReceipt.status === 'Delivered'"
-                  [class.delivering]="selectedReceipt.status === 'Delivering'">
-              <i [class]="selectedReceipt.status === 'Delivered' ? 'pi pi-check-circle' : 'pi pi-truck'"></i>
-              <span>{{ selectedReceipt.status }}</span>
+                  [class.delivered]="selectedReceipt?.status === 'Delivered'"
+                  [class.delivering]="selectedReceipt?.status === 'Delivering'">
+              <i [class]="selectedReceipt?.status === 'Delivered' ? 'pi pi-check-circle' : 'pi pi-truck'"></i>
+              <span>{{ selectedReceipt?.status }}</span>
             </span>
           </div>
         </div>
@@ -234,19 +235,19 @@
         <div class="info-grid">
           <div class="info-item">
             <label class="info-label">Expected Delivery</label>
-            <span class="info-value">{{ selectedReceipt.delivery_date || 'Not specified' }}</span>
+            <span class="info-value">{{ selectedReceipt?.delivery_date || 'Not specified' }}</span>
           </div>
           <div class="info-item">
             <label class="info-label">Received By</label>
-            <span class="info-value">{{ selectedReceipt.received_by || 'Not specified' }}</span>
+            <span class="info-value">{{ selectedReceipt?.received_by || 'Not specified' }}</span>
           </div>
           <div class="info-item">
             <label class="info-label">Delivered Date</label>
-            <span class="info-value">{{ selectedReceipt.delivered_date || 'Not delivered' }}</span>
+            <span class="info-value">{{ selectedReceipt?.delivered_date || 'Not delivered' }}</span>
           </div>
           <div class="info-item">
             <label class="info-label">Delivered Time</label>
-            <span class="info-value">{{ selectedReceipt.delivered_time || 'Not specified' }}</span>
+            <span class="info-value">{{ selectedReceipt?.delivered_time || 'Not specified' }}</span>
           </div>
         </div>
       </div>
@@ -264,7 +265,7 @@
               <input 
                 type="text" 
                 class="form-input"
-                [(ngModel)]="selectedReceipt.received_by" 
+                [(ngModel)]="selectedReceipt!.received_by" 
                 name="receivedBy" 
                 placeholder="Enter recipient name">
             </div>
@@ -273,7 +274,7 @@
               <input 
                 type="date" 
                 class="form-input"
-                [(ngModel)]="selectedReceipt.delivered_date" 
+                [(ngModel)]="selectedReceipt!.delivered_date" 
                 name="deliveredDate">
             </div>
           </div>
@@ -283,7 +284,7 @@
               <input 
                 type="time" 
                 class="form-input"
-                [(ngModel)]="selectedReceipt.delivered_time" 
+                [(ngModel)]="selectedReceipt!.delivered_time" 
                 name="deliveredTime">
             </div>
             <div class="form-field">
@@ -303,7 +304,7 @@
                   </div>
                 </div>
               </div>
-              <input #fileInput type="file" (change)="onFileSelectedForUpdate($event, selectedReceipt)" style="display: none">
+              <input #fileInput type="file" (change)="onFileSelectedForUpdate($event, selectedReceipt!)" style="display: none">
             </div>
           </div>
         </form>
@@ -311,8 +312,8 @@
     </div>
 
     <div class="modal-footer">
-      <button class="secondary-button" (click)="dialog.closeAll()">Cancel</button>
-      <button class="primary-button" (click)="saveUpdatedFile(selectedReceipt)">
+      <button class="secondary-button" (click)="closeReceiptModal()">Cancel</button>
+      <button class="primary-button" (click)="saveUpdatedFile(selectedReceipt!)">
         <i class="pi pi-check"></i>
         <span>Save Changes</span>
       </button>
@@ -320,18 +321,18 @@
   </div>
 </div>
 
-<!-- File Preview Dialog -->
-<ng-template #fileDialog let-dialogData="data">
-  <div class="file-preview-modal">
+<!-- File Preview Modal -->
+<div *ngIf="showFileModal" class="modal-overlay" (click)="closeFileModal()">
+  <div class="file-preview-modal" (click)="$event.stopPropagation()">
     <div class="file-preview-header">
       <h3>File Preview</h3>
-      <button class="modal-close" (click)="dialog.closeAll()">
+      <button class="modal-close" (click)="closeFileModal()">
         <i class="pi pi-times"></i>
       </button>
     </div>
     <div class="file-preview-content">
-      <img *ngIf="isImage(dialogData.url)" [src]="dialogData.url" class="file-preview">
-      <iframe *ngIf="isPdf(dialogData.url)" [src]="sanitizeUrl(dialogData.url)" class="file-preview pdf"></iframe>
+      <img *ngIf="isImage(selectedFileUrl)" [src]="selectedFileUrl" class="file-preview">
+      <iframe *ngIf="isPdf(selectedFileUrl)" [src]="sanitizeUrl(selectedFileUrl)" class="file-preview pdf"></iframe>
     </div>
   </div>
-</ng-template>
+</div>

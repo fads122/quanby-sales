@@ -123,6 +123,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   borrowedHistory: number[] = [];
   projectsHistory: number[] = [];
 
+  // Add property to track if showing aggregate data
+  isShowingAggregateData: boolean = false;
 
   rankedSuppliers: any[] = [];
   topSupplierName: string = '';
@@ -182,6 +184,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
       // Initialize sparkline charts
       this.initializeSparklines();
+
+      // Load aggregate cost data initially
+      await this.loadAggregateCostData();
 
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -251,6 +256,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   getLatestSupplierPrice(supplierId: string): number | null {
     if (!this.costHistory.length) return null;
+    
+    if (this.isShowingAggregateData) {
+      // For aggregate data, get the latest supplier cost
+      const sorted = [...this.costHistory].sort((a, b) =>
+        new Date(b.date_updated).getTime() - new Date(a.date_updated).getTime());
+      return sorted[0]?.supplier_cost || null;
+    }
+    
     const supplierName = this.selectedEquipmentSuppliers.find(s => s.id === supplierId)?.name;
     if (!supplierName) return null;
 
@@ -394,6 +407,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.costHistory = [];
     this.selectedEquipmentSuppliers = [];
     this.selectedSuppliers = [];
+    this.isShowingAggregateData = false; // Reset aggregate flag
 
     if (selectedModel) {
       console.log(`🔄 Fetching cost history for Model: ${selectedModel}`);
@@ -479,6 +493,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       // Update chart
       this.costHistory = costData;
       this.updateChart();
+    } else {
+      // If no model selected, show aggregate data
+      await this.loadAggregateCostData();
     }
   }
 
@@ -745,8 +762,14 @@ updateChart() {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    if (!ctx || !this.costHistory.length) {
-      console.warn('⚠ No valid chart context or cost data found');
+    if (!ctx) {
+      console.warn('⚠ No valid chart context found');
+      return;
+    }
+
+    // Handle empty data case
+    if (!this.costHistory.length) {
+      this.createEmptyChart(ctx, canvas);
       return;
     }
 
@@ -762,7 +785,7 @@ updateChart() {
     });
 
     // Prepare datasets for each selected supplier
-    const supplierDatasets = this.selectedSuppliers.length > 0
+    const supplierDatasets = this.selectedSuppliers.length > 0 && !this.isShowingAggregateData
       ? this.selectedSuppliers.map((supplierId, index) => {
           const supplier = this.selectedEquipmentSuppliers.find(s => s.id === supplierId);
           const supplierData = this.costHistory.filter(entry =>
@@ -800,39 +823,76 @@ updateChart() {
             spanGaps: true
           };
         })
-      : [{
-          label: 'Average Supplier Cost',
-          data: allDates.map(date => {
-            const entriesForDate = this.costHistory.filter(entry => entry.date_updated === date);
-            if (entriesForDate.length === 0) return null;
-            const totalCost = entriesForDate.reduce((sum, entry) => sum + entry.supplier_cost, 0);
-            return totalCost / entriesForDate.length;
-          }),
-          borderColor: '#66BBDE',
-          backgroundColor: (() => {
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, 'rgba(102, 187, 222, 0.2)');
-            gradient.addColorStop(1, 'rgba(102, 187, 222, 0.0)');
-            return gradient;
-          })(),
-          borderWidth: 2,
-          tension: 0.4,
-          fill: true,
-          pointBackgroundColor: '#66BBDE',
-          pointBorderColor: '#FFFFFF',
-          pointBorderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          pointHoverBorderWidth: 3,
-          pointHoverBackgroundColor: '#66BBDE',
-          pointHoverBorderColor: '#FFFFFF',
-          spanGaps: true
-        }];
+      : this.isShowingAggregateData 
+        ? [{
+            // For aggregate data, create a supplier cost dataset
+            label: 'Monthly Total Cost',
+            data: allDates.map(date => {
+              const entry = this.costHistory.find(d => d.date_updated === date);
+              return entry ? entry.supplier_cost : null;
+            }),
+            borderColor: '#66BBDE',
+            backgroundColor: (() => {
+              const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+              gradient.addColorStop(0, 'rgba(102, 187, 222, 0.2)');
+              gradient.addColorStop(1, 'rgba(102, 187, 222, 0.0)');
+              return gradient;
+            })(),
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#66BBDE',
+            pointBorderColor: '#FFFFFF',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointHoverBorderWidth: 3,
+            pointHoverBackgroundColor: '#66BBDE',
+            pointHoverBorderColor: '#FFFFFF',
+            spanGaps: true
+          }]
+        : [{
+            label: 'Average Supplier Cost',
+            data: allDates.map(date => {
+              const entriesForDate = this.costHistory.filter(entry => entry.date_updated === date);
+              if (entriesForDate.length === 0) return null;
+              const totalCost = entriesForDate.reduce((sum, entry) => sum + entry.supplier_cost, 0);
+              return totalCost / entriesForDate.length;
+            }),
+            borderColor: '#66BBDE',
+            backgroundColor: (() => {
+              const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+              gradient.addColorStop(0, 'rgba(102, 187, 222, 0.2)');
+              gradient.addColorStop(1, 'rgba(102, 187, 222, 0.0)');
+              return gradient;
+            })(),
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#66BBDE',
+            pointBorderColor: '#FFFFFF',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointHoverBorderWidth: 3,
+            pointHoverBackgroundColor: '#66BBDE',
+            pointHoverBorderColor: '#FFFFFF',
+            spanGaps: true
+          }];
 
     // Prepare SRP dataset
     const srpDataset = {
-      label: 'Your Retail Price (SRP)',
-      data: allDates.map(date => srpByDate.get(date) || null),
+      label: this.isShowingAggregateData ? 'Monthly Total SRP' : 'Your Retail Price (SRP)',
+      data: allDates.map(date => {
+        if (this.isShowingAggregateData) {
+          // For aggregate data, get SRP directly from the cost history
+          const entry = this.costHistory.find(d => d.date_updated === date);
+          return entry ? entry.srp : null;
+        } else {
+          // For specific equipment, use the existing logic
+          return srpByDate.get(date) || null;
+        }
+      }),
       borderColor: '#B71A4A',
       backgroundColor: (() => {
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -986,9 +1046,80 @@ updateChart() {
         this.selectedEquipmentSuppliers.find(s => s.name === entry.supplier)?.id || ''
       )
     );
+
+    // Calculate chart statistics
+    this.calculateChartStats(this.costHistory);
   }, 100);
 }
 
+// Add method to create empty chart placeholder
+createEmptyChart(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
+  // Create a simple placeholder chart
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, 'rgba(102, 187, 222, 0.1)');
+  gradient.addColorStop(1, 'rgba(102, 187, 222, 0.0)');
+
+  this.costChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['No Data'],
+      datasets: [{
+        label: 'No Cost Data Available',
+        data: [0],
+        borderColor: '#e2e8f0',
+        backgroundColor: gradient,
+        borderWidth: 1,
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: '#e2e8f0',
+        pointBorderColor: '#FFFFFF',
+        pointBorderWidth: 1,
+        pointRadius: 2,
+        pointHoverRadius: 4,
+        pointHoverBorderWidth: 2,
+        pointHoverBackgroundColor: '#e2e8f0',
+        pointHoverBorderColor: '#FFFFFF'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          enabled: false
+        }
+      },
+      scales: {
+        x: {
+          display: false
+        },
+        y: {
+          display: false
+        }
+      },
+      elements: {
+        point: {
+          radius: 0
+        }
+      }
+    }
+  });
+
+  // Add a text overlay to indicate no data
+  ctx.save();
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '14px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Select equipment to view cost history', canvas.width / 2, canvas.height / 2);
+  ctx.restore();
+}
 
   // updatePagination() {
   //   this.totalPages = Math.ceil(this.recentActivities.length / this.pageSize);
@@ -1399,6 +1530,108 @@ private async createPDFTable(pdfDoc: PDFDocument, page: any) {
 onSidebarCollapsed(collapsed: boolean) {
     this.isCollapsed = collapsed;
     this.cdr.detectChanges();
+  }
+
+  // Add method to load aggregate cost data
+  async loadAggregateCostData() {
+    try {
+      console.log('🔄 Loading aggregate cost data...');
+      
+      // Get all equipment with cost data
+      const { data: equipmentData, error: equipmentError } = await this.supabaseService
+        .from('equipments')
+        .select('id, model, name, supplier_cost, srp, date_acquired, supplier')
+        .not('supplier_cost', 'is', null)
+        .gt('supplier_cost', 0)
+        .order('date_acquired', { ascending: true });
+
+      if (equipmentError) {
+        console.error('Error fetching equipment data:', equipmentError);
+        return;
+      }
+
+      if (!equipmentData || equipmentData.length === 0) {
+        console.warn('No equipment with cost data found');
+        return;
+      }
+
+      // Create aggregate data points by month
+      const monthlyData = new Map<string, { totalCost: number, totalSrp: number, count: number }>();
+      
+      equipmentData.forEach(equipment => {
+        const date = new Date(equipment.date_acquired);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!monthlyData.has(monthKey)) {
+          monthlyData.set(monthKey, { totalCost: 0, totalSrp: 0, count: 0 });
+        }
+        
+        const monthData = monthlyData.get(monthKey)!;
+        monthData.totalCost += equipment.supplier_cost || 0;
+        monthData.totalSrp += equipment.srp || 0;
+        monthData.count += 1;
+      });
+
+      // Convert to chart data format
+      const sortedMonths = Array.from(monthlyData.keys()).sort();
+      const aggregateCostData = sortedMonths.map(monthKey => {
+        const monthData = monthlyData.get(monthKey)!;
+        return {
+          date_updated: `${monthKey}-01`, // Use first day of month
+          supplier_cost: monthData.totalCost,
+          srp: monthData.totalSrp,
+          supplier: 'Aggregate',
+          entry_type: 'aggregate'
+        };
+      });
+
+      // Add some recent cost history data for more granular view
+      const recentCostHistory = await this.getRecentCostHistory();
+      aggregateCostData.push(...recentCostHistory);
+
+      // Sort by date
+      aggregateCostData.sort((a, b) => new Date(a.date_updated).getTime() - new Date(b.date_updated).getTime());
+
+      console.log('📊 Aggregate Cost Data:', aggregateCostData);
+
+      // Set up for aggregate display
+      this.costHistory = aggregateCostData;
+      this.selectedEquipmentSuppliers = [{ id: 'aggregate', name: 'Overall Cost Trend' }];
+      this.selectedSuppliers = ['aggregate'];
+      this.supplierColors = ['#66BBDE'];
+      this.isShowingAggregateData = true;
+
+      // Update chart
+      this.updateChart();
+
+    } catch (error) {
+      console.error('Error loading aggregate cost data:', error);
+    }
+  }
+
+  // Helper method to get recent cost history for more granular data
+  async getRecentCostHistory() {
+    try {
+      const { data: recentHistory, error } = await this.supabaseService
+        .from('equipment_cost_history')
+        .select('supplier_cost, srp, date_updated, supplier')
+        .order('date_updated', { ascending: false })
+        .limit(20); // Get last 20 entries
+
+      if (error) {
+        console.error('Error fetching recent cost history:', error);
+        return [];
+      }
+
+      return recentHistory.map(entry => ({
+        ...entry,
+        supplier: entry.supplier || 'Recent Update',
+        entry_type: 'recent'
+      }));
+    } catch (error) {
+      console.error('Error in getRecentCostHistory:', error);
+      return [];
+    }
   }
 
 }
