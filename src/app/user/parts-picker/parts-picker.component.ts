@@ -553,29 +553,32 @@ exportToPDF() {
     }
   }
 
-  saveSelectedEquipment() {
+  async saveSelectedEquipment() {
     if (!this.equipmentTitle.trim()) {
       alert('⚠️ Please enter a title before saving.');
       return;
     }
 
-  // Retrieve existing saved equipment from localStorage
-  const savedEquipment = JSON.parse(localStorage.getItem('savedEquipment') || '[]');
+    try {
+      // Prepare the entry object
+      const entry = {
+        title: this.equipmentTitle,
+        timestamp: new Date().toISOString(),
+        items: [...this.selectedProducts]
+        // Optionally add user_id if you want to associate with a user
+      };
 
-  // Save with title
-  savedEquipment.push({
-    title: this.equipmentTitle,  // ✅ Store the title
-    timestamp: new Date().toISOString(),
-    items: [...this.selectedProducts]
-  });
+      // Save to Supabase
+      await this.supabaseService.saveEquipmentEntry(entry);
 
-  // Save back to localStorage
-  localStorage.setItem('savedEquipment', JSON.stringify(savedEquipment));
-
-  alert('✅ Equipment saved successfully!');
-    this.equipmentTitle = ''; // Clear the title input
-    this.showTitleModal = false;
-    this.closeModal();
+      alert('✅ Equipment saved to Supabase!');
+      this.equipmentTitle = '';
+      this.showTitleModal = false;
+      this.closeModal();
+    } catch (error) {
+      alert('❌ Failed to save equipment to Supabase.');
+      console.error(error);
+    }
   }
 
   navigateToSavedEquipment() {

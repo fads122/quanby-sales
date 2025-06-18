@@ -108,6 +108,12 @@
               </th>
               <th class="table-header-cell">
                 <div class="header-content">
+                  <span>Status</span>
+                  <i class="pi pi-sort"></i>
+                </div>
+              </th>
+              <th class="table-header-cell">
+                <div class="header-content">
                   <span>Actions</span>
                 </div>
               </th>
@@ -143,6 +149,11 @@
                   <span class="contact-value">{{ supplier.email || 'Not provided' }}</span>
                   <span class="contact-label">Email</span>
                 </div>
+              </td>
+              <td class="table-cell">
+                <span [ngClass]="supplier.status === 'active' ? 'badge-success' : 'badge-danger'">
+                  {{ supplier.status | titlecase }}
+                </span>
               </td>
               <td class="table-cell actions-cell">
                 <div class="action-buttons">

@@ -155,7 +155,7 @@ toastMessage = '';
     materials: []
   };
   showTemplatesModal = false;
-  savedTemplates: { title: string; items: any[] }[] = [];
+  savedTemplates: { id: string; title: string; items: any[] }[] = [];
   rejectedItems: Set<string> = new Set();
   animationState = 'normal';
   isAnimating = false;
@@ -217,50 +217,61 @@ toastMessage = '';
     }
   }
 
-  openTemplatesModal() {
-    this.showTemplatesModal = true;
-    this.fetchSavedTemplates();
-  }
+  async openTemplatesModal() {
+  this.showTemplatesModal = true;
+  // Provide default values for title and items, or fetch them as needed
+  await this.fetchSavedTemplates('', []);
+}
 
   closeTemplatesModal() {
     this.showTemplatesModal = false;
   }
 
-  fetchSavedTemplates() {
-    const raw = localStorage.getItem('savedEquipment');
-    const stored: any[] = raw ? JSON.parse(raw) : [];
-
-    this.savedTemplates = stored.map(entry => ({
-      title: entry.title,
-      items: entry.items
+  async fetchSavedTemplates(title: string, items: any[]) {
+  try {
+     const entry = { title, items, timestamp: new Date().toISOString() };
+    // Fetch all saved equipment templates from Supabase
+    const templates = await this.supabaseService.getSavedEquipment();
+    this.savedTemplates = (templates || []).map((template: any) => ({
+      id: template.id,
+      title: template.title,
+      items: template.items
     }));
+  } catch (error) {
+    console.error('❌ Failed to fetch saved templates from Supabase:', error);
+    this.savedTemplates = [];
   }
+}
 
-  applyTemplateToProject(template: { title: string; items: any[] }) {
-    this.selectedEquipments = template.items.map(item => {
-        const eq = this.equipmentList.find(e => e.id === item.id) || {
-            srp: 0,
-            supplier: '',
-            brochure_url: null
-        };
 
-        return {
-            equipment_id: item.id,
-            name: item.name,
-            model: item.model || '',
-            brand: item.brand || '',
-            supplier: item.supplier || '',
-            srp: eq.srp,
-            quantity: item.quantity,
-            profitMargin: item.profitMargin ?? 20,
-            brochure_url: eq.brochure_url || null
-        };
-    });
+  applyTemplateToProject(template: { id: string; title: string; items: any[] }) {
+  this.selectedEquipments = template.items.map(item => {
+    // Find the equipment in your equipmentList for up-to-date info
+    const eq = this.equipmentList.find(e => e.id === item.id) || {
+      srp: 0,
+      supplier: '',
+      brochure_url: null,
+      brand: '',
+      model: ''
+    };
 
-    this.selectedItems = this.selectedEquipments.map(e => e.equipment_id);
-    this.project.materials = [...this.selectedEquipments];
-    this.closeTemplatesModal();
-  }
+    return {
+      equipment_id: item.id,
+      name: item.name,
+      model: item.model || eq.model || '',
+      brand: item.brand || eq.brand || '',
+      supplier: item.supplier || eq.supplier || '',
+      srp: eq.srp,
+      quantity: item.quantity,
+      profitMargin: item.profitMargin ?? 20,
+      brochure_url: eq.brochure_url || null
+    };
+  });
+
+  this.selectedItems = this.selectedEquipments.map(e => e.equipment_id);
+  this.project.materials = [...this.selectedEquipments];
+  this.closeTemplatesModal();
+}
 
   async fetchEquipment() {
     try {

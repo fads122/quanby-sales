@@ -40,7 +40,7 @@ export class SupabaseSupplierService {
   async getSuppliers(): Promise<any[]> {
     const { data, error } = await this.supabase
       .from('suppliers')
-      .select('id, supplier_name, contact_person, phone, email, address'); // Select specific fields
+      .select('id, supplier_name, contact_person, phone, email, address, status, facebook, viber, telegram, instagram, user_id'); // Select specific fields
 
     if (error) {
       console.error('Error fetching suppliers:', error);
