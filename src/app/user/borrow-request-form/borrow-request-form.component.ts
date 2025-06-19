@@ -56,6 +56,8 @@ export class BorrowRequestComponent {
   inHouseEquipment: any[] = [];
   loading: boolean = false;
 
+  // Add sidebar integration properties
+  isCollapsed = false;
 
   constructor(
     private supabaseService: SupabaseService,
@@ -65,60 +67,79 @@ export class BorrowRequestComponent {
     private cdr: ChangeDetectorRef
   ) {}
 
-
-
   async ngOnInit(): Promise<void> {
-  try {
-    // Load form data from localStorage
-    const savedFormData = localStorage.getItem('borrowFormData');
-    if (savedFormData) {
-      const formData = JSON.parse(savedFormData);
-      this.borrowerName = formData.borrowerName || '';
-      this.borrowerDepartment = formData.borrowerDepartment || '';
-      this.borrowerContact = formData.borrowerContact || '';
-      this.borrowerEmail = formData.borrowerEmail || '';
-      this.borrowDate = formData.borrowDate || '';
-      this.returnDate = formData.returnDate || '';
-      this.purpose = formData.purpose || '';
+    try {
+      // Initialize theme state
+      this.initializeTheme();
+
+      // Load form data from localStorage
+      const savedFormData = localStorage.getItem('borrowFormData');
+      if (savedFormData) {
+        const formData = JSON.parse(savedFormData);
+        this.borrowerName = formData.borrowerName || '';
+        this.borrowerDepartment = formData.borrowerDepartment || '';
+        this.borrowerContact = formData.borrowerContact || '';
+        this.borrowerEmail = formData.borrowerEmail || '';
+        this.borrowDate = formData.borrowDate || '';
+        this.returnDate = formData.returnDate || '';
+        this.purpose = formData.purpose || '';
+      }
+
+      // Load borrowed items from localStorage
+      const savedItems = localStorage.getItem('borrowedItems');
+      this.borrowedItems = savedItems ? JSON.parse(savedItems) : [];
+
+      // Fetch in-house equipment from Supabase
+      const rawEquipmentList = await this.supabaseService.getInHouseEquipment();
+
+      // Process the equipment list
+      this.equipmentList = rawEquipmentList.map((item: any) => {
+        const borrowedItem = this.borrowedItems.find(b => b.id === item.id);
+        return {
+          ...item,
+          current_quantity: item.quantity, // Use the quantity from in-house table
+          quantity: borrowedItem ? borrowedItem.quantity : 0,
+          borrowed: borrowedItem ? true : false,
+          selected: borrowedItem ? true : false
+        };
+      });
+
+      this.updateDisplayedItems();
+      await this.loadUserDetails();
+    } catch (error) {
+      console.error('Error during initialization:', error);
+      alert('Failed to load data. Please try again.');
     }
-
-    // Load borrowed items from localStorage
-    const savedItems = localStorage.getItem('borrowedItems');
-    this.borrowedItems = savedItems ? JSON.parse(savedItems) : [];
-
-    // Fetch in-house equipment from Supabase
-    const rawEquipmentList = await this.supabaseService.getInHouseEquipment();
-
-    // Process the equipment list
-    this.equipmentList = rawEquipmentList.map((item: any) => {
-      const borrowedItem = this.borrowedItems.find(b => b.id === item.id);
-      return {
-        ...item,
-        current_quantity: item.quantity, // Use the quantity from in-house table
-        quantity: borrowedItem ? borrowedItem.quantity : 0,
-        borrowed: borrowedItem ? true : false,
-        selected: borrowedItem ? true : false
-      };
-    });
-
-    this.updateDisplayedItems();
-    await this.loadUserDetails();
-  } catch (error) {
-    console.error('Error during initialization:', error);
-    alert('Failed to load data. Please try again.');
   }
-}
+
+  // Add method to handle sidebar collapsed state
+  onSidebarCollapsed(collapsed: boolean) {
+    this.isCollapsed = collapsed;
+    this.cdr.detectChanges();
+  }
+
+  // Add method to handle theme changes from sidebar
+  onSidebarThemeChange(theme: string) {
+    // Update the document attribute to trigger CSS variable changes
+    document.documentElement.setAttribute('data-theme', theme);
+    this.cdr.detectChanges();
+  }
+
+  // Add method to initialize theme
+  private initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const currentTheme = savedTheme || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  }
 
   async loadInHouseEquipment() {
-  try {
-    this.inHouseEquipment = await this.supabaseService.getInHouseEquipment();
-    console.log('In-house equipment:', this.inHouseEquipment);
-  } catch (error) {
-    console.error('Error loading in-house equipment:', error);
+    try {
+      this.inHouseEquipment = await this.supabaseService.getInHouseEquipment();
+      console.log('In-house equipment:', this.inHouseEquipment);
+    } catch (error) {
+      console.error('Error loading in-house equipment:', error);
+    }
   }
-}
-
-
 
   validateDates() {
     // ✅ FIX: Added missing validateDates() method
@@ -127,11 +148,18 @@ export class BorrowRequestComponent {
     }
   }
 
+  allowOnlyNumbers(event: KeyboardEvent): boolean {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      event.preventDefault();
+      return false;
+    }
+    return true;
+  }
 
   onFormChange() {
     this.saveFormData();
   }
-
 
   saveFormData() {
     const formData = {
@@ -170,7 +198,6 @@ export class BorrowRequestComponent {
           this.userEmail = null;
           this.borrowerName = '';
           console.log('User ID:', user.id);
-
         }
       }
     } catch (error) {
@@ -180,23 +207,14 @@ export class BorrowRequestComponent {
     }
   }
 
-  // viewEquipmentDetails(equipment: any) {
-  //   this.saveFormData(); // Save all data before navigating
-  //   console.log("Navigating to equipment-borrow with Name:", equipment.name);
-  //   this.router.navigate(['/equipment-borrow'], {
-  //     queryParams: { name: equipment.name }
-  //   });
-  // }
-  // In borrow-request-form.component.ts
-// In your BorrowRequestComponent
-viewEquipmentDetails(item: any) {
-  this.router.navigate(['/equipment-borrow'], {
-    queryParams: {
-      id: item.id,
-      name: item.name
-    }
-  });
-}
+  viewEquipmentDetails(item: any) {
+    this.router.navigate(['/equipment-borrow'], {
+      queryParams: {
+        id: item.id,
+        name: item.name
+      }
+    });
+  }
 
   clearSavedFormData() {
     localStorage.removeItem('borrowFormData');
@@ -220,7 +238,7 @@ viewEquipmentDetails(item: any) {
       this.userEmail = null;
     }
   }
-  // Update the selected equipment IDs when a checkbox is toggled
+
   updateSelectedEquipment(item: any): void {
     if (item.selected) {
       this.selectedEquipmentIds.push(item.id);
@@ -231,7 +249,7 @@ viewEquipmentDetails(item: any) {
     }
     console.log('Selected equipment IDs:', this.selectedEquipmentIds);
   }
-  // Validate the quantity for an equipment item
+
   validateQuantity(item: any): void {
     const maxQuantity = item.quantity_available || 0; // Available stock in the database
     if (!item.quantity || isNaN(item.quantity) || item.quantity < 1) {
@@ -264,7 +282,6 @@ viewEquipmentDetails(item: any) {
         status: 'borrowed'
       };
 
-
       const borrowRequestData = await this.supabaseService.createBorrowRequest(requestData);
       const borrowRequestId = borrowRequestData.id;
 
@@ -276,16 +293,16 @@ viewEquipmentDetails(item: any) {
 
       await this.supabaseService.insertBorrowRequestEquipment(equipmentInsertData);
 
-          for (let item of equipmentInsertData) {
-      await this.supabaseService.insertEquipmentMovement({
-        inhouse_equipment_id: item.inhouse_equipment_id,  // Updated field
-        movement_type: 'borrowed',
-        borrow_request_id: borrowRequestId,
-        movement_date: new Date().toISOString(),
-        employee_id: userId,
-        status: 'active',
-        project_id: null
-      });
+      for (let item of equipmentInsertData) {
+        await this.supabaseService.insertEquipmentMovement({
+          inhouse_equipment_id: item.inhouse_equipment_id,  // Updated field
+          movement_type: 'borrowed',
+          borrow_request_id: borrowRequestId,
+          movement_date: new Date().toISOString(),
+          employee_id: userId,
+          status: 'active',
+          project_id: null
+        });
       }
 
       for (const item of this.borrowedItems) {
@@ -297,15 +314,12 @@ viewEquipmentDetails(item: any) {
         }
       }
 
-          // Clear saved data after successful submission
-    this.clearSavedFormData();
-
-
+      // Clear saved data after successful submission
+      this.clearSavedFormData();
 
       this.updateDisplayedItems();
       alert('✅ Borrow request submitted successfully!');
 
-      // ✅ Save to recent activities (Supabase)
       // ✅ Save to recent activities (Supabase)
       const itemNames = this.borrowedItems.map(item => item.name).join(', ');
       const itemCount = this.borrowedItems.length;
@@ -339,11 +353,6 @@ viewEquipmentDetails(item: any) {
       alert('Failed to submit borrow request. Please try again.');
     }
   }
-
-
-
-
-
 
   updateCurrentQuantity(item: any): void {
     // Prevent negative values
@@ -391,7 +400,7 @@ viewEquipmentDetails(item: any) {
 
     console.log("✅ Updated Displayed Items:", this.displayedItems);
     this.cdr.detectChanges(); // Force UI refresh
-}
+  }
 
   increaseQuantity(item: any): void {
     if (item.quantity < item.current_quantity) {
@@ -406,7 +415,6 @@ viewEquipmentDetails(item: any) {
       this.updateCurrentQuantity(item);
     }
   }
-
 
   viewDetails(item: any) {
     console.log('Viewing details for:', item);
@@ -478,149 +486,141 @@ viewEquipmentDetails(item: any) {
 
     // Remove the borrowed item from the main list
     this.equipmentList = this.equipmentList.filter(e => e.id !== equipmentId);
-}
-
-async addToBorrowedList(equipmentId: string) {
-  const equipment = this.equipmentList.find(e => e.id === equipmentId);
-  if (!equipment || equipment.current_quantity <= 0) {
-    alert('⚠ Item is out of stock.');
-    return;
   }
 
-  try {
-    // ✅ Decrease stock in Supabase
-    await this.supabaseService.decrementEquipmentQuantity(equipmentId);
-
-    // ✅ Clone the borrowed equipment to avoid modifying original reference
-    const borrowedEquipment = { ...equipment };
-
-    // ✅ Ensure `borrowedItems` is an array before updating
-    if (!Array.isArray(this.borrowedItems)) {
-      this.borrowedItems = [];
+  async addToBorrowedList(equipmentId: string) {
+    const equipment = this.equipmentList.find(e => e.id === equipmentId);
+    if (!equipment || equipment.current_quantity <= 0) {
+      alert('⚠ Item is out of stock.');
+      return;
     }
 
-    // ✅ Check if the item already exists in `borrowedItems`
-    const existingItem = this.borrowedItems.find(item => item.id === equipment.id);
+    try {
+      // ✅ Decrease stock in Supabase
+      await this.supabaseService.decrementEquipmentQuantity(equipmentId);
 
-    if (existingItem) {
-      existingItem.quantity += 1; // 🔥 Increase quantity instead of replacing
-    } else {
-      borrowedEquipment.quantity = 1;
-      this.borrowedItems = [...this.borrowedItems, borrowedEquipment]; // 🔥 Maintain previous selections
+      // ✅ Clone the borrowed equipment to avoid modifying original reference
+      const borrowedEquipment = { ...equipment };
+
+      // ✅ Ensure `borrowedItems` is an array before updating
+      if (!Array.isArray(this.borrowedItems)) {
+        this.borrowedItems = [];
+      }
+
+      // ✅ Check if the item already exists in `borrowedItems`
+      const existingItem = this.borrowedItems.find(item => item.id === equipment.id);
+
+      if (existingItem) {
+        existingItem.quantity += 1; // 🔥 Increase quantity instead of replacing
+      } else {
+        borrowedEquipment.quantity = 1;
+        this.borrowedItems = [...this.borrowedItems, borrowedEquipment]; // 🔥 Maintain previous selections
+      }
+
+      // ✅ Update stock in UI without removing from `equipmentList`
+      equipment.current_quantity -= 1;
+      equipment.borrowed = equipment.current_quantity === 0; // Mark as borrowed if out of stock
+
+      // ✅ Save updated borrowed items to localStorage
+      localStorage.setItem('borrowedItems', JSON.stringify(this.borrowedItems));
+
+      console.log("📌 Updated Borrowed Items:", this.borrowedItems);
+
+      this.updateDisplayedItems();
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('❌ Error updating stock:', error);
+      alert('Failed to update stock. Please try again.');
     }
-
-    // ✅ Update stock in UI without removing from `equipmentList`
-    equipment.current_quantity -= 1;
-    equipment.borrowed = equipment.current_quantity === 0; // Mark as borrowed if out of stock
-
-    // ✅ Save updated borrowed items to localStorage
-    localStorage.setItem('borrowedItems', JSON.stringify(this.borrowedItems));
-
-    console.log("📌 Updated Borrowed Items:", this.borrowedItems);
-
-    this.updateDisplayedItems();
-    this.cdr.detectChanges();
-  } catch (error) {
-    console.error('❌ Error updating stock:', error);
-    alert('Failed to update stock. Please try again.');
   }
-}
 
-async removeFromBorrowList(equipment: any) {
-  console.log("❌ Removing Equipment ID:", equipment.id);
+  async removeFromBorrowList(equipment: any) {
+    console.log("❌ Removing Equipment ID:", equipment.id);
 
-  try {
-    // Get the quantity to restore (default to 1 if not specified)
-    const quantityToRestore = equipment.quantity || 1;
+    try {
+      // Get the quantity to restore (default to 1 if not specified)
+      const quantityToRestore = equipment.quantity || 1;
 
-    // 1. Update database - increment quantity AND set status to Available
-    await this.supabaseService.incrementEquipmentQuantity(equipment.id, quantityToRestore);
-    await this.supabaseService.updateEquipmentStatus(equipment.id, EquipmentStatus.AVAILABLE);
+      // 1. Update database - increment quantity AND set status to Available
+      await this.supabaseService.incrementEquipmentQuantity(equipment.id, quantityToRestore);
+      await this.supabaseService.updateEquipmentStatus(equipment.id, EquipmentStatus.AVAILABLE);
 
-    // 2. Update local state
-    const equipmentInList = this.equipmentList.find(item => item.id === equipment.id);
-    if (equipmentInList) {
-      equipmentInList.quantity += quantityToRestore;
-      equipmentInList.borrowed = false;
-      equipmentInList.status = EquipmentStatus.AVAILABLE; // Explicit status update
-    } else {
-      // If it's not in the list, add it back
-      this.equipmentList.push({
-        ...equipment,
-        quantity: quantityToRestore,
-        borrowed: false,
-        status: EquipmentStatus.AVAILABLE
-      });
-    }
-
-    // 3. Remove from borrowed items list
-    this.borrowedItems = this.borrowedItems.filter(item => item.id !== equipment.id);
-    localStorage.setItem('borrowedItems', JSON.stringify(this.borrowedItems));
-
-    // 4. Force refresh of the equipment list
-    await this.refreshEquipmentList();
-
-    console.log("✅ Equipment restored successfully. Status:", EquipmentStatus.AVAILABLE);
-    this.cdr.markForCheck();
-
-  } catch (error) {
-    console.error("❌ Error restoring equipment:", error);
-
-    // Revert UI changes if the server update failed
-    if (equipment) {
+      // 2. Update local state
       const equipmentInList = this.equipmentList.find(item => item.id === equipment.id);
       if (equipmentInList) {
-        equipmentInList.quantity -= (equipment.quantity || 1);
-        equipmentInList.borrowed = true;
-        equipmentInList.status = EquipmentStatus.BORROWED;
+        equipmentInList.quantity += quantityToRestore;
+        equipmentInList.borrowed = false;
+        equipmentInList.status = EquipmentStatus.AVAILABLE; // Explicit status update
+      } else {
+        // If it's not in the list, add it back
+        this.equipmentList.push({
+          ...equipment,
+          quantity: quantityToRestore,
+          borrowed: false,
+          status: EquipmentStatus.AVAILABLE
+        });
       }
+
+      // 3. Remove from borrowed items list
+      this.borrowedItems = this.borrowedItems.filter(item => item.id !== equipment.id);
+      localStorage.setItem('borrowedItems', JSON.stringify(this.borrowedItems));
+
+      // 4. Force refresh of the equipment list
+      await this.refreshEquipmentList();
+
+      console.log("✅ Equipment restored successfully. Status:", EquipmentStatus.AVAILABLE);
       this.cdr.markForCheck();
-    }
 
-    alert(`Failed to restore equipment: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
+    } catch (error) {
+      console.error("❌ Error restoring equipment:", error);
 
-async refreshEquipmentList(): Promise<void> {
-  try {
-    const [allEquipment, borrowedEquipment] = await Promise.all([
-      this.supabaseService.getInHouseEquipment(),
-      this.supabaseService.getBorrowedEquipment()
-    ]);
+      // Revert UI changes if the server update failed
+      if (equipment) {
+        const equipmentInList = this.equipmentList.find(item => item.id === equipment.id);
+        if (equipmentInList) {
+          equipmentInList.quantity -= (equipment.quantity || 1);
+          equipmentInList.borrowed = true;
+          equipmentInList.status = EquipmentStatus.BORROWED;
+        }
+        this.cdr.markForCheck();
+      }
 
-    const borrowedItemIds = new Set(
-      borrowedEquipment.map((item: any) => item.inhouse_equipment_id)
-    );
-
-    this.equipmentList = allEquipment.map(equipment => {
-      const isBorrowed = borrowedItemIds.has(equipment.id);
-      return {
-        ...equipment,
-        quantity: equipment.quantity || equipment.current_quantity || 0,
-        borrowed: isBorrowed,
-        status: isBorrowed ? EquipmentStatus.BORROWED :
-                (equipment.quantity <= 0 ? EquipmentStatus.OUT_OF_STOCK :
-                 equipment.status || EquipmentStatus.AVAILABLE)
-      };
-    });
-
-    this.cdr.markForCheck();
-  } catch (error) {
-    console.error('Error refreshing equipment list:', error);
-    throw error;
-  }
-}
-
-
-
-  allowOnlyNumbers(event: KeyboardEvent) {
-    const charCode = event.which ? event.which : event.keyCode;
-    // Allow only numbers (0-9)
-    if (charCode < 48 || charCode > 57) {
-      event.preventDefault();
+      alert(`Failed to restore equipment: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
+
+  async refreshEquipmentList(): Promise<void> {
+    try {
+      const [allEquipment, borrowedEquipment] = await Promise.all([
+        this.supabaseService.getInHouseEquipment(),
+        this.supabaseService.getBorrowedEquipment()
+      ]);
+
+      const borrowedItemIds = new Set(
+        borrowedEquipment.map((item: any) => item.inhouse_equipment_id)
+      );
+
+      this.equipmentList = allEquipment.map(equipment => {
+        const isBorrowed = borrowedItemIds.has(equipment.id);
+        return {
+          ...equipment,
+          quantity: equipment.quantity || equipment.current_quantity || 0,
+          borrowed: isBorrowed,
+          status: isBorrowed ? EquipmentStatus.BORROWED :
+                  (equipment.quantity <= 0 ? EquipmentStatus.OUT_OF_STOCK :
+                   equipment.status || EquipmentStatus.AVAILABLE)
+        };
+      });
+
+      this.cdr.markForCheck();
+    } catch (error) {
+      console.error('Error refreshing equipment list:', error);
+      throw error;
+    }
+  }
 }
+
 function firstValueFrom(queryParams: any) {
   return rxFirstValueFrom(queryParams);
 }
+

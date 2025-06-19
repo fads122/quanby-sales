@@ -1,18 +1,62 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+/* CSS Variables for theming */
+:host {
+  --primary-color: #242770;
+  --primary-dark: #1e1f5c;
+  --primary-light: #f0f9ff;
+  --text-color: #1a1a1a;
+  --text-secondary: #64748b;
+  --bg-color: #f8fafc;
+  --card-bg: white;
+  --border-color: #e2e8f0;
+  --hover-bg: #f8fafc;
+  --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* Dark mode variables */
+  --dark-bg: #0f172a;
+  --dark-surface: #1e293b;
+  --dark-surface-hover: #334155;
+  --dark-border: #334155;
+  --dark-text: #f1f5f9;
+  --dark-text-secondary: #94a3b8;
+  --dark-card-bg: #1e293b;
+  --dark-hover-bg: #334155;
+  --dark-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode styles */
+:host-context([data-theme="dark"]) {
+  --bg-color: var(--dark-bg);
+  --card-bg: var(--dark-surface);
+  --text-color: var(--dark-text);
+  --text-secondary: var(--dark-text-secondary);
+  --border-color: var(--dark-border);
+  --hover-bg: var(--dark-surface-hover);
+  --shadow-light: var(--dark-shadow);
+  --shadow-medium: var(--dark-shadow);
+}
 
 /* Global Styles */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #FFFAFA;
-  color: #333;
+  background-color: var(--bg-color);
+  color: var(--text-color);
   line-height: 1.6;
   padding-left: 10px;
   padding-right: 10px;
   padding-top: 50px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+:host-context([data-theme="dark"]) body {
+  background-color: var(--dark-bg);
+  color: var(--dark-text);
+}
+
 .toast {
   position: fixed;
   bottom: 20px;
@@ -3456,6 +3500,7 @@ background-color: #45a049;
 
   .add-project-modal .materials-table {
     font-size: 12px;
+    min-width: 800px;
   }
 
   .add-project-modal .materials-table th,
@@ -3906,29 +3951,36 @@ background-color: #45a049;
   display: none;
 }
 
-/* Selected Materials Table */
+/* Selected Materials Section - Always Visible at Bottom */
+.add-project-modal .selected-materials-section {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
 .add-project-modal .selected-materials-table {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .add-project-modal .materials-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .add-project-modal .materials-table th {
   background: #f8fafc;
-  padding: 16px 20px;
+  padding: 12px 16px;
   text-align: left;
   font-weight: 600;
   color: #374151;
   border-bottom: 2px solid #e5e7eb;
-  font-size: 13px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   position: sticky;
@@ -3937,7 +3989,7 @@ background-color: #45a049;
 }
 
 .add-project-modal .materials-table td {
-  padding: 16px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid #f3f4f6;
   vertical-align: middle;
 }
@@ -4481,9 +4533,6 @@ background-color: #45a049;
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
 }
 
 /* Form Sections */
@@ -4707,7 +4756,7 @@ background-color: #45a049;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .add-project-modal .checkbox-wrapper input:checked + .checkmark {
@@ -4776,36 +4825,29 @@ background-color: #45a049;
   display: none;
 }
 
-/* Selected Materials Section - Always Visible at Bottom */
-.add-project-modal .selected-materials-section {
-  flex-shrink: 0;
-  margin-top: auto;
-}
-
+/* Selected Materials Table */
 .add-project-modal .selected-materials-table {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  max-height: 300px;
-  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .add-project-modal .materials-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .add-project-modal .materials-table th {
   background: #f8fafc;
-  padding: 12px 16px;
+  padding: 16px 20px;
   text-align: left;
   font-weight: 600;
   color: #374151;
   border-bottom: 2px solid #e5e7eb;
-  font-size: 12px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   position: sticky;
@@ -4814,7 +4856,7 @@ background-color: #45a049;
 }
 
 .add-project-modal .materials-table td {
-  padding: 12px 16px;
+  padding: 16px 20px;
   border-bottom: 1px solid #f3f4f6;
   vertical-align: middle;
 }
@@ -4831,23 +4873,23 @@ background-color: #45a049;
 .add-project-modal .material-cell {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .add-project-modal .material-cell .material-name {
   font-weight: 600;
   color: #1e293b;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 /* Input Fields in Table */
 .add-project-modal .quantity-input,
 .add-project-modal .margin-input {
-  width: 70px;
-  padding: 6px 8px;
+  width: 80px;
+  padding: 8px 12px;
   border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 13px;
+  border-radius: 6px;
+  font-size: 14px;
   text-align: center;
   transition: all 0.3s ease;
 }
@@ -4856,20 +4898,20 @@ background-color: #45a049;
 .add-project-modal .margin-input:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* Status Badge */
 .add-project-modal .status-badge {
   display: inline-block;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-align: center;
-  min-width: 80px;
+  min-width: 90px;
 }
 
 .add-project-modal .status-badge.approved {
@@ -4888,7 +4930,7 @@ background-color: #45a049;
 .add-project-modal .brochure-link {
   color: #dc2626;
   text-decoration: none;
-  font-size: 16px;
+  font-size: 18px;
   transition: all 0.3s ease;
 }
 
@@ -4899,28 +4941,28 @@ background-color: #45a049;
 
 .add-project-modal .no-brochure {
   color: #9ca3af;
-  font-size: 11px;
+  font-size: 12px;
   font-style: italic;
 }
 
 /* Action Buttons */
 .add-project-modal .action-buttons {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   align-items: center;
   justify-content: center;
 }
 
 .add-project-modal .action-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 14px;
   color: #ffffff;
   transition: all 0.3s ease;
 }
@@ -4935,7 +4977,7 @@ background-color: #45a049;
 
 .add-project-modal .reject-btn:hover {
   background: #b91c1c;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
 .add-project-modal .approve-btn {
@@ -4944,7 +4986,7 @@ background-color: #45a049;
 
 .add-project-modal .approve-btn:hover {
   background: #059669;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .add-project-modal .remove-btn {
@@ -4953,7 +4995,7 @@ background-color: #45a049;
 
 .add-project-modal .remove-btn:hover {
   background: #4b5563;
-  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
 }
 
 /* Rejected Row Styling - PRESERVED RED LINE */
@@ -4991,7 +5033,7 @@ background-color: #45a049;
 .add-project-modal .summary-card {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 16px;
 }
 
@@ -5277,3 +5319,734 @@ background-color: #45a049;
   background: #94a3b8;
 }
 
+/* Dark mode styles for all components */
+:host-context([data-theme="dark"]) .loading-overlay {
+  background: rgba(15, 23, 42, 0.95);
+}
+
+:host-context([data-theme="dark"]) .loading-content h3 {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .logo-loader::after {
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+}
+
+:host-context([data-theme="dark"]) .content-wrapper {
+  background-color: var(--dark-bg);
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-materials-container {
+  background-color: var(--dark-bg);
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .page-header {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  box-shadow: var(--dark-shadow);
+}
+
+:host-context([data-theme="dark"]) .page-title {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .page-subtitle {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .table-section {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  box-shadow: var(--dark-shadow);
+}
+
+:host-context([data-theme="dark"]) .table-container {
+  background: var(--dark-surface);
+}
+
+:host-context([data-theme="dark"]) .table-header {
+  background: var(--dark-surface);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .table-title {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .stat-item {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .stat-item i {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .modern-table {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .table-header-cell {
+  background: var(--dark-surface-hover);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .table-header-cell .header-content span {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .table-header-cell i {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .table-row {
+  background: var(--dark-surface);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .table-row:hover {
+  background: var(--dark-surface-hover);
+}
+
+:host-context([data-theme="dark"]) .table-cell {
+  background: var(--dark-surface);
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-avatar {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-name {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-description {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .client-value {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .client-label {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .value-amount {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .value-label {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .view-button {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .view-button:hover {
+  background: var(--dark-hover-bg);
+}
+
+:host-context([data-theme="dark"]) .edit-button {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .edit-button:hover {
+  background: var(--dark-hover-bg);
+}
+
+:host-context([data-theme="dark"]) .delete-button {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .delete-button:hover {
+  background: var(--dark-hover-bg);
+}
+
+:host-context([data-theme="dark"]) .empty-state {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .empty-icon {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .empty-state h3 {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .empty-state p {
+  color: var(--dark-text-secondary);
+}
+
+/* Dark mode styles for modals */
+:host-context([data-theme="dark"]) .modal-backdrop {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  box-shadow: var(--dark-shadow);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .modal-header {
+  background: var(--dark-surface);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .modal-title {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .modal-subtitle {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .modal-close {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .modal-close:hover {
+  background: var(--dark-hover-bg);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .modal-body {
+  background: var(--dark-surface);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .section-title {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .section-title i {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .form-label {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .form-input,
+:host-context([data-theme="dark"]) .add-project-modal .form-textarea {
+  background: var(--dark-surface-hover);
+  border: 1px solid var(--dark-border);
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .form-input:focus,
+:host-context([data-theme="dark"]) .add-project-modal .form-textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(36, 39, 112, 0.2);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .search-input {
+  background: var(--dark-surface-hover);
+  border: 1px solid var(--dark-border);
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .search-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(36, 39, 112, 0.2);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .search-icon {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .material-card {
+  background: var(--dark-surface-hover);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .material-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .material-name {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .material-details {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .stock-info {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .view-btn {
+  background: var(--dark-surface);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .view-btn:hover {
+  background: var(--dark-hover-bg);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .checkmark {
+  background: var(--dark-surface-hover);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .checkbox-wrapper input:checked + .checkmark {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .file-upload-label {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .file-upload-label:hover {
+  background: var(--dark-hover-bg);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .selected-materials-table {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .materials-table th {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .materials-table td {
+  color: var(--dark-text);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .materials-table tr:hover td {
+  background: var(--dark-surface-hover);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .quantity-input,
+:host-context([data-theme="dark"]) .add-project-modal .margin-input {
+  background: var(--dark-surface-hover);
+  border: 1px solid var(--dark-border);
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .quantity-input:focus,
+:host-context([data-theme="dark"]) .add-project-modal .margin-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(36, 39, 112, 0.2);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .status-badge.approved {
+  background: #064e3b;
+  color: #6ee7b7;
+  border: 1px solid #059669;
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .status-badge.rejected {
+  background: #450a0a;
+  color: #fca5a5;
+  border: 1px solid #ef4444;
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .brochure-link {
+  color: var(--primary-color);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .brochure-link:hover {
+  color: var(--primary-dark);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .no-brochure {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .rejected-row {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .rejected-text {
+  color: #fca5a5;
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .financial-summary {
+  background: var(--dark-surface);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .summary-card {
+  background: var(--dark-surface-hover);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .summary-title {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .summary-item .label {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .summary-item .value {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .summary-item.total .value {
+  color: var(--primary-color);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .modal-footer {
+  background: var(--dark-surface);
+  border-top: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .btn-secondary {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .btn-secondary:hover {
+  background: var(--dark-hover-bg);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .btn-primary:disabled {
+  background: var(--dark-border);
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .empty-state {
+  background: var(--dark-surface);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .empty-icon {
+  color: var(--dark-text-secondary);
+}
+
+/* Dark mode styles for Edit Project Modal */
+:host-context([data-theme="dark"]) .edit-project-modal .modal-backdrop {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+:host-context([data-theme="dark"]) .edit-project-modal .modal-content {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  box-shadow: var(--dark-shadow);
+}
+
+/* Dark mode styles for Project Details Modal */
+:host-context([data-theme="dark"]) .project-details-modal {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  box-shadow: var(--dark-shadow);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .modal-header {
+  background: var(--dark-surface);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .modal-title {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .meta-info {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .status {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .modal-close {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .modal-close:hover {
+  background: var(--dark-hover-bg);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .project-overview {
+  background: var(--dark-surface);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .project-avatar-large {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .project-title {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .project-amount-large {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .project-status {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .detail-card {
+  background: var(--dark-surface-hover);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .detail-card:hover {
+  background: var(--dark-hover-bg);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .section-title {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .section-title i {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .detail-row .label {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .detail-row .value {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .detail-row .value.amount {
+  color: var(--primary-color);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .detail-row.highlight {
+  background: var(--dark-surface);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .materials-section {
+  background: var(--dark-surface);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .materials-table-container {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .materials-table {
+  background: var(--dark-surface);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .materials-table th {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .materials-table td {
+  color: var(--dark-text);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .materials-table tr:hover td {
+  background: var(--dark-surface-hover);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .status-badge.approved {
+  background: #064e3b;
+  color: #6ee7b7;
+  border: 1px solid #059669;
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .status-badge.rejected {
+  background: #450a0a;
+  color: #fca5a5;
+  border: 1px solid #ef4444;
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .rejected-row {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .rejected-text {
+  color: #fca5a5;
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .attachment-info {
+  background: var(--dark-surface-hover);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .attachment-preview {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .attachment-name {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .download-button {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .download-button:hover {
+  background: var(--dark-hover-bg);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .modal-actions {
+  background: var(--dark-surface);
+  border-top: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .deliver-btn {
+  background: var(--primary-color);
+  color: white;
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .deliver-btn:hover {
+  background: var(--primary-dark);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .deliver-btn:disabled {
+  background: var(--dark-border);
+  color: var(--dark-text-secondary);
+}
+
+/* Dark mode styles for Equipment Modal */
+:host-context([data-theme="dark"]) .equipment-modal {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  box-shadow: var(--dark-shadow);
+}
+
+:host-context([data-theme="dark"]) .equipment-modal .modal-header {
+  background: var(--dark-surface);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .equipment-modal .modal-title {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .equipment-modal .close-btn {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .equipment-modal .close-btn:hover {
+  background: var(--dark-hover-bg);
+}
+
+:host-context([data-theme="dark"]) .equipment-modal .modal-body {
+  background: var(--dark-surface);
+}
+
+:host-context([data-theme="dark"]) .equipment-modal .equipment-details {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .equipment-modal .detail-row {
+  color: var(--dark-text);
+}
+
+:host-context([data-theme="dark"]) .equipment-modal .detail-label {
+  color: var(--dark-text-secondary);
+}
+
+:host-context([data-theme="dark"]) .equipment-modal .detail-value {
+  color: var(--dark-text);
+}
+
+/* Dark mode styles for Image Modal */
+:host-context([data-theme="dark"]) .image-modal {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  box-shadow: var(--dark-shadow);
+}
+
+:host-context([data-theme="dark"]) .image-modal .close-btn {
+  background: var(--dark-surface-hover);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .image-modal .close-btn:hover {
+  background: var(--dark-hover-bg);
+}
+
+/* Dark mode scrollbar styles */
+:host-context([data-theme="dark"]) .add-project-modal .modal-body::-webkit-scrollbar-track {
+  background: var(--dark-surface-hover);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .modal-body::-webkit-scrollbar-thumb {
+  background: var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .materials-grid::-webkit-scrollbar-track {
+  background: var(--dark-surface-hover);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .materials-grid::-webkit-scrollbar-thumb {
+  background: var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .add-project-modal .materials-grid::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .modal-body::-webkit-scrollbar-track {
+  background: var(--dark-surface-hover);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .modal-body::-webkit-scrollbar-thumb {
+  background: var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .materials-table-container::-webkit-scrollbar-track {
+  background: var(--dark-surface-hover);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .materials-table-container::-webkit-scrollbar-thumb {
+  background: var(--dark-border);
+}
+
+:host-context([data-theme="dark"]) .project-details-modal .materials-table-container::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}

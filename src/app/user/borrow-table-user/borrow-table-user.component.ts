@@ -1,22 +1,21 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { SupabaseService } from '../../services/supabase.service';
-import { NgIf, NgFor, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { SupabaseAuthService } from '../../services/supabase-auth.service';
 import { SidebarComponent } from "../../nav/sidebar/sidebar.component";
+import { BreadcrumbComponent } from "../../breadcrumb/breadcrumb.component";
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule, PageEvent, MatPaginator } from '@angular/material/paginator';
 import { MatDialogModule } from '@angular/material/dialog';
-import { MatSort } from '@angular/material/sort';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { DatePipe } from '@angular/common';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
 
 interface InhouseEquipment {
     id: string;
@@ -54,15 +53,13 @@ interface BorrowRequest {
   standalone: true,
   imports: [
     CommonModule,
-    NgIf,
-    NgFor,
     FormsModule,
     MatTableModule,
     MatIconModule,
     MatPaginatorModule,
     MatDialogModule,
-    DatePipe,
     MatTooltipModule,
+    MatSortModule,
     SidebarComponent,
     BreadcrumbComponent
   ],
@@ -87,7 +84,7 @@ export class BorrowTableUserComponent implements OnInit, AfterViewInit {
   borrowedItems: any[] = [];
   borrowRequests: BorrowRequest[] = [];
   equipmentList: any[] = []; // Add this line
-  
+
   // Computed properties for template
   get totalRequests(): number {
     return this.dataSource.data.length;
@@ -106,7 +103,8 @@ export class BorrowTableUserComponent implements OnInit, AfterViewInit {
     private supabaseService: SupabaseService,
     private authService: SupabaseAuthService,
     private sanitizer: DomSanitizer,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private cdr: ChangeDetectorRef
   ) {}
 
   onSidebarCollapsedChange(isCollapsed: boolean) {
@@ -121,6 +119,17 @@ export class BorrowTableUserComponent implements OnInit, AfterViewInit {
     }
   }
 
+  onSidebarThemeChange(theme: string) {
+    document.documentElement.setAttribute('data-theme', theme);
+    this.cdr.detectChanges();
+  }
+
+  private initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const currentTheme = savedTheme || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  }
+
   async ngOnInit() {
     this.isLoading = true;
     const user = await this.supabaseService.getCurrentUser();
@@ -130,9 +139,7 @@ export class BorrowTableUserComponent implements OnInit, AfterViewInit {
     try {
       this.isLoading = true; // Show loader
 
-      // Get the current user's email
-      const user = await this.supabaseService.getCurrentUser();
-      this.userEmail = user?.email?.toLowerCase().trim() || '';
+      this.initializeTheme();
 
       await this.fetchBorrowRequests();
     } finally {
@@ -422,17 +429,4 @@ export class BorrowTableUserComponent implements OnInit, AfterViewInit {
   async refreshEquipmentList() {
     this.equipmentList = await this.supabaseService.getAvailableEquipment();
   }
-
-  // Update the isCurrentUsersRequest method (or add it if you don't have it)
-isCurrentUsersRequest(request: BorrowRequest): boolean {
-
-
-  if (!this.userEmail || !request.borrower_email) return false;
-  
-  // Normalize both emails - trim and lowercase
-  const currentEmail = this.userEmail.trim().toLowerCase();
-  const requestEmail = request.borrower_email.trim().toLowerCase();
-  
-  return currentEmail === requestEmail;
-}
 }

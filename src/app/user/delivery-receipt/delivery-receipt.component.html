@@ -8,7 +8,7 @@
   </div>
 </div>
 
-<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<app-sidebar (collapsedChange)="onSidebarCollapsed($event)" (themeChange)="onSidebarThemeChange($event)"></app-sidebar>
 <app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
 
 <div class="delivery-receipt-container" [class.collapsed]="isCollapsed">
@@ -34,9 +34,9 @@
           [(ngModel)]="searchQuery"
           (input)="filterReceipts()"
         />
-        <button 
-          *ngIf="searchQuery" 
-          class="clear-search" 
+        <button
+          *ngIf="searchQuery"
+          class="clear-search"
           (click)="searchQuery = ''; filterReceipts()">
           <i class="pi pi-times"></i>
         </button>
@@ -124,12 +124,12 @@
               </td>
               <td class="table-cell">
                 <div class="status-container">
-                  <span *ngIf="receipt.status === 'Delivered'" 
+                  <span *ngIf="receipt.status === 'Delivered'"
                         class="status-badge delivered">
                     <i class="pi pi-check-circle"></i>
                     <span>Delivered</span>
                   </span>
-                  <span *ngIf="receipt.status === 'Delivering'" 
+                  <span *ngIf="receipt.status === 'Delivering'"
                         class="status-badge delivering">
                     <i class="pi pi-truck"></i>
                     <span>Delivering</span>
@@ -139,7 +139,7 @@
               <td class="table-cell">
                 <div class="attachment-container">
                   <div *ngIf="receipt.attached_file" class="attachment-info">
-                    <button class="attachment-button view-button" 
+                    <button class="attachment-button view-button"
                             (click)="openFileDialog(receipt.attached_file)"
                             [title]="isImage(receipt.attached_file) ? 'View Image' : 'View PDF'">
                       <i [class]="isImage(receipt.attached_file) ? 'pi pi-image' : 'pi pi-file-pdf'"></i>
@@ -154,7 +154,7 @@
               </td>
               <td class="table-cell actions-cell">
                 <div class="action-buttons">
-                  <button class="action-button view-button" 
+                  <button class="action-button view-button"
                           (click)="showReceiptDetails(receipt); $event.stopPropagation()"
                           title="View Details">
                     <i class="pi pi-eye"></i>
@@ -216,7 +216,7 @@
           </div>
           <div class="info-item">
             <label class="info-label">Status</label>
-            <span class="status-badge" 
+            <span class="status-badge"
                   [class.delivered]="selectedReceipt?.status === 'Delivered'"
                   [class.delivering]="selectedReceipt?.status === 'Delivering'">
               <i [class]="selectedReceipt?.status === 'Delivered' ? 'pi pi-check-circle' : 'pi pi-truck'"></i>
@@ -262,29 +262,29 @@
           <div class="form-row">
             <div class="form-field">
               <label class="form-label">Received By</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 class="form-input"
-                [(ngModel)]="selectedReceipt!.received_by" 
-                name="receivedBy" 
+                [(ngModel)]="selectedReceipt!.received_by"
+                name="receivedBy"
                 placeholder="Enter recipient name">
             </div>
             <div class="form-field">
               <label class="form-label">Delivered Date</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 class="form-input"
-                [(ngModel)]="selectedReceipt!.delivered_date" 
+                [(ngModel)]="selectedReceipt!.delivered_date"
                 name="deliveredDate">
             </div>
           </div>
           <div class="form-row">
             <div class="form-field">
               <label class="form-label">Delivered Time</label>
-              <input 
-                type="time" 
+              <input
+                type="time"
                 class="form-input"
-                [(ngModel)]="selectedReceipt!.delivered_time" 
+                [(ngModel)]="selectedReceipt!.delivered_time"
                 name="deliveredTime">
             </div>
             <div class="form-field">

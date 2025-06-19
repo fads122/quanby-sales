@@ -8,6 +8,7 @@ import { BreadcrumbComponent } from "../../breadcrumb/breadcrumb.component";
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { environment } from '../../../environments/environment';
 
 
 
@@ -212,10 +213,10 @@ openReturnSlipModal(url: string) {
       : url;
     window.open(finalUrl, '_blank');
   }
-  
+
     getSupabaseImageUrl(filename: string): string {
-  // Replace with your actual Supabase project ref
-  return `https://xvcgubrtandfivlqcmww.supabase.co/storage/v1/object/public/equipment-images/${filename}`;
+  // Use environment variable instead of hardcoded URL
+  return `${environment.SUPABASE_URL}/storage/v1/object/public/equipment-images/${filename}`;
 }
 
   // Add method to handle sidebar collapse

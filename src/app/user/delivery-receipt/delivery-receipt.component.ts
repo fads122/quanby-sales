@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, TemplateRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -20,6 +20,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
+import { environment } from '../../../environments/environment';
 
 interface DeliveryReceipt {
   id: string;
@@ -104,11 +105,12 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
   constructor(
     public dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef
   ) {
     this.supabase = createClient(
-      'https://xvcgubrtandfivlqcmww.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2Y2d1YnJ0YW5kZml2bHFjbXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxNDk4NjYsImV4cCI6MjA1NDcyNTg2Nn0.yjd-SXfzJe6XmuNpI2HsZcI9EsS9AxBXI-qukzgcZig'
+      environment.SUPABASE_URL,
+      environment.SUPABASE_KEY
     );
     this.dataSource = new MatTableDataSource<DeliveryReceipt>([]);
 
@@ -120,6 +122,9 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
              data.delivery_date.toLowerCase().includes(searchStr) ||
              data.status.toLowerCase().includes(searchStr);
     };
+
+    // Initialize theme
+    this.initializeTheme();
   }
 
   async ngOnInit(): Promise<void> {
@@ -130,7 +135,7 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
     // Set up paginator and sort after view is initialized
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
-    
+
     console.log('Paginator initialized:', this.paginator);
     console.log('Data source paginator:', this.dataSource.paginator);
   }
@@ -147,7 +152,7 @@ export class DeliveryReceiptComponent implements OnInit, AfterViewInit {
       const receipts = data.map(receipt => ({
         ...receipt,
         attached_file: receipt.attached_file ?
-          `https://xvcgubrtandfivlqcmww.supabase.co/storage/v1/object/public/delivery_receipts/${receipt.attached_file}` :
+          `${environment.SUPABASE_URL}/storage/v1/object/public/delivery_receipts/${receipt.attached_file}` :
           undefined
       }));
 
@@ -334,5 +339,20 @@ getFileIcon(fileName: string): string {
 
 onSidebarCollapsed(collapsed: boolean) {
   this.isCollapsed = collapsed;
+  this.cdr.detectChanges();
+}
+
+// Add method to handle theme changes from sidebar
+onSidebarThemeChange(theme: string) {
+  // Update the document attribute to trigger CSS variable changes
+  document.documentElement.setAttribute('data-theme', theme);
+  this.cdr.detectChanges();
+}
+
+// Add method to initialize theme
+private initializeTheme() {
+  const savedTheme = localStorage.getItem('theme');
+  const currentTheme = savedTheme || 'light';
+  document.documentElement.setAttribute('data-theme', currentTheme);
 }
 }

@@ -1,4 +1,4 @@
-<app-sidebar (collapsedChange)="isSidebarCollapsed = $event"></app-sidebar>
+<app-sidebar (collapsedChange)="isSidebarCollapsed = $event" (themeChange)="onSidebarThemeChange($event)"></app-sidebar>
 <app-breadcrumb [sidebarCollapsed]="isSidebarCollapsed"></app-breadcrumb>
 
 <!-- Loader Overlay -->
@@ -19,20 +19,20 @@
       <h2 class="search-title">Parts Picker</h2>
       <p class="search-subtitle">Find and select equipment for your projects</p>
     </div>
-    
+
     <div class="search-controls">
       <!-- Search Mode Toggle -->
       <div class="search-mode-toggle">
         <div class="toggle-container">
-          <button 
-            class="toggle-option" 
+          <button
+            class="toggle-option"
             [class.active]="searchMode === 'text'"
             (click)="searchMode = 'text'; onSearch()">
             <i class="pi pi-search"></i>
             <span>Text Search</span>
           </button>
-          <button 
-            class="toggle-option" 
+          <button
+            class="toggle-option"
             [class.active]="searchMode === 'semantic'"
             (click)="searchMode = 'semantic'; onSearch()">
             <i class="pi pi-brain"></i>
@@ -51,9 +51,9 @@
           [placeholder]="searchMode === 'text' ? 'Search by model, brand, or supplier...' : 'Describe what you need in natural language...'"
           class="search-input"
         />
-        <button 
-          *ngIf="searchQuery" 
-          class="clear-search" 
+        <button
+          *ngIf="searchQuery"
+          class="clear-search"
           (click)="searchQuery = ''; onSearch()">
           <i class="pi pi-times"></i>
         </button>
@@ -130,14 +130,14 @@
           <div class="card-actions">
             <div class="quantity-control">
               <label class="quantity-label">Qty</label>
-              <input 
+              <input
                 type="number"
                 [(ngModel)]="product.quantity"
                 min="1"
                 class="quantity-input"
               >
             </div>
-            <button 
+            <button
               class="action-button"
               [class.selected]="isSelected(product)"
               (click)="toggleProductSelection(product)">
@@ -194,7 +194,7 @@
                 placeholder="1"
               />
             </div>
-            <button 
+            <button
               class="action-button"
               [class.selected]="isSelected(product)"
               (click)="toggleProductSelection(product)">
