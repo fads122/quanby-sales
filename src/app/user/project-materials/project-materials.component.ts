@@ -10,6 +10,7 @@ import { animate, style, transition, trigger, state, keyframes } from '@angular/
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { BreadcrumbComponent } from '../../breadcrumb/breadcrumb.component';
+import { environment } from '../../../environments/environment';
 
 interface ProjectMaterial {
   equipment_id: string;
@@ -68,9 +69,8 @@ interface Project {
   delivery_status?: string; // <-- Added to fix compile error
 }
 
-const SUPABASE_URL = 'https://xvcgubrtandfivlqcmww.supabase.co';
-const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2Y2d1YnJ0YW5kZml2bHFjbXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxNDk4NjYsImV4cCI6MjA1NDcyNTg2Nn0.yjd-SXfzJe6XmuNpI2HsZcI9EsS9AxBXI-qukzgcZig';
+const SUPABASE_URL = environment.SUPABASE_URL;
+const SUPABASE_ANON_KEY = environment.SUPABASE_KEY;
 
 interface PostgrestError {
   message: string;
@@ -141,19 +141,26 @@ export class ProjectMaterialsComponent implements OnInit {
   otherProjects: any[] = [];
   isDeleting = false;
   showToast = false;
-toastMessage = '';
+  toastMessage = '';
   allChecked: boolean = false;
   searchTerm: string = '';
   showImageModal: boolean = false;
   selectedImageUrl: string = '';
   project: Project = {
-    id:'',
+    id: '',
     name: '',
     description: '',
-    client_name: '', // ✅ Added this line
-    fileUrl: '', // initial file URL is empty
-    file: null,  // file is initially null
-    materials: []
+    materials: [],
+    client_name: '',
+    client_phone: '',
+    client_address: '',
+    client_email: '',
+    fileUrl: '',
+    file: null,
+    delivered: false,
+    subtotal: 0,
+    vat: 0,
+    total: 0
   };
   showTemplatesModal = false;
   savedTemplates: { id: string; title: string; items: any[] }[] = [];
@@ -162,6 +169,7 @@ toastMessage = '';
   isAnimating = false;
   isSidebarCollapsed: boolean = false
   isCollapsed = false;
+  isDarkMode: boolean = false; // Add theme tracking
 
   constructor(
     private authService: SupabaseAuthService,
@@ -172,16 +180,33 @@ toastMessage = '';
     this.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 
-
-
-  // Add this method
   onSidebarCollapsed(collapsed: boolean) {
     this.isCollapsed = collapsed;
     this.cdr.detectChanges();
   }
 
+  onThemeChange(theme: string) {
+    // Handle theme changes from sidebar
+    this.cdr.detectChanges();
+  }
+
+  // Add method to handle theme changes from sidebar
+  onSidebarThemeChange(theme: string) {
+    // Update the document attribute to trigger CSS variable changes
+    document.documentElement.setAttribute('data-theme', theme);
+    this.cdr.detectChanges();
+  }
+
+  // Add method to initialize theme
+  private initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const currentTheme = savedTheme || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  }
+
   async ngOnInit() {
     this.isLoading = true; // Set loading to true at start
+    this.initializeTheme(); // Initialize theme
     try {
       await this.loadUser();
       await this.fetchEquipment();
@@ -1909,13 +1934,17 @@ toggleCheckAll() {
       id: '',
       name: '',
       description: '',
-      client_name: '', // ✅ Added this line
+      materials: [],
+      client_name: '',
+      client_phone: '',
       client_address: '',
       client_email: '',
-      client_phone: '',
-      fileUrl: '', // initial file URL is empty
-      file: null,  // file is initially null
-      materials: []
+      fileUrl: '',
+      file: null,
+      delivered: false,
+      subtotal: 0,
+      vat: 0,
+      total: 0
     };
     this.selectedEquipments = [];
   }

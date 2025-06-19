@@ -8,7 +8,7 @@
   </div>
 </div>
 
-<app-sidebar #sidebar (collapsedChange)="onSidebarCollapsedChange($event)"></app-sidebar>
+<app-sidebar #sidebar (collapsedChange)="onSidebarCollapsedChange($event)" (themeChange)="onSidebarThemeChange($event)"></app-sidebar>
 <app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
 
 <div class="borrow-table-container" [class.collapsed]="isCollapsed">
@@ -38,9 +38,9 @@
           [(ngModel)]="searchTerm"
           (input)="filterBorrowRequests()"
         />
-        <button 
-          *ngIf="searchTerm" 
-          class="clear-search" 
+        <button
+          *ngIf="searchTerm"
+          class="clear-search"
           (click)="searchTerm = ''; filterBorrowRequests()">
           <i class="pi pi-times"></i>
         </button>
@@ -136,12 +136,12 @@
               </td>
               <td class="table-cell">
                 <div class="status-container">
-                  <span *ngIf="request.status !== 'Returned' && request.status !== 'returned'" 
+                  <span *ngIf="request.status !== 'Returned' && request.status !== 'returned'"
                         class="status-badge active">
                     <i class="pi pi-clock"></i>
                     <span>Active</span>
                   </span>
-                  <span *ngIf="request.status === 'Returned' || request.status === 'returned'" 
+                  <span *ngIf="request.status === 'Returned' || request.status === 'returned'"
                         class="status-badge returned">
                     <i class="pi pi-check-circle"></i>
                     <span>Returned</span>
@@ -150,13 +150,13 @@
               </td>
               <td class="table-cell actions-cell">
                 <div class="action-buttons">
-                  <button class="action-button view-button" 
+                  <button class="action-button view-button"
                           (click)="openDetailsModal(request); $event.stopPropagation()"
                           title="View Details">
                     <i class="pi pi-eye"></i>
                   </button>
                   <button
-                    *ngIf="request.status !== 'Returned' && request.status !== 'returned' && isCurrentUsersRequest(request)"
+                    *ngIf="request.status !== 'Returned' && request.status !== 'returned'"
                     class="action-button return-button"
                     (click)="markAsReturned(request.id); $event.stopPropagation()"
                     title="Mark as Returned"
@@ -240,7 +240,7 @@
           </div>
           <div class="info-item">
             <label class="info-label">Status</label>
-            <span class="status-badge" 
+            <span class="status-badge"
                   [class.active]="selectedRequest.status !== 'Returned' && selectedRequest.status !== 'returned'"
                   [class.returned]="selectedRequest.status === 'Returned' || selectedRequest.status === 'returned'">
               <i [class]="selectedRequest.status === 'Returned' || selectedRequest.status === 'returned' ? 'pi pi-check-circle' : 'pi pi-clock'"></i>
@@ -283,8 +283,8 @@
 
     <div class="modal-footer">
       <button class="secondary-button" (click)="closeDetailsModal()">Close</button>
-      <button *ngIf="isRequestActive && isCurrentUsersRequest(selectedRequest)"
-        class="primary-button" 
+      <button *ngIf="isRequestActive"
+        class="primary-button"
         (click)="markAsReturned(selectedRequest.id); closeDetailsModal()">
         <i class="pi pi-undo"></i>
         <span>Mark as Returned</span>

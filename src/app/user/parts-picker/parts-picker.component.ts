@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -149,12 +149,17 @@ mockProducts = [
 constructor(
   private supabaseService: SupabaseService,
   private route: ActivatedRoute,
-  private router: Router
+  private router: Router,
+  private cdr: ChangeDetectorRef
 ) {}
 
 async ngOnInit() {
   try {
     this.isLoading = true; // Start loading
+
+    // Initialize theme state
+    this.initializeTheme();
+
     // Load the TensorFlow model when component initializes
     await this.supabaseService.loadModel();
     await this.fetchEquipmentData();
@@ -612,6 +617,24 @@ onPageChange(event: any) {
     : this.filteredProducts().length;
 }
 
+// Add method to handle sidebar collapsed state
+onSidebarCollapsed(collapsed: boolean) {
+  this.isSidebarCollapsed = collapsed;
+  this.cdr.detectChanges();
+}
 
+// Add method to handle theme changes from sidebar
+onSidebarThemeChange(theme: string) {
+  // Update the document attribute to trigger CSS variable changes
+  document.documentElement.setAttribute('data-theme', theme);
+  this.cdr.detectChanges();
+}
+
+// Add method to initialize theme
+private initializeTheme() {
+  const savedTheme = localStorage.getItem('theme');
+  const currentTheme = savedTheme || 'light';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+}
 
 }

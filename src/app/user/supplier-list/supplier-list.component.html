@@ -8,7 +8,7 @@
   </div>
 </div>
 
-<app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+<app-sidebar (collapsedChange)="onSidebarCollapsed($event)" (themeChange)="onThemeChange($event)"></app-sidebar>
 <app-breadcrumb [sidebarCollapsed]="isCollapsed"></app-breadcrumb>
 
 <div class="supplier-list-container" [class.collapsed]="isCollapsed">

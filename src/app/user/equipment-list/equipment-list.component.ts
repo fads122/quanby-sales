@@ -227,6 +227,8 @@ selectedOwnership: string | null = null;
     if (!this.searchQuery.trim()) {
       console.log('❌ Empty search query - returning empty results');
       this.semanticSearchResults = [];
+      // Group the empty results to update the UI
+      this.groupEquipment([]);
       return;
     }
 
@@ -264,6 +266,9 @@ selectedOwnership: string | null = null;
         console.log('✅ Found matches:', this.semanticSearchResults.length);
       }
 
+      // Group the semantic search results to update the UI
+      this.groupEquipment(this.semanticSearchResults);
+
     } catch (error: unknown) {
       console.error('❌ Semantic search failed:', error);
       if (error instanceof Error) {
@@ -273,6 +278,8 @@ selectedOwnership: string | null = null;
         });
       }
       this.semanticSearchResults = [];
+      // Group empty results to update the UI
+      this.groupEquipment([]);
     } finally {
       this.isSemanticSearching = false;
       console.log('🏁 Semantic search completed');
@@ -356,11 +363,6 @@ getStatusSeverity(status: string): string {
   }
 }
 
-  onSidebarCollapsed(collapsed: boolean): void {
-    this.isCollapsed = collapsed;
-    this.cdRef.detectChanges();
-  }
-
 openEquipmentModal() {
   const dialogRef = this.dialog.open(AddEquipmentComponent, {
     width: '1000px',
@@ -380,24 +382,6 @@ openEquipmentModal() {
     }
   });
 }
-  // openEquipmentModal() {
-  //   const dialogRef = this.dialog.open(AddEquipmentComponent, {
-  //     width: '800px',
-  //     data: {
-  //       isEditMode: false,
-  //       equipmentDataArray: [],
-  //       suppliers: []
-  //     }
-  //   });
-
-  //   dialogRef.afterClosed().subscribe(result => {
-  //     if (result?.success) {
-  //       console.log("✅ Equipment added, refreshing list...");
-  //       this.loadEquipment(); // ✅ Refresh equipment list
-  //     }
-  //   });
-  // }
-
 
   ngOnDestroy() {
     window.removeEventListener('keydown', this.handleScannerInput.bind(this));
@@ -728,7 +712,7 @@ async loadEquipment() {
       }));
     } else {
       equipmentData = await this.supabaseService.getEquipmentList();
-      console.log("📋 For Sale Equipment Data:", equipmentData);
+      console.log("�� For Sale Equipment Data:", equipmentData);
       // Log a sample item to see the data structure
       if (equipmentData && equipmentData.length > 0) {
         console.log("📋 Sample For Sale Item:", equipmentData[0]);
@@ -1396,10 +1380,7 @@ getOwnershipLabel(value: string | null): string {
 
 // Add method to get available equipment count
 getAvailableEquipmentCount(): number {
-  const sourceList = this.searchMode === 'semantic' && this.searchQuery.trim()
-    ? this.semanticSearchResults
-    : this.filteredEquipmentList;
-  return sourceList.filter(item => item.status === 'Available').length;
+  return this.filteredEquipmentList.filter(item => item.status === 'Available').length;
 }
 
 // Add method to get search placeholder dynamically
@@ -1413,10 +1394,8 @@ updatePagination() {
   this.showPagination = this.selectedTable === 'equipments';
 
   if (this.showPagination) {
-    // Use the appropriate list for pagination based on search mode
-    const totalItems = this.searchMode === 'semantic' && this.searchQuery.trim()
-      ? this.semanticSearchResults.length
-      : this.filteredEquipmentList.length;
+    // Always use the grouped and filtered equipment list for pagination
+    const totalItems = this.filteredEquipmentList.length;
 
     this.totalPages = Math.ceil(totalItems / this.pageSize);
     this.currentPage = Math.min(this.currentPage, this.totalPages);
@@ -1425,12 +1404,8 @@ updatePagination() {
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = startIndex + this.pageSize;
 
-    // Use the appropriate list for pagination
-    const sourceList = this.searchMode === 'semantic' && this.searchQuery.trim()
-      ? this.semanticSearchResults
-      : this.filteredEquipmentList;
-
-    this.paginatedEquipmentList = sourceList.slice(startIndex, endIndex);
+    // Always use the filtered equipment list (which includes grouped semantic results)
+    this.paginatedEquipmentList = this.filteredEquipmentList.slice(startIndex, endIndex);
   } else {
     // For operational equipment, show all items
     this.paginatedEquipmentList = this.filteredEquipmentList;
@@ -1485,9 +1460,7 @@ getPageNumbers(): number[] {
 
 // Method to get the end index for pagination display
 getPaginationEndIndex(): number {
-  const totalItems = this.searchMode === 'semantic' && this.searchQuery.trim()
-    ? this.semanticSearchResults.length
-    : this.filteredEquipmentList.length;
+  const totalItems = this.filteredEquipmentList.length;
   return Math.min(this.currentPage * this.pageSize, totalItems);
 }
 

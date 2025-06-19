@@ -63,6 +63,7 @@ export class SupplierListComponent implements OnInit {
   activeTab: 'current' | 'all' = 'current'; // Track which tab is active
   showAddDialog: boolean = false;
   showDeleteDialog: boolean = false;
+  currentTheme: string = 'light'; // Add theme property
 
   displayedColumns: string[] = ['number', 'supplier_name', 'contact_person', 'phone', 'email', 'status', 'actions'];
   dataSource!: MatTableDataSource<any>;
@@ -107,6 +108,7 @@ export class SupplierListComponent implements OnInit {
     await this.fetchAllSuppliers();
     await this.fetchCurrentUserSuppliers();
     this.updateDataSource();
+    this.initializeTheme(); // Initialize theme
   } finally {
     // Add a minimum loading time of 1 second for better UX
     setTimeout(() => {
@@ -114,6 +116,28 @@ export class SupplierListComponent implements OnInit {
     }, 1000);
   }
 }
+
+  // Initialize theme
+  private initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      this.currentTheme = savedTheme;
+    } else {
+      this.currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    this.applyTheme();
+  }
+
+  // Apply theme
+  private applyTheme() {
+    document.documentElement.setAttribute('data-theme', this.currentTheme);
+  }
+
+  // Handle theme changes from sidebar
+  onThemeChange(theme: string) {
+    this.currentTheme = theme;
+    this.applyTheme();
+  }
 
   // Fetch suppliers assigned to the current user
   async fetchCurrentUserSuppliers(): Promise<void> {

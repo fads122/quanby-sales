@@ -35,6 +35,51 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+/* Global theme variables */
+:root {
+  --primary-color: #242770;
+  --primary-dark: #1e1f5c;
+  --primary-light: #f0f9ff;
+  --text-color: #1a1a1a;
+  --text-secondary: #64748b;
+  --bg-color: #FFFAFA;
+  --card-bg: white;
+  --border-color: #e2e8f0;
+  --hover-bg: #f8fafc;
+  --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* Dark mode variables */
+  --dark-bg: #0f172a;
+  --dark-surface: #1e293b;
+  --dark-surface-hover: #334155;
+  --dark-border: #334155;
+  --dark-text: #f1f5f9;
+  --dark-text-secondary: #94a3b8;
+  --dark-card-bg: #1e293b;
+  --dark-hover-bg: #334155;
+  --dark-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode global styles */
+[data-theme="dark"] {
+  --bg-color: var(--dark-bg);
+  --card-bg: var(--dark-surface);
+  --text-color: var(--dark-text);
+  --text-secondary: var(--dark-text-secondary);
+  --border-color: var(--dark-border);
+  --hover-bg: var(--dark-surface-hover);
+  --shadow-light: var(--dark-shadow);
+  --shadow-medium: var(--dark-shadow);
+}
+
+/* Apply theme to body */
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 /* Ensure proper stacking and no overflow */
 /* body {
   overflow-x: hidden;
@@ -59,5 +104,112 @@ body.logout-transition {
 
 body.logout-transition * {
   transition: none !important;
+}
+
+/* Dark mode transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Chart.js dark mode overrides */
+[data-theme="dark"] canvas {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+
+/* PrimeNG dark mode overrides */
+[data-theme="dark"] .p-component {
+  background-color: var(--dark-surface);
+  color: var(--dark-text);
+  border-color: var(--dark-border);
+}
+
+[data-theme="dark"] .p-card {
+  background-color: var(--dark-surface);
+  border-color: var(--dark-border);
+}
+
+[data-theme="dark"] .p-card .p-card-title {
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .p-card .p-card-content {
+  color: var(--dark-text-secondary);
+}
+
+/* Material Design dark mode overrides */
+[data-theme="dark"] .mat-mdc-card {
+  background-color: var(--dark-surface);
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .mat-mdc-form-field {
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .mat-mdc-input-element {
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .mat-mdc-form-field-label {
+  color: var(--dark-text-secondary);
+}
+
+[data-theme="dark"] .mat-mdc-select-value {
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .mat-mdc-select-arrow {
+  color: var(--dark-text-secondary);
+}
+
+/* Material Design button dark mode overrides */
+[data-theme="dark"] .mat-mdc-button {
+  color: var(--dark-text-secondary);
+}
+
+[data-theme="dark"] .mat-mdc-button:hover {
+  color: #66BBDE;
+  background-color: var(--dark-surface-hover);
+}
+
+[data-theme="dark"] .mat-mdc-button .mat-icon {
+  color: inherit;
+}
+
+/* Material Design icon dark mode overrides */
+[data-theme="dark"] .mat-icon {
+  color: var(--dark-text-secondary);
+}
+
+[data-theme="dark"] .mat-icon.mat-icon-inline {
+  color: inherit;
+}
+
+/* Breadcrumb specific dark mode overrides */
+[data-theme="dark"] .breadcrumb-nav {
+  background-color: var(--dark-bg);
+  border-bottom-color: var(--dark-border);
+}
+
+[data-theme="dark"] .breadcrumb-item {
+  color: var(--dark-text-secondary);
+}
+
+[data-theme="dark"] .breadcrumb-link {
+  color: var(--dark-text-secondary);
+}
+
+[data-theme="dark"] .breadcrumb-link:hover {
+  color: #66BBDE;
+  background-color: var(--dark-surface-hover);
+}
+
+[data-theme="dark"] .current-item {
+  color: var(--dark-text);
+  background-color: var(--dark-surface-hover);
+}
+
+[data-theme="dark"] .breadcrumb-item .divider {
+  color: var(--dark-text-secondary);
 }
 

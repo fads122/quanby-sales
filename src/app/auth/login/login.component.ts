@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { createClient } from '@supabase/supabase-js';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { environment } from '../../../environments/environment';
 
 @Component({
   imports: [
@@ -19,12 +20,12 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
-  
+
   email: string = '';
   password: string = '';
   private supabase = createClient(
-    'https://xvcgubrtandfivlqcmww.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2Y2d1YnJ0YW5kZml2bHFjbXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxNDk4NjYsImV4cCI6MjA1NDcyNTg2Nn0.yjd-SXfzJe6XmuNpI2HsZcI9EsS9AxBXI-qukzgcZig'
+    environment.SUPABASE_URL,
+    environment.SUPABASE_KEY
   );
 
   constructor(

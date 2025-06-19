@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { ClientService } from '../../services/client.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { CommonModule } from '@angular/common';
@@ -58,12 +58,15 @@ export class ClientListComponent implements OnInit, AfterViewInit {
 
   constructor(
     private clientService: ClientService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private cdr: ChangeDetectorRef
   ) {
     this.dataSource = new MatTableDataSource<any>([]);
   }
 
   async ngOnInit(): Promise<void> {
+    // Initialize theme state
+    this.initializeTheme();
     await this.loadProjects();
   }
 
@@ -76,6 +79,20 @@ export class ClientListComponent implements OnInit, AfterViewInit {
         this.loadProjects();
       });
     }
+  }
+
+  // Add method to initialize theme
+  private initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const currentTheme = savedTheme || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  }
+
+  // Add method to handle theme changes from sidebar
+  onSidebarThemeChange(theme: string) {
+    // Update the document attribute to trigger CSS variable changes
+    document.documentElement.setAttribute('data-theme', theme);
+    this.cdr.detectChanges();
   }
 
   async loadProjects(): Promise<void> {
